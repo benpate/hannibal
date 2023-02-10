@@ -8,6 +8,7 @@ require (
 	github.com/benpate/rosetta v0.11.2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-fed/httpsig v1.1.0
+	github.com/karlseguin/ccache/v3 v3.0.3
 	github.com/stretchr/testify v1.8.1
 )
 

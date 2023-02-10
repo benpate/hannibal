@@ -7,10 +7,10 @@ import (
 
 type Slice struct {
 	value  []any
-	client *HTTPClient
+	client *Client
 }
 
-func NewSlice(value []any, client *HTTPClient) Slice {
+func NewSlice(value []any, client *Client) Slice {
 	return Slice{
 		value:  value,
 		client: client,
@@ -65,7 +65,7 @@ func (s Slice) Tail() Reader {
 // Head returns a Reader for the first record in the slice.
 func (s Slice) Head() Reader {
 	if len(s.value) > 0 {
-		return NewReader(s.value[0], s.client)
+		return s.client.NewReader(s.value[0])
 	}
 
 	return NewZero()

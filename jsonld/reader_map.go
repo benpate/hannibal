@@ -7,10 +7,10 @@ import (
 
 type Map struct {
 	value  map[string]any
-	client *HTTPClient
+	client *Client
 }
 
-func NewMap(value map[string]any, client *HTTPClient) Map {
+func NewMap(value map[string]any, client *Client) Map {
 	return Map{
 		value:  value,
 		client: client,
@@ -21,7 +21,7 @@ func NewMap(value map[string]any, client *HTTPClient) Map {
 func (m Map) Property(key string) Reader {
 
 	if value, ok := m.value[key]; ok {
-		return NewReader(value, m.client)
+		return m.client.NewReader(value)
 	}
 
 	return NewZero()

@@ -5,22 +5,53 @@ import (
 	"github.com/benpate/remote"
 )
 
-// HTTPClient wraps http transactions to load remote JSON-LD documents.
-type HTTPClient struct {
+// Client wraps http transactions to load remote JSON-LD documents.
+type Client struct {
 	mimeType string
 	cache    Cache
 }
 
-// NewClient creates a new HTTPClient object, which can be used to load remote JSON-LD documents.
-func NewClient(mimeType string, cache Cache) HTTPClient {
-	return HTTPClient{
+// New creates a new Client object, which can be used to load remote JSON-LD documents.
+func New(mimeType string, cache Cache) Client {
+	return Client{
 		mimeType: mimeType,
 		cache:    cache,
 	}
 }
 
+// NewReader returns a Reader object for the specified value.
+func (client *Client) NewReader(value any) Reader {
+
+	switch typed := value.(type) {
+
+	case map[string]any:
+		return NewMap(typed, client)
+
+	case []any:
+		return NewSlice(typed, client)
+
+	case string:
+		return NewString(typed, client)
+
+	case bool:
+		return NewBool(typed)
+
+	case int:
+		return NewInt(typed)
+
+	case int64:
+		return NewInt(int(typed))
+
+	case float64:
+		return NewFloat(typed)
+
+	}
+
+	return NewZero()
+}
+
 // Load retrieves a JSON-LD document from a remote server, parses is, and returns a Reader object.
-func (client *HTTPClient) Load(uri string) (Reader, error) {
+func (client *Client) Load(uri string) (Reader, error) {
 
 	// If the value exists in the cache, then return it immediately
 	if client.cache != nil {

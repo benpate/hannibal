@@ -28,33 +28,3 @@ type Reader interface {
 	// Tail returns a slice of all records after the first.
 	Tail() Reader
 }
-
-func NewReader(value any, client *HTTPClient) Reader {
-
-	switch typed := value.(type) {
-
-	case map[string]any:
-		return NewMap(typed, client)
-
-	case []any:
-		return NewSlice(typed, client)
-
-	case string:
-		return NewString(typed, client)
-
-	case bool:
-		return NewBool(typed)
-
-	case int:
-		return NewInt(typed)
-
-	case int64:
-		return NewInt(int(typed))
-
-	case float64:
-		return NewFloat(typed)
-
-	}
-
-	return NewZero()
-}

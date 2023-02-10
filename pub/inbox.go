@@ -12,7 +12,7 @@ import (
 )
 
 // ParseInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
-func ParseInboxRequest(request *http.Request) (string, jsonld.Reader, error) {
+func ParseInboxRequest(request *http.Request, client *jsonld.Client) (string, jsonld.Reader, error) {
 
 	const activityTypeError = "ERROR"
 
@@ -50,14 +50,14 @@ func ParseInboxRequest(request *http.Request) (string, jsonld.Reader, error) {
 
 	// First, assume that we have a fully defined activity
 	if activityType := vocab.ValidateActivityType(activity.GetString("type")); activityType != vocab.Unknown {
-		return activityType, jsonld.NewReader(activity), nil
+		return activityType, client.NewReader(activity), nil
 	}
 
 	// Otherwise, assume that we have an implicit "Create" activity
 	if objectType := vocab.ValidateObjectType(activity.GetString("type")); objectType != vocab.Unknown {
-		return vocab.ActivityTypeCreate, jsonld.NewReader(activity), derp.NewInternalError(location, "Implicit 'Create' activities are not yet implemented")
+		return vocab.ActivityTypeCreate, client.NewReader(activity), derp.NewInternalError(location, "Implicit 'Create' activities are not yet implemented")
 	}
 
 	// Return the activity to the caller.
-	return vocab.Unknown, jsonld.NewReader(activity), nil
+	return vocab.Unknown, client.NewReader(activity), nil
 }

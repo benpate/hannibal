@@ -8,10 +8,10 @@ import (
 
 type String struct {
 	value  string
-	client *HTTPClient
+	client *Client
 }
 
-func NewString(value string, client *HTTPClient) String {
+func NewString(value string, client *Client) String {
 	return String{
 		value:  value,
 		client: client,
