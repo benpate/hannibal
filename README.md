@@ -16,6 +16,10 @@ This is not an ActivityPub framework, but a simple library that easily plugs int
 ### ActivityStream Vocabulary [vocab]
 https://www.w3.org/TR/activitystreams-vocabulary/
 
+This package includes the standard ActivityStream
+vocabulary, including names of actions, objects and 
+properties used in ActivityPub. 
+
 ### ActivityStreams data structures [stream]
 https://www.w3.org/TR/activitystreams-core/
 
