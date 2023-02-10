@@ -1,12 +1,12 @@
-package activitypub
+package pub
 
 import (
 	"bytes"
 	"encoding/json"
 	"net/http"
 
-	vocab "github.com/EmissarySocial/emissary/protocols/activityvocabulary"
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 )
 

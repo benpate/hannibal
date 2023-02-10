@@ -1,4 +1,4 @@
-package activitystreams
+package stream
 
 type Object map[string]any
 

@@ -1,4 +1,4 @@
-package activitypub
+package pub
 
 import (
 	"crypto"

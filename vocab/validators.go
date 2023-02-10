@@ -1,4 +1,4 @@
-package activityvocabulary
+package vocab
 
 // ValidateActivityType validates the ActivityPub "type" of the given activity.
 // It returns "UNKNOWN" if the type is not recognized.

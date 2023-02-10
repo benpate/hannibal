@@ -1,4 +1,4 @@
-package activitypub
+package pub
 
 const DefaultContext = "https://www.w3.org/ns/activitystreams"
 

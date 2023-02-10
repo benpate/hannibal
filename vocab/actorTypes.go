@@ -1,4 +1,4 @@
-package activityvocabulary
+package vocab
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-application
 const ActorTypeApplication = "Application"

@@ -1,4 +1,4 @@
-package activitystreams
+package stream
 
 import (
 	"encoding/json"
