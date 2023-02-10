@@ -4,7 +4,7 @@
 
 Hannibal is an experimental ActivityPub library for Go. There are other packages/frameworks out there that are more complete and mature. So please check out [go-fed](https://github.com/go-fed) and [go-ap](https://github.com/go-ap) before trying Hannibal.
 
-I'm writing this because the existing frameworks are very sophisticated, yet difficult for me to use.  They contain too much *magic* to be easily understood.  Hannibal fits the rest of the coding style of [Emissary](https://github.com/EmissarySocial/emissary) well enough to integrate nicely.
+I'm writing this because the existing frameworks are very sophisticated, yet difficult for me to use.  They contain too much *magic* to be easily understood.  The goal of Hannibal is to be a robist, idiomatic, and thoroughly documented ActivityPub implementation fits into your application without any magic or drama.
 
 Like the ActivityPub spec itself, Hannibal is broken into several layers:
 
