@@ -14,8 +14,8 @@ func NewBool(value bool) Bool {
 	return Bool{value: value}
 }
 
-// Property returns a sub-property of the current object
-func (b Bool) Property(key string) Reader {
+// Get returns a sub-property of the current object
+func (b Bool) Get(key string) Reader {
 	return NewZero()
 }
 
@@ -57,6 +57,11 @@ func (b Bool) IsEmpty() bool {
 
 // Tail returns a slice of all records after the first.
 func (b Bool) Tail() Reader {
+	return NewZero()
+}
+
+// Load retrieves a remote object if the ID is available
+func (b Bool) Load() Reader {
 	return NewZero()
 }
 

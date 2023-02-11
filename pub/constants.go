@@ -7,3 +7,5 @@ const ActivityTypeFollow = "Follow"
 const ContentType = "Content-Type"
 
 const ContentTypeActivityPub = "application/activity+json"
+
+const ContentTypeJSONLD = "application/ld+json"

@@ -14,8 +14,8 @@ func NewFloat(value float64) Float {
 	return Float{value: value}
 }
 
-// Property returns a sub-property of the current object
-func (f Float) Property(key string) Reader {
+// Get returns a sub-property of the current object
+func (f Float) Get(key string) Reader {
 	return NewZero()
 }
 
@@ -51,6 +51,11 @@ func (f Float) IsEmpty() bool {
 
 // Tail returns a slice of all records after the first.
 func (f Float) Tail() Reader {
+	return NewZero()
+}
+
+// Load retrieves a remote object if the ID is available
+func (f Float) Load() Reader {
 	return NewZero()
 }
 

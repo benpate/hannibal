@@ -17,9 +17,9 @@ func NewSlice(value []any, client *Client) Slice {
 	}
 }
 
-// Property returns a sub-property of the current object
-func (s Slice) Property(key string) Reader {
-	return s.Head().Property(key)
+// Get returns a sub-property of the current object
+func (s Slice) Get(key string) Reader {
+	return s.Head().Get(key)
 }
 
 // AsBool returns the current object as a floating-point value
@@ -69,6 +69,11 @@ func (s Slice) Head() Reader {
 	}
 
 	return NewZero()
+}
+
+// Load retrieves a remote object if the ID is available
+func (s Slice) Load() Reader {
+	return s
 }
 
 // MarshalJSON returns the JSON encoding of the current object

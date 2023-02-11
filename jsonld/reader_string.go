@@ -18,9 +18,9 @@ func NewString(value string, client *Client) String {
 	}
 }
 
-// Property returns a sub-property of the current object
-func (s String) Property(key string) Reader {
-	return NewZero()
+// Get returns a sub-property of the current object
+func (s String) Get(key string) Reader {
+	return s.Load().Get(key)
 }
 
 // AsBool returns the current object as a floating-point value
@@ -58,6 +58,16 @@ func (s String) IsEmpty() bool {
 
 // Tail returns a slice of all records after the first.
 func (s String) Tail() Reader {
+	return NewZero()
+}
+
+// Load retrieves a remote object if the ID is available
+func (s String) Load() Reader {
+
+	if result, err := s.client.Load(s.value); err == nil {
+		return result
+	}
+
 	return NewZero()
 }
 

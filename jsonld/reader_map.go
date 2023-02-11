@@ -17,8 +17,8 @@ func NewMap(value map[string]any, client *Client) Map {
 	}
 }
 
-// Property returns a sub-property of the current object
-func (m Map) Property(key string) Reader {
+// Get returns a sub-property of the current object
+func (m Map) Get(key string) Reader {
 
 	if value, ok := m.value[key]; ok {
 		return m.client.NewReader(value)
@@ -44,7 +44,7 @@ func (m Map) AsInt() int {
 
 // AsString returns the current object as a string value
 func (m Map) AsString() string {
-	return m.Property("id").AsString()
+	return m.Get("id").AsString()
 }
 
 // AsTime returns the current object as a time value
@@ -60,6 +60,11 @@ func (m Map) IsEmpty() bool {
 // Tail returns a slice of all records after the first.
 func (m Map) Tail() Reader {
 	return NewZero()
+}
+
+// Load retrieves a remote object if the ID is available
+func (m Map) Load() Reader {
+	return m
 }
 
 // MarshalJSON returns the JSON encoding of the current object

@@ -14,8 +14,8 @@ func NewInt(value int) Int {
 	return Int{value: value}
 }
 
-// Property returns a sub-property of the current object
-func (i Int) Property(key string) Reader {
+// Get returns a sub-property of the current object
+func (i Int) Get(key string) Reader {
 	return NewZero()
 }
 
@@ -51,6 +51,11 @@ func (i Int) IsEmpty() bool {
 
 // Tail returns a slice of all records after the first.
 func (i Int) Tail() Reader {
+	return NewZero()
+}
+
+// Load retrieves a remote object if the ID is available
+func (i Int) Load() Reader {
 	return NewZero()
 }
 

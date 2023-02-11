@@ -4,8 +4,8 @@ import "time"
 
 type Reader interface {
 
-	// Property returns a sub-property of the current object
-	Property(key string) Reader
+	// Get returns a sub-property of the current object
+	Get(key string) Reader
 
 	// AsBool returns the current object as a floating-point value
 	AsBool() bool
@@ -21,6 +21,9 @@ type Reader interface {
 
 	// AsTime returns the current object as a time value
 	AsTime() time.Time
+
+	// Load retrieves a remote object if an ID is available
+	Load() Reader
 
 	// IsEmpty return TRUE if the current object is empty
 	IsEmpty() bool

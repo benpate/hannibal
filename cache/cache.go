@@ -11,14 +11,18 @@ type Cache struct {
 	ttl   time.Duration
 }
 
-func New(maxSize int64, ttl time.Duration) Cache {
+func New(maxSize int64, ttl time.Duration) *Cache {
 
 	config := ccache.Configure[map[string]any]().MaxSize(maxSize)
 
-	return Cache{
+	return &Cache{
 		cache: ccache.New(config),
 		ttl:   ttl,
 	}
+}
+
+func NewDefaultCache() *Cache {
+	return New(2048, 8*time.Minute)
 }
 
 func (x *Cache) Get(key string) map[string]any {

@@ -8,9 +8,3 @@ type Cache interface {
 	Set(string, map[string]any)
 	Delete(string)
 }
-
-var cache Cache
-
-func UseCache(c Cache) {
-	cache = c
-}

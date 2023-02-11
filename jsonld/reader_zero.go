@@ -8,8 +8,8 @@ func NewZero() Zero {
 	return Zero{}
 }
 
-// Property returns a sub-property of the current object
-func (zero Zero) Property(key string) Reader {
+// Get returns a sub-property of the current object
+func (zero Zero) Get(key string) Reader {
 	return zero
 }
 
@@ -41,6 +41,11 @@ func (zero Zero) AsTime() time.Time {
 // IsEmpty return TRUE if the current object is empty
 func (zero Zero) IsEmpty() bool {
 	return true
+}
+
+// Load retrieves a remote object if the ID is available
+func (z Zero) Load() Reader {
+	return NewZero()
 }
 
 // Tail returns a slice of all records after the first.

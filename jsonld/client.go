@@ -2,20 +2,25 @@ package jsonld
 
 import (
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/cache"
 	"github.com/benpate/remote"
 )
 
 // Client wraps http transactions to load remote JSON-LD documents.
 type Client struct {
-	mimeType string
-	cache    Cache
+	cache Cache
 }
 
 // New creates a new Client object, which can be used to load remote JSON-LD documents.
-func New(mimeType string, cache Cache) Client {
+func New(cache Cache) Client {
 	return Client{
-		mimeType: mimeType,
-		cache:    cache,
+		cache: cache,
+	}
+}
+
+func NewDefaultClient() Client {
+	return Client{
+		cache: cache.NewDefaultCache(),
 	}
 }
 
@@ -64,7 +69,7 @@ func (client *Client) Load(uri string) (Reader, error) {
 	result := make(map[string]any)
 
 	transaction := remote.Get(uri).
-		Accept(client.mimeType).
+		Accept("application/activity+json").
 		Response(&result, nil)
 
 	if err := transaction.Send(); err != nil {

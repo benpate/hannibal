@@ -1,4 +1,4 @@
-package stream
+package streams
 
 type Object map[string]any
 
