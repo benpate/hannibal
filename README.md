@@ -20,7 +20,7 @@ https://www.w3.org/TR/activitystreams-vocabulary/
 
 This package includes the standard ActivityStream vocabulary, including names of actions, objects and properties used in ActivityPub. 
 
-### stream - ActivityStreams data structures
+### streams - ActivityStreams data structures
 https://www.w3.org/TR/activitystreams-core/
 
 The stream package contains common data structures defined in the ActivityStreams spec, notably definitions for: `Collection`, `OrderedCollection`, `CollectionPage`, and `OrderedCollectionPage`.  These are used by ActivityPub to send and receive multiple records in one HTTP request.
