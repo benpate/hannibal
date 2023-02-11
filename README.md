@@ -15,7 +15,7 @@ https://www.w3.org/TR/activitypub/
 
 This is not an ActivityPub framework, but a simple library that easily plugs into your existing app.  Add ActivityPub behaviors to your existing handlers, and send ActivityPub messages to 
 
-### vocab - ActivityStream Vocabulary
+### vocab - ActivityStreams Vocabulary
 https://www.w3.org/TR/activitystreams-vocabulary/
 
 This package includes the standard ActivityStream vocabulary, including names of actions, objects and properties used in ActivityPub. 
