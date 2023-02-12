@@ -10,7 +10,7 @@ import (
 )
 
 // ParseInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
-func ParseInboxRequest(request *http.Request, client jsonld.Client) (activityType string, objectType string, reader jsonld.Reader, err error) {
+func ParseInboxRequest(request *http.Request, client jsonld.Client) (reader jsonld.Reader, err error) {
 
 	const activityTypeError = "ERROR"
 
@@ -18,7 +18,7 @@ func ParseInboxRequest(request *http.Request, client jsonld.Client) (activityTyp
 
 	// RULE: Content-Type MUST be "application/activity+json" or "application/ld+json"
 	if !isActivityPubContentType(request.Header.Get(ContentType)) {
-		return activityTypeError, vocab.Unknown, jsonld.NilReader(), derp.NewBadRequestError(location, "Content-Type MUST be 'application/activity+json'")
+		return jsonld.NilReader(), derp.NewBadRequestError(location, "Content-Type MUST be 'application/activity+json'")
 	}
 
 	// TODO: Verify the request signature
@@ -28,7 +28,7 @@ func ParseInboxRequest(request *http.Request, client jsonld.Client) (activityTyp
 	// Try to read the body from the request
 	var bodyBuffer bytes.Buffer
 	if _, err := bodyBuffer.ReadFrom(request.Body); err != nil {
-		return activityTypeError, vocab.Unknown, jsonld.NilReader(), derp.Wrap(err, location, "Error reading body into buffer")
+		return jsonld.NilReader(), derp.Wrap(err, location, "Error reading body into buffer")
 	}
 
 	// Try to unmarshal the body from the buffer into a new JSON-LD reader
@@ -38,17 +38,16 @@ func ParseInboxRequest(request *http.Request, client jsonld.Client) (activityTyp
 
 	// First, assume that we have a fully defined activity
 	if activityType := vocab.ValidateActivityType(messageType); activityType != vocab.Unknown {
-		objectType := reader.Get("object").Get("type").AsString()
-		return activityType, objectType, reader, nil
+		return reader, nil
 	}
 
 	// Otherwise, assume that we have an implicit "Create" activity
 	if objectType := vocab.ValidateObjectType(messageType); objectType != vocab.Unknown {
 		// TODO: MEDIUM: Wrap original activity in a "Create" activity
 		// TODO: MEDIUM: Can we get the Actor from the signed HTTP Request?
-		return vocab.ActivityTypeCreate, objectType, reader, derp.NewInternalError(location, "Implicit 'Create' activities are not yet implemented")
+		return reader, derp.NewInternalError(location, "Implicit 'Create' activities are not yet implemented")
 	}
 
 	// Return the activity to the caller.
-	return vocab.Unknown, vocab.Unknown, reader, nil
+	return reader, nil
 }

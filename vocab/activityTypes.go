@@ -83,6 +83,3 @@ const ActivityTypeUpdate = "Update"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-view
 const ActivityTypeView = "View"
-
-// Unknown is a constant for when a value is.
-const Unknown = "Unknown"
