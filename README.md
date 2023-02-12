@@ -15,12 +15,12 @@ https://www.w3.org/TR/activitypub/
 
 This is not an ActivityPub framework, but a simple library that easily plugs into your existing app.  Add ActivityPub behaviors to your existing handlers, and send ActivityPub messages to 
 
-### vocab - ActivityStream Vocabulary
+### vocab - ActivityStreams Vocabulary
 https://www.w3.org/TR/activitystreams-vocabulary/
 
 This package includes the standard ActivityStream vocabulary, including names of actions, objects and properties used in ActivityPub. 
 
-### stream - ActivityStreams data structures
+### streams - ActivityStreams data structures
 https://www.w3.org/TR/activitystreams-core/
 
 The stream package contains common data structures defined in the ActivityStreams spec, notably definitions for: `Collection`, `OrderedCollection`, `CollectionPage`, and `OrderedCollectionPage`.  These are used by ActivityPub to send and receive multiple records in one HTTP request.
