@@ -2,9 +2,9 @@ package pub
 
 import (
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
 	"github.com/benpate/rosetta/mapof"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func GetProfile(remoteID string) (mapof.Any, error) {
@@ -56,21 +56,13 @@ func Get(remoteID string) (mapof.Any, error) {
 // actor: The Actor that is sending the request
 // activity: The ActivityStream that is being sent
 // targetID: The ID of the Actor that will receive the request
-//
-// Returns:
-// 1. The response from the remote service
-// 2. An error, if one occurred
-func Post(actor Actor, activity mapof.Any, targetID string) (mapof.Any, error) {
-
-	spew.Dump("Post", activity, targetID)
-
-	result := mapof.NewAny()
+func Post(actor Actor, activity mapof.Any, targetID string) error {
 
 	// Try to get the source profile that we're going to follow
 	target, err := GetProfile(targetID)
 
 	if err != nil {
-		return result, derp.Wrap(err, "activitypub.Follow", "Error getting source profile", targetID)
+		return derp.Wrap(err, "activitypub.Follow", "Error getting source profile", targetID)
 	}
 
 	// Try to get the actor's inbox from the actor ActivityStream.
@@ -78,19 +70,20 @@ func Post(actor Actor, activity mapof.Any, targetID string) (mapof.Any, error) {
 	inbox := target.GetString("inbox")
 
 	if inbox == "" {
-		return result, derp.New(500, "activitypub.Follow", "Unable to find 'inbox' in target profile", targetID, target)
+		return derp.NewInternalError("activitypub.Follow", "Unable to find 'inbox' in target profile", targetID, target)
 	}
 
+	// Send the request to the target Actor's inbox
 	transaction := remote.Post(inbox).
-		Accept("application/activity+json").
-		ContentType("application/activity+json").
+		Accept(vocab.ContentTypeActivityPub).
+		ContentType(vocab.ContentTypeActivityPub).
 		Use(RequestSignature(actor)).
-		JSON(activity).
-		Response(&result, nil)
+		JSON(activity)
 
 	if err := transaction.Send(); err != nil {
-		return result, derp.Wrap(err, "activitypub.Follow", "Error sending Follow request", inbox)
+		return derp.Wrap(err, "activitypub.Follow", "Error sending Follow request", inbox)
 	}
 
-	return result, nil
+	// Done!
+	return nil
 }

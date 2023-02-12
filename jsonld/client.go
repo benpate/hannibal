@@ -1,6 +1,8 @@
 package jsonld
 
 import (
+	"encoding/json"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/cache"
 	"github.com/benpate/remote"
@@ -27,32 +29,21 @@ func NewDefaultClient() Client {
 // NewReader returns a Reader object for the specified value.
 func (client *Client) NewReader(value any) Reader {
 
-	switch typed := value.(type) {
+	return Reader{
+		value:  value,
+		client: client,
+	}
+}
 
-	case map[string]any:
-		return NewMap(typed, client)
+func (client *Client) UnmarshalReader(value []byte) Reader {
 
-	case []any:
-		return NewSlice(typed, client)
+	result := make(map[string]any)
 
-	case string:
-		return NewString(typed, client)
-
-	case bool:
-		return NewBool(typed)
-
-	case int:
-		return NewInt(typed)
-
-	case int64:
-		return NewInt(int(typed))
-
-	case float64:
-		return NewFloat(typed)
-
+	if err := json.Unmarshal(value, &result); err != nil {
+		return NilReader()
 	}
 
-	return NewZero()
+	return client.NewReader(result)
 }
 
 // Load retrieves a JSON-LD document from a remote server, parses is, and returns a Reader object.
@@ -61,7 +52,7 @@ func (client *Client) Load(uri string) (Reader, error) {
 	// If the value exists in the cache, then return it immediately
 	if client.cache != nil {
 		if cachedValue := client.cache.Get(uri); cachedValue != nil {
-			return NewMap(cachedValue, client), nil
+			return client.NewReader(cachedValue), nil
 		}
 	}
 
@@ -73,7 +64,7 @@ func (client *Client) Load(uri string) (Reader, error) {
 		Response(&result, nil)
 
 	if err := transaction.Send(); err != nil {
-		return NewZero(), derp.Wrap(err, "jsonld.Client.Load", "Error loading JSON-LD document", uri)
+		return NilReader(), derp.Wrap(err, "jsonld.Client.Load", "Error loading JSON-LD document", uri)
 	}
 
 	// If we got a result, then cache it for later
@@ -82,5 +73,5 @@ func (client *Client) Load(uri string) (Reader, error) {
 	}
 
 	// Return in triumph
-	return NewMap(result, client), nil
+	return client.NewReader(result), nil
 }
