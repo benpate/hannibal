@@ -1,4 +1,4 @@
-package jsonld
+package streams
 
 // Cache is a simple interace for caching JSON-LD documents.
 // There is a default implementation in the "cache" package,

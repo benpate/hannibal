@@ -2,7 +2,7 @@ package pub
 
 import (
 	"github.com/benpate/derp"
-	"github.com/benpate/hannibal/jsonld"
+	"github.com/benpate/hannibal/streams"
 )
 
 // Router is a simple object that routes incoming ActivityPub activities to the appropriate handler
@@ -13,7 +13,7 @@ type Router struct {
 // RouteHandler is a function that handles a specific type of ActivityPub activity.
 // RouteHandlers are registered with the Router object along with the names of the activity
 // types that they correspond to.
-type RouteHandler func(activity jsonld.Reader) error
+type RouteHandler func(activity streams.Document) error
 
 // NewRouter creates a new Router object
 func NewRouter() Router {
@@ -38,7 +38,7 @@ func (router *Router) Add(activityType string, objectType string, routeHandler R
 }
 
 // Handle takes an ActivityPub activity and routes it to the appropriate handler
-func (router *Router) Handle(activity jsonld.Reader) error {
+func (router *Router) Handle(activity streams.Document) error {
 
 	activityType := activity.Type()
 	objectType := activity.Object().Type()

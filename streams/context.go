@@ -5,19 +5,24 @@ import (
 	"encoding/json"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/vocab"
 )
 
 type Context []ContextEntry
 
-func NewContext() Context {
-	return make(Context, 0)
+func NewContext(args ...string) Context {
+	result := make(Context, len(args))
+
+	for index, arg := range args {
+		result[index] = NewContextEntry(arg)
+	}
+
+	return result
 }
 
 // DefaultContext represents the standard context defined by the W3C
 func DefaultContext() Context {
-	result := NewContext()
-	result.Add("https://www.w3.org/ns/activitystreams")
-	return result
+	return NewContext(vocab.NamespaceActivityStreams)
 }
 
 func (c Context) Length() int {
@@ -63,6 +68,8 @@ func (c *Context) Add(vocabulary string) *ContextEntry {
 
 func (c Context) MarshalJSON() ([]byte, error) {
 
+	const location = "writer.Context.MarshalJSON"
+
 	switch len(c) {
 
 	case 0:
@@ -85,7 +92,7 @@ func (c Context) MarshalJSON() ([]byte, error) {
 		item, err := json.Marshal(context)
 
 		if err != nil {
-			return nil, derp.Wrap(err, "writer.Context.MarshalJSON", "Failed to marshal context")
+			return nil, derp.Wrap(err, location, "Failed to marshal context")
 		}
 
 		buffer.Write(item)
@@ -97,6 +104,8 @@ func (c Context) MarshalJSON() ([]byte, error) {
 }
 
 func (c *Context) UnmarshalJSON(data []byte) error {
+
+	const location = "writer.Context.UnmarshalJSON"
 
 	// If the data is empty, then this object is empty, too
 	if len(data) == 0 {
@@ -110,7 +119,7 @@ func (c *Context) UnmarshalJSON(data []byte) error {
 		onlyContext := ContextEntry{}
 
 		if err := json.Unmarshal(data, &onlyContext); err != nil {
-			return derp.Wrap(err, "writer.Context.UnmarshalJSON", "Failed to unmarshal context")
+			return derp.Wrap(err, location, "Failed to unmarshal context")
 		}
 
 		*c = Context{onlyContext}
@@ -121,7 +130,7 @@ func (c *Context) UnmarshalJSON(data []byte) error {
 	var entries []ContextEntry
 
 	if err := json.Unmarshal(data, &entries); err != nil {
-		return derp.Wrap(err, "writer.Context.UnmarshalJSON", "Failed to unmarshal context array")
+		return derp.Wrap(err, location, "Failed to unmarshal context array")
 	}
 
 	*c = entries

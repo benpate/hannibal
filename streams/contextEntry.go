@@ -2,23 +2,21 @@ package streams
 
 import (
 	"encoding/json"
-
-	"github.com/benpate/rosetta/mapof"
 )
 
 // ContextEntry
 // https://www.w3.org/TR/json-ld/#the-context
 type ContextEntry struct {
-	Vocabulary string       // The primary vocabulary represented by the context/document.
-	Language   string       // The language
-	Extensions mapof.String // a map of additional namespaces that are included in this context/document.
+	Vocabulary string            // The primary vocabulary represented by the context/document.
+	Language   string            // The language
+	Extensions map[string]string // a map of additional namespaces that are included in this context/document.
 }
 
 func NewContextEntry(vocabulary string) ContextEntry {
 	return ContextEntry{
 		Vocabulary: vocabulary,
 		Language:   "und",
-		Extensions: mapof.NewString(),
+		Extensions: make(map[string]string),
 	}
 }
 
@@ -29,7 +27,7 @@ func (entry *ContextEntry) WithLanguage(language string) *ContextEntry {
 
 func (entry *ContextEntry) WithExtension(key string, value string) *ContextEntry {
 	if len(entry.Extensions) == 0 {
-		entry.Extensions = mapof.NewString()
+		entry.Extensions = make(map[string]string)
 	}
 
 	entry.Extensions[key] = value
@@ -45,7 +43,7 @@ func (entry ContextEntry) MarshalJSON() ([]byte, error) {
 	}
 
 	// Otherwise, use the long-form syntax as a JSON object
-	result := mapof.NewAny()
+	result := make(map[string]any)
 	result["@vocab"] = entry.Vocabulary
 
 	if entry.IsLanguageDefined() {

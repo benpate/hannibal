@@ -2,27 +2,30 @@ package pub
 
 import (
 	"github.com/benpate/derp"
-	"github.com/benpate/hannibal/jsonld"
+	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/davecgh/go-spew/spew"
 )
 
-func PostAcceptQueueTask(actor Actor, activity jsonld.Reader) QueueTask {
+func SendAcceptQueueTask(actor Actor, activity streams.Document) QueueTask {
 	return NewQueueTask(func() error {
-		return PostAccept(actor, activity)
+		return SendAccept(actor, activity)
 	})
 }
 
-func PostAccept(actor Actor, activity jsonld.Reader) error {
+func SendAccept(actor Actor, activity streams.Document) error {
 
 	message := mapof.Any{
-		"@context": DefaultContext,
+		"@context": vocab.ContextTypeActivityStreams,
 		"type":     vocab.ActivityTypeAccept,
 		"actor":    actor.ActorID,
-		"object":   activity,
+		"object":   activity.Value(),
 	}
 
 	targetURL := activity.ActorID()
+
+	spew.Dump("SendAccept =================", message, targetURL)
 
 	if err := Post(actor, message, targetURL); err != nil {
 		return derp.Wrap(err, "activitypub.PostAcceptActivity", "Error sending Accept request")

@@ -30,7 +30,7 @@ type Collection struct {
 
 func (c *Collection) UnmarshalJSON(data []byte) error {
 
-	result := mapof.NewAny()
+	result := make(map[string]any)
 
 	if err := json.Unmarshal(data, &result); err != nil {
 		return derp.Wrap(err, "activitystreams.Collection.UnmarshalJSON", "Error unmarshalling JSON", string(data))
