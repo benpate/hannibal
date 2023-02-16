@@ -8,7 +8,6 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // ParseInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
@@ -32,8 +31,6 @@ func ParseInboxRequest(request *http.Request, cache streams.Cache) (document str
 	if _, err := bodyBuffer.ReadFrom(request.Body); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body into buffer")
 	}
-
-	spew.Dump("ParseInboxRequest : RECEIVED ---------------------------", bodyBuffer.String(), "---------------------------")
 
 	// Try to retrieve the object from the buffer
 	document = streams.NewDocument(nil, cache)
