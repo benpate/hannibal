@@ -29,7 +29,7 @@ func SendUndo(actor Actor, activity streams.Document, targetURL string) error {
 	}
 
 	// Send the message to the target
-	if err := Post(actor, message, targetURL); err != nil {
+	if err := Send(actor, message, targetURL); err != nil {
 		return derp.Wrap(err, "activitypub.PostUndoActivity", "Error sending Undo request")
 	}
 

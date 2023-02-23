@@ -29,7 +29,7 @@ func SendFollow(actor Actor, followID string, targetID string) error {
 	}
 
 	// Send the request
-	if err := Post(actor, activity, targetID); err != nil {
+	if err := Send(actor, activity, targetID); err != nil {
 		return derp.Wrap(err, "activitypub.Follow", "Error sending Follow request")
 	}
 

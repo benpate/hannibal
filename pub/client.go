@@ -52,11 +52,11 @@ func Get(remoteID string) (mapof.Any, error) {
 	return result, nil
 }
 
-// Post sends an ActivityStream to a remote ActivityPub service
+// Send sends an ActivityStream to a remote ActivityPub service
 // actor: The Actor that is sending the request
 // activity: The ActivityStream that is being sent
 // targetID: The ID of the Actor that will receive the request
-func Post(actor Actor, activity mapof.Any, targetID string) error {
+func Send(actor Actor, activity mapof.Any, targetID string) error {
 
 	// Try to get the source profile that we're going to follow
 	target, err := GetProfile(targetID)

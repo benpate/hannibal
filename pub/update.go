@@ -7,22 +7,14 @@ import (
 	"github.com/benpate/rosetta/mapof"
 )
 
-func SendAcceptQueueTask(actor Actor, activity streams.Document) QueueTask {
-	return NewQueueTask(func() error {
-		return SendAccept(actor, activity)
-	})
-}
-
-func SendAccept(actor Actor, activity streams.Document) error {
+func SendUpdate(actor Actor, activity streams.Document, targetURL string) error {
 
 	message := mapof.Any{
 		"@context": vocab.ContextTypeActivityStreams,
-		"type":     vocab.ActivityTypeAccept,
+		"type":     vocab.ActivityTypeUpdate,
 		"actor":    actor.ActorID,
 		"object":   activity.Value(),
 	}
-
-	targetURL := activity.ActorID()
 
 	if err := Send(actor, message, targetURL); err != nil {
 		return derp.Wrap(err, "activitypub.PostAcceptActivity", "Error sending Accept request")
