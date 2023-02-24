@@ -62,7 +62,6 @@ func ReceiveInboxRequest(request *http.Request, cache streams.Cache) (document s
 }
 
 func validateRequest(request *http.Request, document streams.Document, bodyBuffer *bytes.Buffer, httpHeaderSignature string) error {
-
 	/*
 
 		const location = "activitypub.validateRequest"
