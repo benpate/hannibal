@@ -1,7 +1,13 @@
 package vocab
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accuracy
+const PropertyAccuracy = "accuracy"
+
 // https:// www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 const PropertyActor = "actor"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-altitude
+const PropertyAltitude = "altitude"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
 const PropertyAttachment = "attachment"
@@ -27,8 +33,17 @@ const PropertyContext = "context"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-current
 const PropertyCurrent = "current"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-deleted
+const PropertyDeleted = "deleted"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-describes
+const PropertyDescribes = "describes"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-first
 const PropertyFirst = "first"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-formertype
+const PropertyFormerType = "formerType"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-generator
 const PropertyGenerator = "generator"
@@ -102,12 +117,6 @@ const PropertyType = "type"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
 const PropertyURL = "url"
 
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accuracy
-const PropertyAccuracy = "accuracy"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-altitude
-const PropertyAltitude = "altitude"
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 const PropertyContent = "content"
 
@@ -153,8 +162,14 @@ const PropertyRadius = "radius"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-rel
 const PropertyRel = "rel"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
+const PropertyRelationship = "relationship"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-startindex
 const PropertyStartIndex = "startIndex"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject
+const PropertySubject = "subject"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 const PropertySummary = "summary"
@@ -170,18 +185,3 @@ const PropertyUpdated = "updated"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-width
 const PropertyWidth = "width"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject
-const PropertySubject = "subject"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
-const PropertyRelationship = "relationship"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-describes
-const PropertyDescribes = "describes"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-formertype
-const PropertyFormerType = "formerType"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-deleted
-const PropertyDeleted = "deleted"

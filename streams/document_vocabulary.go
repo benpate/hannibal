@@ -158,6 +158,14 @@ func (document Document) Preview() Document {
 	return document.Get(vocab.PropertyPreview)
 }
 
+func (document Document) PublicKey() Document {
+	return document.Get(vocab.PropertyPublicKey)
+}
+
+func (document Document) PublicKeyPEM() string {
+	return document.Get(vocab.PropertyPublicKeyPEM).AsString()
+}
+
 func (document Document) Result() Document {
 	return document.Get(vocab.PropertyResult)
 }
