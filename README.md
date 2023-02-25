@@ -1,11 +1,6 @@
 # Hannibal
 
-<div style="margin-bottom:20px;">
-<figure style="margin:0px;">
-<img src="https://github.com/benpate/hannibal/raw/main/meta/logo.jpg">
-<figcaption style="font-size:10px; text-align:right;"><i>Hannibal In The Alps</i> by <a href="https://en.wikipedia.org/wiki/Richard_Barrett_Davis">R.B. Davis</a>.</figcaption>
-</figure>
-</div>
+![Hannibal in the Alps by R.B. Davis](https://github.com/benpate/hannibal/raw/main/meta/logo.jpg)
 
 Hannibal is an experimental ActivityPub library for Go. It's goal is to be a robust, idiomatic, and thoroughly documented ActivityPub implementation fits into your application without any magic or drama.
 
