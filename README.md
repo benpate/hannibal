@@ -1,6 +1,6 @@
 # Hannibal
 
-<figure style="margin:0px;">
+<figure style="margin:0px 0px 20px 0px;">
 <img src="https://github.com/benpate/hannibal/raw/main/meta/logo.jpg">
 <figcaption style="font-size:10px; text-align:right;"><i>Hannibal In The Alps</i> by <a href="https://en.wikipedia.org/wiki/Richard_Barrett_Davis">R.B. Davis</a>.</figcaption>
 </figure>
