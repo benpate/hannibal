@@ -2,18 +2,23 @@ package pub
 
 import (
 	"github.com/benpate/derp"
-	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 )
 
-func SendCreate(actor Actor, activity streams.Document, targetURL string) error {
+func SendCreateQueueTask(actor Actor, activity mapof.Any, targetURL string) QueueTask {
+	return NewQueueTask(func() error {
+		return SendCreate(actor, activity, targetURL)
+	})
+}
+
+func SendCreate(actor Actor, activity mapof.Any, targetURL string) error {
 
 	message := mapof.Any{
 		"@context": vocab.ContextTypeActivityStreams,
 		"type":     vocab.ActivityTypeCreate,
 		"actor":    actor.ActorID,
-		"object":   activity.Value(),
+		"object":   activity,
 	}
 
 	if err := Send(actor, message, targetURL); err != nil {

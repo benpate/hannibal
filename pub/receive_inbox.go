@@ -8,7 +8,6 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // ReceiveInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
@@ -21,7 +20,7 @@ func ReceiveInboxRequest(request *http.Request, cache streams.Cache) (document s
 		return streams.NilDocument(), derp.NewBadRequestError(location, "Content-Type MUST be 'application/activity+json'")
 	}
 
-	spew.Dump("Received ActivityPub request", request.Header)
+	// spew.Dump("Received ActivityPub request", request.Header)
 
 	// Try to read the body from the request
 	var bodyBuffer bytes.Buffer
@@ -29,7 +28,7 @@ func ReceiveInboxRequest(request *http.Request, cache streams.Cache) (document s
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body into buffer")
 	}
 
-	spew.Dump(bodyBuffer.String())
+	// spew.Dump(bodyBuffer.String())
 
 	// Try to retrieve the object from the buffer
 	document = streams.NewDocument(nil, cache)

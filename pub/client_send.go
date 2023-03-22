@@ -7,6 +7,12 @@ import (
 	"github.com/benpate/rosetta/mapof"
 )
 
+func SendQueueTask(actor Actor, document mapof.Any, targetID string) QueueTask {
+	return NewQueueTask(func() error {
+		return Send(actor, document, targetID)
+	})
+}
+
 // Send sends an ActivityStream to a remote ActivityPub service
 // actor: The Actor that is sending the request
 // document: The ActivityStream that is being sent
@@ -43,6 +49,12 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 
 	// Done!
 	return nil
+}
+
+func SendActivityQueueTask(actor Actor, activityType string, object any, targetID string) QueueTask {
+	return NewQueueTask(func() error {
+		return SendActivity(actor, activityType, object, targetID)
+	})
 }
 
 // SendActivity wraps a document in a standard ActivityStream envelope and sends it to the target.
