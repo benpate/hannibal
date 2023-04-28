@@ -18,7 +18,7 @@ func (document Document) AsObject() (Document, error) {
 		return document, nil
 
 	case []any:
-		return document.Head().AsObject()
+		return document.Head(), nil
 
 	case string:
 
