@@ -15,12 +15,8 @@ func SendUndoQueueTask(actor Actor, activity mapof.Any, targetURL string) QueueT
 func SendUndo(actor Actor, activity mapof.Any, targetURL string) error {
 
 	// Build the ActivityPub Message
-	message := mapof.Any{
-		"@context": vocab.ContextTypeActivityStreams,
-		"type":     vocab.ActivityTypeUndo,
-		"actor":    actor.ActorID,
-		"object":   activity,
-	}
+	message := Undo(activity)
+	message["actor"] = actor.ActorID
 
 	// Send the message to the target
 	if err := Send(actor, message, targetURL); err != nil {
@@ -28,4 +24,20 @@ func SendUndo(actor Actor, activity mapof.Any, targetURL string) error {
 	}
 
 	return nil
+}
+
+// Undo creates an "Undo" activity for the specified activity,
+// copying the "actor" value from the original activity.
+func Undo(activity mapof.Any) mapof.Any {
+
+	delete(activity, "@context")
+
+	undo := mapof.Any{
+		"@context": vocab.ContextTypeActivityStreams,
+		"type":     vocab.ActivityTypeUndo,
+		"actor":    activity["actor"],
+		"object":   activity,
+	}
+
+	return undo
 }
