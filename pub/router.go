@@ -1,8 +1,11 @@
 package pub
 
 import (
+	"fmt"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // Router is a simple object that routes incoming ActivityPub activities to the appropriate handler
@@ -43,19 +46,41 @@ func (router *Router) Handle(activity streams.Document) error {
 	activityType := activity.Type()
 	objectType := activity.Object().Type()
 
+	if packageDebugLevel >= DebugLevelTerse {
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("------------------------------------------")
+		}
+		fmt.Println("HANNIBAL: Received Message: " + activityType + "/" + objectType)
+		if packageDebugLevel >= DebugLevelVerbose {
+			spew.Dump(activity.Value())
+		}
+	}
+
 	if routeHandler, ok := router.routes[activityType+"/"+objectType]; ok {
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("HANNIBAL: Found Route: " + activityType + "/" + objectType)
+		}
 		return routeHandler(activity)
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/*"]; ok {
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("HANNIBAL: Found Route: " + activityType + "/*")
+		}
 		return routeHandler(activity)
 	}
 
 	if routeHandler, ok := router.routes["*/"+objectType]; ok {
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("HANNIBAL: Found Route: " + "*/" + objectType)
+		}
 		return routeHandler(activity)
 	}
 
 	if routeHandler, ok := router.routes["*/*"]; ok {
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("HANNIBAL: Found Route: */*")
+		}
 		return routeHandler(activity)
 	}
 

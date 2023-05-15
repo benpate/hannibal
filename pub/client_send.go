@@ -1,10 +1,13 @@
 package pub
 
 import (
+	"fmt"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func SendQueueTask(actor Actor, document mapof.Any, targetID string) QueueTask {
@@ -20,6 +23,17 @@ func SendQueueTask(actor Actor, document mapof.Any, targetID string) QueueTask {
 func Send(actor Actor, document mapof.Any, targetID string) error {
 
 	const location = "hannibal.pub.Send"
+
+	// Optional debugging output
+	if packageDebugLevel >= DebugLevelTerse {
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("------------------------------------------")
+		}
+		fmt.Println("HANNIBAL: Sending Activity: " + targetID)
+		if packageDebugLevel >= DebugLevelVerbose {
+			spew.Dump(document)
+		}
+	}
 
 	// Try to get the source profile that we're going to follow
 	target, err := GetProfile(targetID)
@@ -45,6 +59,10 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 
 	if err := transaction.Send(); err != nil {
 		return derp.Wrap(err, location, "Error sending Follow request", inbox)
+	}
+
+	if packageDebugLevel >= DebugLevelVerbose {
+		fmt.Println("HANNIBAL: Sent Acivity Successfully")
 	}
 
 	// Done!

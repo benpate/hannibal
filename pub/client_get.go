@@ -1,9 +1,12 @@
 package pub
 
 import (
+	"fmt"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/remote"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func GetProfile(remoteID string) (mapof.Any, error) {
@@ -40,12 +43,23 @@ func Get(remoteID string) (mapof.Any, error) {
 
 	result := mapof.NewAny()
 
+	if packageDebugLevel >= DebugLevelTerse {
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("------------------------------------------")
+		}
+		fmt.Println("HANNIBAL: Getting RemoteID: " + remoteID)
+	}
+
 	transaction := remote.Get(remoteID).
 		Header("Accept", "application/activity+json").
 		Response(&result, nil)
 
 	if err := transaction.Send(); err != nil {
 		return result, derp.Wrap(err, "activitypub.GetProfile", "Error getting profile", remoteID)
+	}
+
+	if packageDebugLevel >= DebugLevelVerbose {
+		spew.Dump(result)
 	}
 
 	return result, nil
