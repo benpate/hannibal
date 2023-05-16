@@ -20,15 +20,11 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 		return streams.NilDocument(), derp.NewBadRequestError(location, "Content-Type MUST be 'application/activity+json'")
 	}
 
-	// spew.Dump("Received ActivityPub request", request.Header)
-
 	// Try to read the body from the request
 	var bodyBuffer bytes.Buffer
 	if _, err := bodyBuffer.ReadFrom(request.Body); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body into buffer")
 	}
-
-	// spew.Dump(bodyBuffer.String())
 
 	// Try to retrieve the object from the buffer
 	document = streams.NilDocument(streams.WithClient(client))

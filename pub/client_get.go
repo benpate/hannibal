@@ -1,12 +1,12 @@
 package pub
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/remote"
 	"github.com/benpate/rosetta/mapof"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func GetProfile(remoteID string) (mapof.Any, error) {
@@ -59,7 +59,8 @@ func Get(remoteID string) (mapof.Any, error) {
 	}
 
 	if packageDebugLevel >= DebugLevelVerbose {
-		spew.Dump(result)
+		marshalled, _ := json.MarshalIndent(result, "", "  ")
+		fmt.Println(string(marshalled))
 	}
 
 	return result, nil

@@ -1,13 +1,13 @@
 package pub
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
 	"github.com/benpate/rosetta/mapof"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func SendQueueTask(actor Actor, document mapof.Any, targetID string) QueueTask {
@@ -31,7 +31,8 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 		}
 		fmt.Println("HANNIBAL: Sending Activity: " + targetID)
 		if packageDebugLevel >= DebugLevelVerbose {
-			spew.Dump(document)
+			marshalled, _ := json.MarshalIndent(document, "", "  ")
+			fmt.Println(string(marshalled))
 		}
 	}
 

@@ -1,11 +1,11 @@
 package pub
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // Router is a simple object that routes incoming ActivityPub activities to the appropriate handler
@@ -52,7 +52,8 @@ func (router *Router) Handle(activity streams.Document) error {
 		}
 		fmt.Println("HANNIBAL: Received Message: " + activityType + "/" + objectType)
 		if packageDebugLevel >= DebugLevelVerbose {
-			spew.Dump(activity.Value())
+			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
+			fmt.Println(string(marshalled))
 		}
 	}
 
