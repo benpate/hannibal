@@ -54,6 +54,9 @@ const PropertyIcon = "icon"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
 const PropertyID = "id"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
+const PropertyID_Alternate = "@id"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-image
 const PropertyImage = "image"
 
@@ -71,6 +74,9 @@ const PropertyLocation = "location"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 const PropertyItems = "items"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
+const PropertyOrderedItems = "orderedItems"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-oneof
 const PropertyOneOf = "oneOf"
@@ -113,6 +119,9 @@ const PropertyTo = "to"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
 const PropertyType = "type"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
+const PropertyType_Alternate = "@type"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
 const PropertyURL = "url"
