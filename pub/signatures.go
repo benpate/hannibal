@@ -30,14 +30,14 @@ func ValidateHTTPSignature(request *http.Request, document streams.Document, cac
 	const location = "activitypub.validateRequest"
 
 	// Get the Actor from the document
-	actor, err := document.Actor().AsObject()
+	actor, err := document.Actor().Load()
 
 	if err != nil {
 		return derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document")
 	}
 
 	// Get the Actor's Public Key
-	actorPublicKey, err := actor.PublicKey().AsObject()
+	actorPublicKey, err := actor.PublicKey().Load()
 
 	if err != nil {
 		return derp.Wrap(err, location, "Error retrieving Public Key from Actor")

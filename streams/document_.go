@@ -1,8 +1,13 @@
 package streams
 
 import (
-	"strconv"
 	"time"
+
+	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/rosetta/convert"
+	"github.com/benpate/rosetta/mapof"
+	"github.com/benpate/rosetta/sliceof"
 )
 
 // Document represents a single ActivityStream document
@@ -11,28 +16,30 @@ import (
 // `map[string]any`, `[]any`, or a primitive type, like a
 // `string`, `float`, `int` or `bool`.
 type Document struct {
-	value any
-	cache Cache
+	value  any
+	client Client
 }
 
 // NewDocument creates a new Document object from a JSON-LD map[string]any
-func NewDocument(value map[string]any, cache Cache) Document {
-	return Document{
-		value: value,
-		cache: cache,
-	}
-}
+func NewDocument(value any, options ...Option) Document {
+	result := Document{value: value}
 
-func NewID(value string, cache Cache) Document {
-	return Document{
-		value: value,
-		cache: cache,
+	for _, option := range options {
+		option(&result)
 	}
+
+	return result
 }
 
 // NilDocument returns a new, empty Document.
-func NilDocument() Document {
-	return Document{}
+func NilDocument(options ...Option) Document {
+	result := Document{}
+
+	for _, option := range options {
+		option(&result)
+	}
+
+	return result
 }
 
 /******************************************
@@ -90,26 +97,11 @@ func (document Document) Value() any {
 // Get returns a sub-property of the current document
 func (document Document) Get(key string) Document {
 
-	// Look for the value in the document.  This should
-	// happen 99.9% of the time.
 	if result := document.get(key); !result.IsNil() {
 		return result
 	}
 
-	// Odd case: Search alternate values that ActivityPub
-	// has aliased with/without "@" signs.  Grr..
-	switch key {
-	case "@id":
-		return document.get("id")
-	case "@type":
-		return document.get("type")
-	case "id":
-		return document.get("@id")
-	case "type":
-		return document.get("@type")
-	default:
-		return NilDocument()
-	}
+	return NilDocument()
 }
 
 // get does the actual work of looking up a value in
@@ -119,17 +111,25 @@ func (document Document) get(key string) Document {
 	switch typed := document.value.(type) {
 
 	case string:
-		if key == "id" {
+		if key == vocab.PropertyID {
 			return document
 		} else {
-			object, _ := document.AsObject()
+			object, _ := document.Load()
 			return object.Get(key)
 		}
 
 	case map[string]any:
 		return document.sub(typed[key])
 
+	case mapof.Any:
+		return document.sub(typed[key])
+
 	case []any:
+		if len(typed) > 0 {
+			return document.sub(typed[0])
+		}
+
+	case sliceof.Any:
 		if len(typed) > 0 {
 			return document.sub(typed[0])
 		}
@@ -144,138 +144,99 @@ func (document Document) get(key string) Document {
  * Conversion Methods
  ******************************************/
 
-// AsBool returns the current object as a floating-point value
-func (document Document) AsBool() bool {
+func (document Document) Array() []any {
+
+	return convert.SliceOfAny(document.value)
+}
+
+// Bool returns the current object as a floating-point value
+func (document Document) Bool() bool {
 
 	switch typed := document.value.(type) {
 
-	case string:
-		return typed == "true"
-
-	case int:
-		return typed != 0
-
-	case int64:
-		return typed != 0
-
-	case float64:
-		return typed != 0
-
-	case bool:
-		return typed
-
 	case map[string]any:
-		return document.Get("id").AsBool()
+		return document.Get(vocab.PropertyID).Bool()
 
 	case []any:
-		return document.Get("id").AsBool()
-	}
+		return document.Get(vocab.PropertyID).Bool()
 
-	return false
+	default:
+		return convert.Bool(typed)
+	}
 }
 
-// AsFloat returns the current object as an integer value
-func (document Document) AsFloat() float64 {
+// Float returns the current object as an integer value
+func (document Document) Float() float64 {
 
 	switch typed := document.value.(type) {
 
-	case string:
-		if result, err := strconv.ParseFloat(typed, 64); err != nil {
-			return result
-		}
-
-	case int:
-		return float64(typed)
-
-	case int64:
-		return float64(typed)
-
-	case float64:
-		return typed
-
-	case bool:
-		if typed {
-			return 1
-		}
-		return 0
-
 	case map[string]any:
-		return document.Get("id").AsFloat()
+		return document.Get(vocab.PropertyID).Float()
 
 	case []any:
-		return document.Get("id").AsFloat()
-	}
+		return document.Get(vocab.PropertyID).Float()
 
-	return 0
+	default:
+		return convert.Float(typed)
+	}
 }
 
-// AsInt returns the current object as an integer value
-func (document Document) AsInt() int {
+// Int returns the current object as an integer value
+func (document Document) Int() int {
 
 	switch typed := document.value.(type) {
 
-	case string:
-		if result, err := strconv.Atoi(typed); err != nil {
-			return result
-		}
-
-	case int:
-		return typed
-
-	case int64:
-		return int(typed)
-
-	case float64:
-		return int(typed)
-
-	case bool:
-		if typed {
-			return 1
-		}
-		return 0
-
 	case map[string]any:
-		return document.Get("id").AsInt()
+		return document.Get(vocab.PropertyID).Int()
 
 	case []any:
-		return document.Get("id").AsInt()
-	}
+		return document.Get(vocab.PropertyID).Int()
 
-	return 0
+	default:
+		return convert.Int(typed)
+	}
 }
 
-// AsString returns the current object as a string value
-func (document Document) AsString() string {
+// Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
+func (document Document) Load() (Document, error) {
+
+	const location = "hannibal.streams.Document.Map"
+
+	uri := document.ID()
+
+	switch document.value.(type) {
+
+	case map[string]any:
+		return document, nil
+
+	case []any:
+		return document.Head(), nil
+
+	case string:
+		return document.getClient().Load(uri)
+	}
+
+	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
+}
+
+// String returns the current object as a string value
+func (document Document) String() string {
 
 	switch typed := document.value.(type) {
 
-	case string:
-		return typed
-
-	case int:
-		return strconv.Itoa(typed)
-
-	case int64:
-		return strconv.FormatInt(typed, 10)
-
-	case float64:
-		return strconv.FormatFloat(typed, 'f', -1, 64)
-
-	case bool:
-		return strconv.FormatBool(typed)
-
 	case map[string]any:
-		return document.Get("id").AsString()
+		return document.Get(vocab.PropertyID).String()
 
 	case []any:
-		return document.Get("id").AsString()
-	}
+		return document.Get(vocab.PropertyID).String()
 
-	return ""
+	default:
+		return convert.String(typed)
+	}
 }
 
-// AsTime returns the current object as a time value
-func (document Document) AsTime() time.Time {
+// Time returns the current object as a time value
+func (document Document) Time() time.Time {
 
 	switch typed := document.value.(type) {
 
@@ -292,6 +253,9 @@ func (document Document) AsTime() time.Time {
 
 	case float64:
 		return time.Unix(int64(typed), 0)
+
+	case []any:
+		return document.Head().Time()
 	}
 
 	return time.Time{}
@@ -310,8 +274,8 @@ func (document Document) Head() Document {
 		if len(slice) > 0 {
 
 			return Document{
-				value: slice[0],
-				cache: document.cache,
+				value:  slice[0],
+				client: document.client,
 			}
 		}
 	}
@@ -328,8 +292,8 @@ func (document Document) Tail() Document {
 		if len(slice) > 1 {
 
 			return Document{
-				value: slice[1:],
-				cache: document.cache,
+				value:  slice[1:],
+				client: document.client,
 			}
 		}
 	}
@@ -351,9 +315,19 @@ func (document Document) IsEmptyTail() bool {
  * Helpers
  ******************************************/
 
+func (document Document) getClient() Client {
+
+	if document.client != nil {
+		return document.client
+	}
+
+	return NewDefaultClient()
+}
+
+// sub returns a new Document with a new VALUE, all of the same OPTIONS as this original
 func (document Document) sub(value any) Document {
 	return Document{
-		value: value,
-		cache: document.cache,
+		value:  value,
+		client: document.client,
 	}
 }

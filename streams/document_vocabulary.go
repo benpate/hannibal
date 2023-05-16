@@ -7,11 +7,23 @@ import (
 )
 
 func (document Document) ID() string {
-	return document.Get(vocab.PropertyID).AsString()
+
+	// Try the ActivityPub standard "id" property first
+	if id := document.Get(vocab.PropertyID); !id.IsNil() {
+		return id.String()
+	}
+
+	// Try the JSON-LD standard "@id" property second
+	if id := document.Get(vocab.PropertyID_Alternate); !id.IsNil() {
+		return document.Get(vocab.PropertyID).String()
+	}
+
+	// LOL, no.
+	return ""
 }
 
 func (document Document) Actor() Document {
-	return document.Get("actor")
+	return document.Get(vocab.PropertyActor)
 }
 
 func (document Document) ActorID() string {
@@ -19,7 +31,7 @@ func (document Document) ActorID() string {
 }
 
 func (document Document) Activity() Document {
-	return document.Get("activity")
+	return document.Get(vocab.CoreTypeActivity)
 }
 
 func (document Document) Attachment() Document {
@@ -55,7 +67,7 @@ func (document Document) Current() Document {
 }
 
 func (document Document) Deleted() time.Time {
-	return document.Get(vocab.PropertyDeleted).AsTime()
+	return document.Get(vocab.PropertyDeleted).Time()
 }
 
 func (document Document) Describes() Document {
@@ -67,7 +79,7 @@ func (document Document) First() Document {
 }
 
 func (document Document) FormerType() string {
-	return document.Get(vocab.PropertyFormerType).AsString()
+	return document.Get(vocab.PropertyFormerType).String()
 }
 
 func (document Document) Generator() Document {
@@ -85,7 +97,7 @@ func (document Document) IconURL() string {
 		return icon.URL()
 	}
 
-	return icon.AsString()
+	return icon.String()
 }
 
 func (document Document) Image() Document {
@@ -99,7 +111,7 @@ func (document Document) ImageURL() string {
 		return image.URL()
 	}
 
-	return image.AsString()
+	return image.String()
 }
 
 func (document Document) InReplyTo() Document {
@@ -110,16 +122,31 @@ func (document Document) Instrument() Document {
 	return document.Get(vocab.PropertyInstrument)
 }
 
+// Items returns the items collection for this Document.  If the
+// document contains an "orderedItems" collection, then it is
+// returned instead.
+func (document Document) Items() Document {
+
+	// Search the "orderedItems" property first (guessing this will be more common)
+	if result := document.Get(vocab.PropertyOrderedItems); !result.IsNil() {
+		return result
+	}
+
+	// Search the "items" property second (guessing this will be less common)
+	if result := document.Get(vocab.PropertyItems); !result.IsNil() {
+		return result
+	}
+
+	// Value not found :(
+	return NilDocument()
+}
+
 func (document Document) Last() Document {
 	return document.Get(vocab.PropertyLast)
 }
 
 func (document Document) Location() Document {
 	return document.Get(vocab.PropertyLocation)
-}
-
-func (document Document) Items() Document {
-	return document.Get(vocab.PropertyItems)
 }
 
 func (document Document) OneOf() Document {
@@ -163,7 +190,7 @@ func (document Document) PublicKey() Document {
 }
 
 func (document Document) PublicKeyPEM() string {
-	return document.Get(vocab.PropertyPublicKeyPEM).AsString()
+	return document.Get(vocab.PropertyPublicKeyPEM).String()
 }
 
 func (document Document) Result() Document {
@@ -191,52 +218,65 @@ func (document Document) To() Document {
 }
 
 func (document Document) Type() string {
-	if result := document.Get(vocab.PropertyType).AsString(); result != "" {
-		return result
+
+	// Try the ActivityPub standard "type" property first
+	if value := document.Get(vocab.PropertyType); !value.IsNil() {
+		return value.String()
 	}
+
+	// Try the JSON-LD standard "@type" property second
+	if value := document.Get(vocab.PropertyType_Alternate); !value.IsNil() {
+		return value.String()
+	}
+
+	// LOL, Fail
 	return vocab.Unknown
 }
 
-// TODO: HIGH: Special handling for URL properties
-// strings => {href: <string>}
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
 func (document Document) Url() Document {
-	return document.Get(vocab.PropertyURL)
+
+	value := document.Get(vocab.PropertyURL)
+
+	if value.IsString() {
+		return document.sub(map[string]any{vocab.PropertyHref: value})
+	}
+
+	return value
 }
 
 func (document Document) Accuracy() float64 {
-	return document.Get(vocab.PropertyAccuracy).AsFloat()
+	return document.Get(vocab.PropertyAccuracy).Float()
 }
 
 func (document Document) Altitude() float64 {
-	return document.Get(vocab.PropertyAltitude).AsFloat()
+	return document.Get(vocab.PropertyAltitude).Float()
 }
 
 func (document Document) Content() string {
-	return document.Get(vocab.PropertyContent).AsString()
+	return document.Get(vocab.PropertyContent).String()
 }
 
 // TODO: Re-Implement Language Maps
 func (document Document) Name() string {
-	return document.Get(vocab.PropertyName).AsString()
+	return document.Get(vocab.PropertyName).String()
 }
 
 // TODO: Implement Durations per
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-duration
 func (document Document) Duration() string {
-	return document.Get(vocab.PropertyDuration).AsString()
+	return document.Get(vocab.PropertyDuration).String()
 }
 
 func (document Document) Height() int {
-	return document.Get(vocab.PropertyHeight).AsInt()
+	return document.Get(vocab.PropertyHeight).Int()
 }
 
 func (document Document) Href() string {
-	return document.Get(vocab.PropertyHref).AsString()
+	return document.Get(vocab.PropertyHref).String()
 }
 
 func (document Document) Hreflang() string {
-	return document.Get(vocab.PropertyHrefLang).AsString()
+	return document.Get(vocab.PropertyHrefLang).String()
 }
 
 func (document Document) PartOf() Document {
@@ -244,31 +284,31 @@ func (document Document) PartOf() Document {
 }
 
 func (document Document) Latitude() float64 {
-	return document.Get(vocab.PropertyLatitude).AsFloat()
+	return document.Get(vocab.PropertyLatitude).Float()
 }
 
 func (document Document) Longitude() float64 {
-	return document.Get(vocab.PropertyLongitude).AsFloat()
+	return document.Get(vocab.PropertyLongitude).Float()
 }
 
 func (document Document) MediaType() string {
-	return document.Get(vocab.PropertyMediaType).AsString()
+	return document.Get(vocab.PropertyMediaType).String()
 }
 
 func (document Document) EndTime() time.Time {
-	return document.Get(vocab.PropertyEndTime).AsTime()
+	return document.Get(vocab.PropertyEndTime).Time()
 }
 
 func (document Document) Published() time.Time {
-	return document.Get(vocab.PropertyPublished).AsTime()
+	return document.Get(vocab.PropertyPublished).Time()
 }
 
 func (document Document) StartTime() time.Time {
-	return document.Get(vocab.PropertyStartTime).AsTime()
+	return document.Get(vocab.PropertyStartTime).Time()
 }
 
 func (document Document) Radius() float64 {
-	return document.Get(vocab.PropertyRadius).AsFloat()
+	return document.Get(vocab.PropertyRadius).Float()
 }
 
 // Rel is expected to be a string, but this function
@@ -278,11 +318,11 @@ func (document Document) Rel() Document {
 }
 
 func (document Document) Relationship() string {
-	return document.Get(vocab.PropertyRelationship).AsString()
+	return document.Get(vocab.PropertyRelationship).String()
 }
 
 func (document Document) StartIndex() int {
-	return document.Get(vocab.PropertyStartIndex).AsInt()
+	return document.Get(vocab.PropertyStartIndex).Int()
 }
 
 func (document Document) Subject() Document {
@@ -291,25 +331,25 @@ func (document Document) Subject() Document {
 
 // // TODO: Implement Language Maps
 func (document Document) Summary() string {
-	return document.Get(vocab.PropertySummary).AsString()
+	return document.Get(vocab.PropertySummary).String()
 }
 
 func (document Document) TotalItems() int {
-	return document.Get(vocab.PropertyTotalItems).AsInt()
+	return document.Get(vocab.PropertyTotalItems).Int()
 }
 
 func (document Document) URL() string {
-	return document.Get(vocab.PropertyURL).AsString()
+	return document.Get(vocab.PropertyURL).String()
 }
 
 func (document Document) Units() string {
-	return document.Get(vocab.PropertyUnits).AsString()
+	return document.Get(vocab.PropertyUnits).String()
 }
 
 func (document Document) Updated() time.Time {
-	return document.Get(vocab.PropertyUpdated).AsTime()
+	return document.Get(vocab.PropertyUpdated).Time()
 }
 
 func (document Document) Width() int {
-	return document.Get(vocab.PropertyWidth).AsInt()
+	return document.Get(vocab.PropertyWidth).Int()
 }

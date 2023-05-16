@@ -11,7 +11,7 @@ import (
 )
 
 // ReceiveInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
-func ReceiveInboxRequest(request *http.Request, cache streams.Cache) (document streams.Document, err error) {
+func ReceiveInboxRequest(request *http.Request, client streams.Client) (document streams.Document, err error) {
 
 	const location = "activitypub.ReceiveInboxRequest"
 
@@ -31,7 +31,7 @@ func ReceiveInboxRequest(request *http.Request, cache streams.Cache) (document s
 	// spew.Dump(bodyBuffer.String())
 
 	// Try to retrieve the object from the buffer
-	document = streams.NewDocument(nil, cache)
+	document = streams.NilDocument(streams.WithClient(client))
 
 	if err := json.Unmarshal(bodyBuffer.Bytes(), &document); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub document")
