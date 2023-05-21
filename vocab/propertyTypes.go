@@ -69,6 +69,12 @@ const PropertyInstrument = "instrument"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-last
 const PropertyLast = "last"
 
+// https://www.w3.org/TR/activitypub/#liked
+const PropertyLiked = "liked"
+
+// https://www.w3.org/TR/activitypub/#likes
+const PropertyLikes = "likes"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-location
 const PropertyLocation = "location"
 
@@ -107,6 +113,9 @@ const PropertyResult = "result"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
 const PropertyReplies = "replies"
+
+// https://www.w3.org/TR/activitypub/#shares
+const PropertyShares = "shares"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tag
 const PropertyTag = "tag"
