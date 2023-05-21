@@ -12,6 +12,7 @@ import (
 // https://www.w3.org/ns/activitystreams#OrderedCollection
 type OrderedCollection struct {
 	Context      Context `json:"@context"`
+	ID           string  `json:"id,omitempty"`
 	Type         string  `json:"type"`
 	Summary      string  `json:"summary,omitempty"`      // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
 	TotalItems   int     `json:"totalItems,omitempty"`   // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
