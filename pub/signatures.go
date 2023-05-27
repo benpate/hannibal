@@ -23,7 +23,7 @@ import (
 
 // ValidateHTTPSignature verifies that the HTTP request is signed with a valid key.
 // This function loads the public key from the ActivityPub actor, then verifies their signature.
-func ValidateHTTPSignature(request *http.Request, document streams.Document, cache streams.Cache) error {
+func ValidateHTTPSignature(request *http.Request, document streams.Document) error {
 
 	headerValues := ParseSignatureHeader(request.Header.Get("Signature"))
 
