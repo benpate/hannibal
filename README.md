@@ -23,9 +23,6 @@ This package includes the standard ActivityStream vocabulary, including names of
 ### streams - ActivityStreams data structures
 https://www.w3.org/TR/activitystreams-core/
 
-The stream package contains common data structures defined in the ActivityStreams spec, notably definitions for: `Collection`, `OrderedCollection`, `CollectionPage`, and `OrderedCollectionPage`.  These are used by ActivityPub to send and receive multiple records in one HTTP request.
+The stream package contains common data structures defined in the ActivityStreams spec, notably definitions for: `Document`, `Collection`, `OrderedCollection`, `CollectionPage`, and `OrderedCollectionPage`.  These are used by ActivityPub to send and receive multiple records in one HTTP request.
 
-### jsonld - JSON-LD reader/writer
-https://json-ld.org
-
-This package is a lightweight wrapper around generic data structures like `map[string]any` and `[]any` that simplifies the messy job of accessing the many data structures within JSON-LD.  If you're looking for a real, rigorous JSON-LD implementation, you should check out https://github.com/piprate/json-gold
+This package also includes a lightweight wrapper around generic data structures (like `map[string]any` and `[]any`) that makes it easy to access data structures within an ActivityStreams/JSON-LD document.
