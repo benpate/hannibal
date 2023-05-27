@@ -25,6 +25,8 @@ func (client DefaultClient) Load(uri string) (Document, error) {
 	}
 
 	// Return in triumph
-	return NewDocument(result, WithClient(client)), nil
-
+	return NewDocument(result,
+			WithClient(client),
+			WithHeader(transaction.ResponseObject.Header)),
+		nil
 }

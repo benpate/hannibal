@@ -1,6 +1,7 @@
 package streams
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/benpate/derp"
@@ -18,6 +19,7 @@ import (
 type Document struct {
 	value  any
 	client Client
+	header http.Header
 }
 
 // NewDocument creates a new Document object from a JSON-LD map[string]any
@@ -102,6 +104,11 @@ func (document Document) Get(key string) Document {
 	}
 
 	return NilDocument()
+}
+
+// Header returns the http Header associated with this document.
+func (document Document) Header() http.Header {
+	return document.header
 }
 
 // get does the actual work of looking up a value in
@@ -202,8 +209,6 @@ func (document Document) Load() (Document, error) {
 
 	const location = "hannibal.streams.Document.Map"
 
-	uri := document.ID()
-
 	switch document.value.(type) {
 
 	case map[string]any:
@@ -213,6 +218,7 @@ func (document Document) Load() (Document, error) {
 		return document.Head(), nil
 
 	case string:
+		uri := document.ID()
 		return document.getClient().Load(uri)
 	}
 
@@ -256,6 +262,9 @@ func (document Document) Time() time.Time {
 
 	case []any:
 		return document.Head().Time()
+
+	case time.Time:
+		return typed
 	}
 
 	return time.Time{}
@@ -329,5 +338,6 @@ func (document Document) sub(value any) Document {
 	return Document{
 		value:  value,
 		client: document.client,
+		header: document.header,
 	}
 }
