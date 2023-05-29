@@ -86,32 +86,12 @@ func (document Document) Generator() Document {
 	return document.Get(vocab.PropertyGenerator)
 }
 
-func (document Document) Icon() Document {
-	return document.Get(vocab.PropertyIcon)
+func (document Document) Icon() Image {
+	return NewImage(document.Get(vocab.PropertyIcon))
 }
 
-func (document Document) IconURL() string {
-	icon := document.Icon().Head()
-
-	if icon.IsObject() {
-		return icon.URL()
-	}
-
-	return icon.String()
-}
-
-func (document Document) Image() Document {
-	return document.Get(vocab.PropertyImage)
-}
-
-func (document Document) ImageURL() string {
-	image := document.Image().Head()
-
-	if image.IsObject() {
-		return image.URL()
-	}
-
-	return image.String()
+func (document Document) Image() Image {
+	return NewImage(document.Get(vocab.PropertyImage))
 }
 
 func (document Document) InReplyTo() Document {
