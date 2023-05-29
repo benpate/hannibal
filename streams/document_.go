@@ -77,6 +77,10 @@ func (document Document) IsNil() bool {
 	return document.value == nil
 }
 
+func (document Document) NotNil() bool {
+	return !document.IsNil()
+}
+
 func (document Document) IsArray() bool {
 	_, ok := document.value.([]any)
 	return ok
