@@ -213,7 +213,11 @@ func (document Document) Load() (Document, error) {
 
 	const location = "hannibal.streams.Document.Map"
 
-	switch document.value.(type) {
+	if document.IsNil() {
+		return NilDocument(), nil
+	}
+
+	switch typed := document.value.(type) {
 
 	case map[string]any:
 		return document, nil
@@ -222,8 +226,7 @@ func (document Document) Load() (Document, error) {
 		return document.Head(), nil
 
 	case string:
-		uri := document.ID()
-		return document.getClient().Load(uri)
+		return document.getClient().Load(typed)
 	}
 
 	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
