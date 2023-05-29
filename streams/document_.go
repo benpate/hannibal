@@ -274,6 +274,12 @@ func (document Document) Time() time.Time {
  * List-based Methods
  ******************************************/
 
+func (document Document) ForEach(fn func(Document)) {
+	for current := document.Head(); !current.IsNil(); current = current.Tail() {
+		fn(current)
+	}
+}
+
 // Head returns the first object in a slice.
 // For all other document types, it returns the current document.
 func (document Document) Head() Document {
