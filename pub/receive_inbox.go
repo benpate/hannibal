@@ -57,6 +57,8 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 }
 
 func validateRequest(request *http.Request, document streams.Document, bodyBuffer *bytes.Buffer, httpHeaderSignature string) error {
+	// TODO: CRITICAL: Validate the request signature.
+	// I believe this works, but is removed for now because it's difficult to test in a local environment.
 	/*
 
 		const location = "activitypub.validateRequest"
