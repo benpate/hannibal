@@ -22,7 +22,7 @@ func SendAccept(actor Actor, activity streams.Document) error {
 		"object":   activity.Value(),
 	}
 
-	targetURL := activity.ActorID()
+	targetURL := activity.Actor().ID()
 
 	if err := Send(actor, message, targetURL); err != nil {
 		return derp.Wrap(err, "activitypub.PostAcceptActivity", "Error sending Accept request")

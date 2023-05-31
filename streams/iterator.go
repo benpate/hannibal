@@ -110,7 +110,7 @@ func (it *Iterator) Error() error {
 func (it *Iterator) getItems() []any {
 
 	if items := it.document.Items(); !items.IsNil() {
-		return items.Array()
+		return items.Slice()
 	}
 
 	return make([]any, 0)

@@ -21,3 +21,10 @@ func WithHeader(header http.Header) Option {
 		doc.header = header
 	}
 }
+
+// WithLocales option sets one or more locales to use when working with language maps
+func WithLocales(locales ...string) Option {
+	return func(doc *Document) {
+		doc.locales = locales
+	}
+}

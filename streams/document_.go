@@ -17,30 +17,24 @@ import (
 // `map[string]any`, `[]any`, or a primitive type, like a
 // `string`, `float`, `int` or `bool`.
 type Document struct {
-	value  any
-	client Client
-	header http.Header
+	value   any
+	client  Client
+	header  http.Header
+	locales []string
 }
 
 // NewDocument creates a new Document object from a JSON-LD map[string]any
 func NewDocument(value any, options ...Option) Document {
-	result := Document{value: value}
 
-	for _, option := range options {
-		option(&result)
-	}
-
+	result := Document{value: normalize(value)}
+	result.WithOptions(options...)
 	return result
 }
 
 // NilDocument returns a new, empty Document.
 func NilDocument(options ...Option) Document {
 	result := Document{}
-
-	for _, option := range options {
-		option(&result)
-	}
-
+	result.WithOptions(options...)
 	return result
 }
 
@@ -86,7 +80,7 @@ func (document Document) IsArray() bool {
 	return ok
 }
 
-func (document Document) IsObject() bool {
+func (document Document) IsMap() bool {
 	_, ok := document.value.(map[string]any)
 	return ok
 }
@@ -132,9 +126,6 @@ func (document Document) get(key string) Document {
 	case map[string]any:
 		return document.sub(typed[key])
 
-	case mapof.Any:
-		return document.sub(typed[key])
-
 	case []any:
 		if len(typed) > 0 {
 			return document.sub(typed[0])
@@ -155,9 +146,21 @@ func (document Document) get(key string) Document {
  * Conversion Methods
  ******************************************/
 
-func (document Document) Array() []any {
-
+// Array returns the array value of the current object
+func (document Document) Slice() []any {
 	return convert.SliceOfAny(document.value)
+}
+
+// SliceOfDocuments transforms the current object into a slice of separate
+// Document objects, one for each value in the current document array.
+func (document Document) SliceOfDocuments() []Document {
+	values := document.Slice()
+	result := make([]Document, 0, len(values))
+	for _, value := range values {
+		result = append(result, document.sub(value))
+	}
+
+	return result
 }
 
 // Bool returns the current object as a floating-point value
@@ -208,6 +211,12 @@ func (document Document) Int() int {
 	}
 }
 
+// ForceLoad retrieves a JSON-LD document from a remote server, regardless of whether
+// we already have an ID or a full value.
+func (document Document) ForceLoad() (Document, error) {
+	return document.getClient().Load(document.ID())
+}
+
 // Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
 func (document Document) Load() (Document, error) {
 
@@ -230,6 +239,26 @@ func (document Document) Load() (Document, error) {
 	}
 
 	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
+}
+
+func (document Document) Map() map[string]any {
+
+	switch typed := document.value.(type) {
+
+	case map[string]any:
+		return typed
+
+	case []any:
+		return document.Head().Map()
+
+	case string:
+		return map[string]any{
+			vocab.PropertyID: typed,
+		}
+
+	default:
+		return map[string]any{}
+	}
 }
 
 // String returns the current object as a string value
@@ -337,7 +366,23 @@ func (document Document) IsEmptyTail() bool {
  * Helpers
  ******************************************/
 
-func (document Document) getClient() Client {
+func (document Document) Copy() Document {
+	return document
+}
+
+func (document *Document) SetValue(value any) {
+	document.value = value
+}
+
+func (document *Document) WithOptions(options ...Option) *Document {
+	for _, option := range options {
+		option(document)
+	}
+
+	return document
+}
+
+func (document *Document) getClient() Client {
 
 	if document.client != nil {
 		return document.client
@@ -347,10 +392,26 @@ func (document Document) getClient() Client {
 }
 
 // sub returns a new Document with a new VALUE, all of the same OPTIONS as this original
-func (document Document) sub(value any) Document {
+func (document *Document) sub(value any) Document {
 	return Document{
-		value:  value,
-		client: document.client,
-		header: document.header,
+		value:   normalize(value),
+		client:  document.client,
+		header:  document.header,
+		locales: document.locales,
 	}
+}
+
+func normalize(value any) any {
+
+	switch typed := value.(type) {
+
+	case mapof.Any:
+		return map[string]any(typed)
+
+	case sliceof.Any:
+		return []any(typed)
+
+	}
+
+	return value
 }
