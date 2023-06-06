@@ -24,9 +24,14 @@ func (client DefaultClient) Load(uri string) (Document, error) {
 		return NilDocument(), derp.Wrap(err, "hannibal.streams.Client.Load", "Error loading JSON-LD document", uri)
 	}
 
+	header := transaction.ResponseObject.Header
+
 	// Return in triumph
 	return NewDocument(result,
 			WithClient(client),
-			WithHeader(transaction.ResponseObject.Header)),
+			WithMeta("cache-control", header.Get("cache-control")),
+			WithMeta("etag", header.Get("etag")),
+			WithMeta("expires", header.Get("expires")),
+		),
 		nil
 }

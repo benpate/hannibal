@@ -1,7 +1,6 @@
 package streams
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/benpate/derp"
@@ -17,23 +16,31 @@ import (
 // `map[string]any`, `[]any`, or a primitive type, like a
 // `string`, `float`, `int` or `bool`.
 type Document struct {
-	value   any
-	client  Client
-	header  http.Header
-	locales []string
+	value    any
+	client   Client
+	metadata mapof.Any
 }
 
 // NewDocument creates a new Document object from a JSON-LD map[string]any
 func NewDocument(value any, options ...Option) Document {
 
-	result := Document{value: normalize(value)}
+	result := Document{
+		value:    normalize(value),
+		client:   NewDefaultClient(),
+		metadata: make(mapof.Any),
+	}
+
 	result.WithOptions(options...)
 	return result
 }
 
 // NilDocument returns a new, empty Document.
 func NilDocument(options ...Option) Document {
-	result := Document{}
+	result := Document{
+		value:    nil,
+		client:   NewDefaultClient(),
+		metadata: make(mapof.Any),
+	}
 	result.WithOptions(options...)
 	return result
 }
@@ -104,9 +111,9 @@ func (document Document) Get(key string) Document {
 	return NilDocument()
 }
 
-// Header returns the http Header associated with this document.
-func (document Document) Header() http.Header {
-	return document.header
+// Meta returns a pointer to the metadata associated with this document.
+func (document Document) Meta() *mapof.Any {
+	return &document.metadata
 }
 
 // get does the actual work of looking up a value in
@@ -153,7 +160,7 @@ func (document Document) Slice() []any {
 
 // SliceOfDocuments transforms the current object into a slice of separate
 // Document objects, one for each value in the current document array.
-func (document Document) SliceOfDocuments() []Document {
+func (document Document) SliceOfDocuments() sliceof.Object[Document] {
 	values := document.Slice()
 	result := make([]Document, 0, len(values))
 	for _, value := range values {
@@ -394,10 +401,9 @@ func (document *Document) getClient() Client {
 // sub returns a new Document with a new VALUE, all of the same OPTIONS as this original
 func (document *Document) sub(value any) Document {
 	return Document{
-		value:   normalize(value),
-		client:  document.client,
-		header:  document.header,
-		locales: document.locales,
+		value:    normalize(value),
+		client:   document.client,
+		metadata: document.metadata,
 	}
 }
 
