@@ -7,8 +7,7 @@ require (
 	github.com/benpate/remote v0.10.3
 	github.com/benpate/rosetta v0.15.0
 	github.com/go-fed/httpsig v1.1.0
-	github.com/karlseguin/ccache/v3 v3.0.3
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
