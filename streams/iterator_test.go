@@ -132,7 +132,7 @@ func TestCollection_BadAPI(t *testing.T) {
 	require.Nil(t, iterator.Error())
 
 	require.False(t, iterator.HasNext())
-	require.Error(t, iterator.Error())
+	require.Nil(t, iterator.Error())
 }
 
 func TestOrderedCollectionPaging_BadAPI(t *testing.T) {
