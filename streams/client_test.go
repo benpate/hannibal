@@ -17,7 +17,7 @@ func newTestClient() testClient {
 	}
 }
 
-func (client testClient) Load(uri string) (Document, error) {
+func (client testClient) Load(uri string, defaultValue map[string]any) (Document, error) {
 
 	if value, ok := client.data[uri]; ok {
 		return NewDocument(value, WithClient(client)), nil

@@ -221,7 +221,7 @@ func (document Document) Int() int {
 // ForceLoad retrieves a JSON-LD document from a remote server, regardless of whether
 // we already have an ID or a full value.
 func (document Document) ForceLoad() (Document, error) {
-	return document.getClient().Load(document.ID())
+	return document.getClient().Load(document.ID(), mapof.NewAny())
 }
 
 // Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
@@ -242,7 +242,7 @@ func (document Document) Load() (Document, error) {
 		return document.Head(), nil
 
 	case string:
-		return document.getClient().Load(typed)
+		return document.getClient().Load(typed, mapof.NewAny())
 	}
 
 	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
