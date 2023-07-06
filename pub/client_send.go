@@ -24,6 +24,13 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 
 	const location = "hannibal.pub.Send"
 
+	// Try to get the source profile that we're going to follow
+	target, err := GetProfile(targetID)
+
+	if err != nil {
+		return derp.Wrap(err, location, "Error getting source profile", targetID)
+	}
+
 	// Optional debugging output
 	if packageDebugLevel >= DebugLevelTerse {
 		if packageDebugLevel >= DebugLevelVerbose {
@@ -34,13 +41,6 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 			marshalled, _ := json.MarshalIndent(document, "", "  ")
 			fmt.Println(string(marshalled))
 		}
-	}
-
-	// Try to get the source profile that we're going to follow
-	target, err := GetProfile(targetID)
-
-	if err != nil {
-		return derp.Wrap(err, location, "Error getting source profile", targetID)
 	}
 
 	// Try to get the actor's inbox from the actor ActivityStream.
