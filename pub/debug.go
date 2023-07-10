@@ -1,5 +1,7 @@
 package pub
 
+import "strings"
+
 // DebugLevel is a custom enumeration that defines various levels of debug output.
 type DebugLevel uint8
 
@@ -34,8 +36,27 @@ const DebugLevelVerbose DebugLevel = 200
 // packageDebugLevel is the package-level setting for printing debug statements.
 var packageDebugLevel DebugLevel = DebugLevelNone
 
+func GetDebugLevel() DebugLevel {
+	return packageDebugLevel
+}
+
+func IsMinDebugLevel(minimum DebugLevel) bool {
+	return (packageDebugLevel >= minimum)
+}
+
 // SetDebugLevel sets the package-level debug level.  By default, debugging is off, but
 // can be enabled by setting the debug level to `pub.DebugLevelTerse` or `pub.DebugLevelVerbose`.
 func SetDebugLevel(level DebugLevel) {
 	packageDebugLevel = level
+}
+
+func SetDebugLevelString(level string) {
+	switch strings.ToLower(level) {
+	case "verbose":
+		packageDebugLevel = DebugLevelVerbose
+	case "terse":
+		packageDebugLevel = DebugLevelTerse
+	default:
+		packageDebugLevel = DebugLevelNone
+	}
 }
