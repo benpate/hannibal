@@ -11,15 +11,15 @@ import (
 // Collection is a subtype of Object that represents ordered or unordered sets of Object or Link instances.
 // https://www.w3.org/ns/activitystreams#Collection
 type Collection struct {
-	Context    Context `json:"@context"`
-	ID         string  `json:"id,omitempty"`
-	Type       string  `json:"type"`
-	Summary    string  `json:"summary,omitempty"`    // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
-	TotalItems int     `json:"totalItems,omitempty"` // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
-	Current    string  `json:"current,omitempty"`    // In a paged Collection, indicates the page that contains the most recently updated member items.
-	First      string  `json:"first,omitempty"`      // In a paged Collection, indicates the furthest preceeding page of items in the collection.
-	Last       string  `json:"last,omitempty"`       // In a paged Collection, indicates the furthest proceeding page of the collection.
-	Items      []any   `json:"items,omitempty"`      // Identifies the items contained in a collection. The items might be ordered or unordered.
+	Context    Context `json:"@context,omitempty"    bson:"context,omitempty"`
+	ID         string  `json:"id,omitempty"          bson:"id,omitempty"`
+	Type       string  `json:"type,omitempty"        bson:"type,omitempty"`
+	Summary    string  `json:"summary,omitempty"     bson:"summary,omitempty"`    // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
+	TotalItems int     `json:"totalItems,omitempty"  bson:"totalItems,omitempty"` // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
+	Current    string  `json:"current,omitempty"     bson:"current,omitempty"`    // In a paged Collection, indicates the page that contains the most recently updated member items.
+	First      string  `json:"first,omitempty"       bson:"first,omitempty"`      // In a paged Collection, indicates the furthest preceeding page of items in the collection.
+	Last       string  `json:"last,omitempty"        bson:"last,omitempty"`       // In a paged Collection, indicates the furthest proceeding page of the collection.
+	Items      []any   `json:"items,omitempty"       bson:"items,omitempty"`      // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
 func NewCollection() Collection {

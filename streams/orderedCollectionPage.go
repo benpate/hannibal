@@ -11,18 +11,18 @@ import (
 // OrderedCollectionPage is used to represent ordered subsets of items from an OrderedCollection. Refer to the Activity Streams 2.0 Core for a complete description of the OrderedCollectionPage object.
 // https://www.w3.org/ns/activitystreams#OrderedCollectionPage
 type OrderedCollectionPage struct {
-	Context      Context `json:"@context"`
-	Type         string  `json:"type"`
-	Summary      string  `json:"summary,omitempty"`    // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
-	TotalItems   int     `json:"totalItems,omitempty"` // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
-	Current      string  `json:"current,omitempty"`    // In a paged Collection, indicates the page that contains the most recently updated member items.
-	First        string  `json:"first,omitempty"`      // In a paged Collection, indicates the furthest preceeding page of items in the collection.
-	Last         string  `json:"last,omitempty"`       // In a paged Collection, indicates the furthest proceeding page of the collection.
-	StartIndex   int     `json:"startIndex,omitempty"` // A non-negative integer value identifying the relative position within the logical view of a strictly ordered collection.
-	PartOf       string  `json:"partOf,omitempty"`     // dentifies the Collection to which a CollectionPage objects items belong.
-	Prev         string  `json:"prev,omitempty"`       // In a paged Collection, identifies the previous page of items.
-	Next         string  `json:"next,omitempty"`       // In a paged Collection, indicates the next page of items.
-	OrderedItems []any   `json:"orderedItems"`         // Identifies the items contained in a collection. The items might be ordered or unordered.
+	Context      Context `json:"@context,omitempty"    bson:"context,omitempty"`
+	Type         string  `json:"type,omitempty"        bson:"type,omitempty"`
+	Summary      string  `json:"summary,omitempty"     bson:"summary",omitempty"`     // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
+	TotalItems   int     `json:"totalItems,omitempty"  bson:"totalItems,omitempty"`   // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
+	Current      string  `json:"current,omitempty"     bson:"current,omitempty"`      // In a paged Collection, indicates the page that contains the most recently updated member items.
+	First        string  `json:"first,omitempty"       bson:"first,omitempty"`        // In a paged Collection, indicates the furthest preceeding page of items in the collection.
+	Last         string  `json:"last,omitempty"        bson:"last,omitempty"`         // In a paged Collection, indicates the furthest proceeding page of the collection.
+	StartIndex   int     `json:"startIndex,omitempty"  bson:"startIndex,omitempty"`   // A non-negative integer value identifying the relative position within the logical view of a strictly ordered collection.
+	PartOf       string  `json:"partOf,omitempty"      bson:"partOf,omitempty"`       // dentifies the Collection to which a CollectionPage objects items belong.
+	Prev         string  `json:"prev,omitempty"        bson:"prev,omitempty"`         // In a paged Collection, identifies the previous page of items.
+	Next         string  `json:"next,omitempty"        bson:"next,omitempty"`         // In a paged Collection, indicates the next page of items.
+	OrderedItems []any   `json:"orderedItems,omitempty bson:"orderedItems,omitempty"` // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
 func NewOrderedCollectionPage() OrderedCollectionPage {
