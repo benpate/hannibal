@@ -69,12 +69,6 @@ const PropertyInstrument = "instrument"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-last
 const PropertyLast = "last"
 
-// https://www.w3.org/TR/activitypub/#liked
-const PropertyLiked = "liked"
-
-// https://www.w3.org/TR/activitypub/#likes
-const PropertyLikes = "likes"
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-location
 const PropertyLocation = "location"
 
