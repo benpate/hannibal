@@ -75,7 +75,18 @@ func (document Document) IsBool() bool {
 }
 
 func (document Document) IsNil() bool {
-	return document.value == nil
+	switch typed := document.value.(type) {
+	case string:
+		return typed == ""
+	case map[string]any:
+		return len(typed) == 0
+	case []any:
+		return len(typed) == 0
+	case nil:
+		return true
+	default:
+		return document.value == nil
+	}
 }
 
 func (document Document) NotNil() bool {
@@ -109,11 +120,6 @@ func (document Document) Get(key string) Document {
 	}
 
 	return NilDocument()
-}
-
-// Meta returns a pointer to the metadata associated with this document.
-func (document Document) Meta() *mapof.Any {
-	return &document.metadata
 }
 
 // get does the actual work of looking up a value in
@@ -221,7 +227,19 @@ func (document Document) Int() int {
 // ForceLoad retrieves a JSON-LD document from a remote server, regardless of whether
 // we already have an ID or a full value.
 func (document Document) ForceLoad() (Document, error) {
-	return document.getClient().Load(document.ID(), mapof.NewAny())
+	return document.getClient().LoadDocument(document.ID(), mapof.NewAny())
+}
+
+// Document retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
+func (document Document) Document() Document {
+	result, _ := document.Load()
+	return result
+}
+
+// Collection retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
+func (document Document) Collection() Document {
+	result, _ := document.Load()
+	return result
 }
 
 // Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
@@ -239,10 +257,10 @@ func (document Document) Load() (Document, error) {
 		return document, nil
 
 	case []any:
-		return document.Head(), nil
+		return document.Head().Load()
 
 	case string:
-		return document.getClient().Load(typed, mapof.NewAny())
+		return document.getClient().LoadDocument(typed, mapof.NewAny())
 	}
 
 	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
@@ -314,27 +332,63 @@ func (document Document) Time() time.Time {
 }
 
 /******************************************
- * List-based Methods
+ * Array-based Methods
  ******************************************/
 
-func (document Document) ForEach(fn func(Document)) {
-	for current := document.Head(); !current.IsNil(); current = current.Tail() {
-		fn(current)
+func (document Document) Len() int {
+
+	if document.IsNil() {
+		return 0
 	}
+
+	if slice, ok := document.value.([]any); ok {
+		return len(slice)
+	}
+
+	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
+		return len(slice)
+	}
+
+	return 1
 }
+
+func (document Document) At(index int) Document {
+
+	if slice, ok := document.value.([]any); ok {
+
+		if index < len(slice) {
+			return document.sub(slice[index])
+		}
+	}
+
+	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
+		if index < len(slice) {
+			return document.sub(slice[index])
+		}
+	}
+
+	return NilDocument()
+}
+
+/******************************************
+ * List-based Methods
+ ******************************************/
 
 // Head returns the first object in a slice.
 // For all other document types, it returns the current document.
 func (document Document) Head() Document {
 
+	// Try it the easy way first
 	if slice, ok := document.value.([]any); ok {
-
 		if len(slice) > 0 {
+			return document.sub(slice[0])
+		}
+	}
 
-			return Document{
-				value:  slice[0],
-				client: document.client,
-			}
+	// Try convert in case we have something ugly (like a primitive.A)
+	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
+		if len(slice) > 0 {
+			return document.sub(slice[0])
 		}
 	}
 
@@ -346,13 +400,16 @@ func (document Document) Head() Document {
 func (document Document) Tail() Document {
 
 	if slice, ok := document.value.([]any); ok {
-
 		if len(slice) > 1 {
+			//	spew.Dump("result:", slice[1:])
+			return document.sub(slice[1:])
+		}
+	}
 
-			return Document{
-				value:  slice[1:],
-				client: document.client,
-			}
+	// Try convert in case we have something ugly (like a primitive.A)
+	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
+		if len(slice) > 1 {
+			return document.sub(slice[1:])
 		}
 	}
 
@@ -363,6 +420,10 @@ func (document Document) Tail() Document {
 func (document Document) IsEmptyTail() bool {
 
 	if slice, ok := document.value.([]any); ok {
+		return len(slice) < 2
+	}
+
+	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
 		return len(slice) < 2
 	}
 
