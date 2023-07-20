@@ -11,7 +11,11 @@ func NewDefaultClient() Client {
 	return DefaultClient{}
 }
 
-func (client DefaultClient) Load(uri string, defaultValue map[string]any) (Document, error) {
+func (client DefaultClient) LoadActor(uri string) (Document, error) {
+	return client.LoadDocument(uri, map[string]any{})
+}
+
+func (client DefaultClient) LoadDocument(uri string, defaultValue map[string]any) (Document, error) {
 
 	// Try to load-and-parse the value from the remote server
 	transaction := remote.Get(uri).
