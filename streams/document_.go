@@ -401,7 +401,6 @@ func (document Document) Tail() Document {
 
 	if slice, ok := document.value.([]any); ok {
 		if len(slice) > 1 {
-			//	spew.Dump("result:", slice[1:])
 			return document.sub(slice[1:])
 		}
 	}
