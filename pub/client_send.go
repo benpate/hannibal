@@ -51,11 +51,16 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 		return derp.NewInternalError(location, "Unable to find 'inbox' in target profile", targetID, target)
 	}
 
+	// Add a "to" field in the document
+	document[vocab.PropertyTo] = inbox
+
 	// Send the request to the target Actor's inbox
 	transaction := remote.Post(inbox).
 		Accept(vocab.ContentTypeActivityPub).
 		ContentType(vocab.ContentTypeActivityPub).
+		Use(RequestMakeDigest()).
 		Use(RequestSignature(actor)).
+		// Use(middleware.Debug()).
 		JSON(document)
 
 	if err := transaction.Send(); err != nil {

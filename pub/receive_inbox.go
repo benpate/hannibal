@@ -3,7 +3,9 @@ package pub
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
@@ -15,16 +17,28 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 
 	const location = "activitypub.ReceiveInboxRequest"
 
-	// RULE: Content-Type MUST be "application/activity+json" or "application/ld+json"
-	if !IsActivityPubContentType(request.Header.Get(vocab.ContentType)) {
-		return streams.NilDocument(), derp.NewBadRequestError(location, "Content-Type MUST be 'application/activity+json'")
-	}
-
 	// Try to read the body from the request
 	var bodyBuffer bytes.Buffer
 	if _, err := bodyBuffer.ReadFrom(request.Body); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body into buffer")
 	}
+
+	// Debug if necessary
+	if packageDebugLevel >= DebugLevelVerbose {
+		fmt.Println("------------------------------------------")
+		fmt.Println("HANNIBAL: Receiving Activity: " + request.URL.String())
+		fmt.Println("Headers:")
+		for key, value := range request.Header {
+			fmt.Println("- " + key + ": " + strings.Join(value, ", "))
+		}
+
+		fmt.Println("Body:" + bodyBuffer.String())
+	}
+
+	/* RULE: Content-Type MUST be "application/activity+json" or "application/ld+json"
+	if !IsActivityPubContentType(request.Header.Get(vocab.ContentType)) {
+		return streams.NilDocument(), derp.NewBadRequestError(location, "Content-Type MUST be 'application/activity+json'")
+	} */
 
 	// Try to retrieve the object from the buffer
 	document = streams.NilDocument(streams.WithClient(client))
@@ -54,52 +68,4 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 
 	// Return the activity to the caller.
 	return streams.NilDocument(), derp.NewInternalError(location, "Unknown ActivityPub message type", document.Value())
-}
-
-func validateRequest(request *http.Request, document streams.Document, bodyBuffer *bytes.Buffer, httpHeaderSignature string) error {
-	// TODO: CRITICAL: Validate the request signature.
-	// I believe this works, but is removed for now because it's difficult to test in a local environment.
-	/*
-
-		const location = "activitypub.validateRequest"
-
-		signature := signatures.ParseSignatureHeader(httpHeaderSignature)
-
-		// Get the Actor from the document
-		actor, err := document.Actor().AsObject()
-
-		if err != nil {
-			return derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document")
-		}
-
-		// Get the Actor's Public Key
-		actorPublicKey, err := actor.PublicKey().AsObject()
-
-		if err != nil {
-			return derp.Wrap(err, location, "Error retrieving Public Key from Actor")
-		}
-
-		actorPublicKeyPEM := actorPublicKey.PublicKeyPEM()
-
-		// Parse the Public Key
-		key, err := ssh.ParsePublicKey([]byte(actorPublicKeyPEM))
-
-		if err != nil {
-			return derp.Wrap(err, location, "Error parsing Public Key")
-		}
-
-		// Finally, Verify request signatures
-		verifier, err := httpsig.NewVerifier(request)
-
-		if err != nil {
-			return derp.Wrap(err, location, "Error creating HTTP Signature verifier")
-		}
-
-		algorithm := httpsig.Algorithm(signature.GetString("algorithm"))
-
-		if err := verifier.Verify(key, algorithm); err != nil {
-			return derp.Wrap(err, location, "Error verifying HTTP Signature")
-		}
-	*/
-	return nil
 }

@@ -1,6 +1,7 @@
 package pub
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/x509"
 	"encoding/pem"
@@ -11,6 +12,8 @@ import (
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/rosetta/list"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/gliderlabs/ssh"
 	"github.com/go-fed/httpsig"
 )
 
@@ -21,13 +24,14 @@ import (
  *
  ******************************************/
 
-// ValidateHTTPSignature verifies that the HTTP request is signed with a valid key.
+// validateRequest verifies that the HTTP request is signed with a valid key.
 // This function loads the public key from the ActivityPub actor, then verifies their signature.
-func ValidateHTTPSignature(request *http.Request, document streams.Document) error {
-
-	headerValues := ParseSignatureHeader(request.Header.Get("Signature"))
+func validateRequest(request *http.Request, document streams.Document, bodyBuffer *bytes.Buffer, httpHeaderSignature string) error {
+	// TODO: HIGH: Validate Digest headers, too?
 
 	const location = "activitypub.validateRequest"
+
+	signature := ParseSignatureHeader(httpHeaderSignature)
 
 	// Get the Actor from the document
 	actor, err := document.Actor().Load()
@@ -37,14 +41,21 @@ func ValidateHTTPSignature(request *http.Request, document streams.Document) err
 	}
 
 	// Get the Actor's Public Key
+	spew.Dump("----------------------", "ValidateHTTPSignature", actor.PublicKey().Value())
 	actorPublicKey, err := actor.PublicKey().Load()
 
 	if err != nil {
 		return derp.Wrap(err, location, "Error retrieving Public Key from Actor")
 	}
 
-	// Get the PEM from the public key
 	actorPublicKeyPEM := actorPublicKey.PublicKeyPEM()
+
+	// Parse the Public Key
+	key, err := ssh.ParsePublicKey([]byte(actorPublicKeyPEM))
+
+	if err != nil {
+		return derp.Wrap(err, location, "Error parsing Public Key", actorPublicKeyPEM)
+	}
 
 	// Finally, Verify request signatures
 	verifier, err := httpsig.NewVerifier(request)
@@ -53,15 +64,8 @@ func ValidateHTTPSignature(request *http.Request, document streams.Document) err
 		return derp.Wrap(err, location, "Error creating HTTP Signature verifier")
 	}
 
-	// Parse the correct key type from the request
-	algorithm := httpsig.Algorithm(headerValues["algorithm"])
-	key, err := ParsePublicKeyFromPEM(actorPublicKeyPEM)
+	algorithm := httpsig.Algorithm(signature.GetString("algorithm"))
 
-	if err != nil {
-		return derp.Wrap(err, location, "Error parsing Public Key")
-	}
-
-	// Use httpsig to verify the request
 	if err := verifier.Verify(key, algorithm); err != nil {
 		return derp.Wrap(err, location, "Error verifying HTTP Signature")
 	}
