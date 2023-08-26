@@ -32,33 +32,3 @@ func Documents(collection streams.Document, done <-chan struct{}) <-chan streams
 
 	return result
 }
-
-func DocumentsReverse(collection streams.Document, done <-chan struct{}) <-chan streams.Document {
-	pages := PagesReverse(collection, done)
-
-	result := make(chan streams.Document, 1)
-
-	go func() {
-
-		defer close(result)
-
-		for page := range pages {
-
-			// Retrieve all items in the collection
-			items := page.Items()
-
-			for index := items.Len() - 1; index >= 0; index-- {
-
-				// Breakpoint for cancellation
-				if channel.Closed(done) {
-					return
-				}
-
-				// Return the next item and move (backward) one step
-				result <- items.At(index)
-			}
-		}
-	}()
-
-	return result
-}

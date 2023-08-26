@@ -24,18 +24,3 @@ func TestPages(t *testing.T) {
 		index++
 	}
 }
-
-func TestPagesReverse(t *testing.T) {
-
-	doc := streams.NewDocument("https://mastodon.social/@benpate")
-	outbox := doc.Outbox()
-
-	pages := PagesReverse(outbox, context.TODO().Done())
-
-	index := 1
-	for page := range pages {
-		spew.Dump(index)
-		spew.Dump(page.ID())
-		index++
-	}
-}

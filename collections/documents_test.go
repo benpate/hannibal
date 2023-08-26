@@ -24,20 +24,3 @@ func TestDocuments(t *testing.T) {
 		index++
 	}
 }
-
-func TestDocumentsReverse(t *testing.T) {
-
-	doc := streams.NewDocument("https://mastodon.social/@benpate")
-	outbox := doc.Outbox()
-
-	spew.Dump(outbox.TotalItems())
-
-	items := DocumentsReverse(outbox, context.TODO().Done())
-
-	index := 1
-	for item := range items {
-		spew.Dump(index)
-		spew.Dump(item.Object().Content())
-		index++
-	}
-}
