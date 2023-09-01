@@ -1,4 +1,4 @@
-package httpsig
+package sigs
 
 import (
 	"crypto"
@@ -52,7 +52,7 @@ func DecodePrivatePEM(pemString string) (crypto.PrivateKey, error) {
 	block, _ := pem.Decode([]byte(pemString))
 
 	if block == nil {
-		return nil, derp.New(derp.CodeInternalError, "hannibal.httpsig.DecodePrivatePEM", "Block is nil", pemString)
+		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePrivatePEM", "Block is nil", pemString)
 	}
 
 	switch block.Type {
@@ -67,7 +67,7 @@ func DecodePrivatePEM(pemString string) (crypto.PrivateKey, error) {
 		return x509.ParseECPrivateKey(block.Bytes)
 
 	default:
-		return nil, derp.New(derp.CodeInternalError, "hannibal.httpsig.DecodePrivatePEM", "Invalid block type", block.Type)
+		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePrivatePEM", "Invalid block type", block.Type)
 	}
 }
 
@@ -76,7 +76,7 @@ func DecodePublicPEM(pemString string) (crypto.PublicKey, error) {
 	block, _ := pem.Decode([]byte(pemString))
 
 	if block == nil {
-		return nil, derp.New(derp.CodeInternalError, "hannibal.httpsig.DecodePublicPEM", "Block is nil", pemString)
+		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePublicPEM", "Block is nil", pemString)
 	}
 
 	switch block.Type {
@@ -88,6 +88,6 @@ func DecodePublicPEM(pemString string) (crypto.PublicKey, error) {
 		return x509.ParsePKIXPublicKey(block.Bytes)
 
 	default:
-		return nil, derp.New(derp.CodeInternalError, "hannibal.httpsig.DecodePublicPEM", "Invalid block type", block.Type)
+		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePublicPEM", "Invalid block type", block.Type)
 	}
 }
