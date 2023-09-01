@@ -20,7 +20,7 @@ import (
 type Signer struct {
 	Fields          []string
 	SignatureDigest string
-	BodyDigests     []string
+	BodyDigest      string
 }
 
 // NewSigner returns a fully initialized Signer
@@ -28,7 +28,7 @@ func NewSigner(options ...SignerOption) Signer {
 	result := Signer{
 		Fields:          []string{FieldRequestTarget, FieldHost, FieldDate, FieldDigest},
 		SignatureDigest: Digest_SHA256,
-		BodyDigests:     []string{Digest_SHA256},
+		BodyDigest:      Digest_SHA256,
 	}
 	result.Use(options...)
 	return result
@@ -50,6 +50,17 @@ func (signer *Signer) Use(options ...SignerOption) {
 
 // Sign signs the given http.Request
 func (signer *Signer) Sign(request *http.Request, privateKeyID string, privateKey crypto.PrivateKey) error {
+
+	// Add a body digest to the request
+	digestFunc, err := getDigestFunc(signer.BodyDigest)
+
+	if err != nil {
+		return derp.Wrap(err, "hannibal.sigs.Sign", "Error creating digest function")
+	}
+
+	if err := ApplyDigest(request, digestFunc); err != nil {
+		return derp.Wrap(err, "hannibal.sigs.Sign", "Error applying digest")
+	}
 
 	// Assemble the plaintext string from the configured request fields
 	plainText := makePlaintext(request, signer.Fields...)

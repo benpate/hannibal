@@ -20,8 +20,8 @@ func SignSignatureDigest(digest string) SignerOption {
 
 // SignBodyDigests sets the digest algorithms to be used when creating
 // the "Digest" header.
-func SignBodyDigests(digests ...string) SignerOption {
+func SignBodyDigest(digest string) SignerOption {
 	return func(signer *Signer) {
-		signer.BodyDigests = digests
+		signer.BodyDigest = digest
 	}
 }

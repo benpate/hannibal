@@ -27,7 +27,7 @@ The `streams` package contains common data structures defined in the ActivityStr
 
 This package also includes a lightweight wrapper around generic data structures (like `map[string]any` and `[]any`) that makes it easy to access data structures within an ActivityStreams/JSON-LD document.
 
-### httpsig - HTTP Signatures and Digests
+### sigs - HTTP Signatures and Digests
 https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures
 
-The `httpsig` package creates and verifies HTTP signatures and Digests.
+The `sigs` package creates and verifies HTTP signatures and Digests.
