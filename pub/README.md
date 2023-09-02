@@ -1,4 +1,4 @@
-# pub
+# Hannibal / pub
 
 This is the topmost library of Hannibal, providing a simple interface for sending and receiving ActivityPub messages.
 

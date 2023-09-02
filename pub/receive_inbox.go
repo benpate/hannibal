@@ -29,10 +29,12 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 		fmt.Println("HANNIBAL: Receiving Activity: " + request.URL.String())
 		fmt.Println("Headers:")
 		for key, value := range request.Header {
-			fmt.Println("- " + key + ": " + strings.Join(value, ", "))
+			fmt.Println(key + ": " + strings.Join(value, ", "))
 		}
-
-		fmt.Println("Body:" + bodyBuffer.String())
+		fmt.Println("")
+		fmt.Println("Body:")
+		fmt.Println(bodyBuffer.String())
+		fmt.Println("")
 	}
 
 	/* RULE: Content-Type MUST be "application/activity+json" or "application/ld+json"
@@ -48,7 +50,7 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 	}
 
 	// Validate the Actor and Public Key
-	if err := validateRequest(request, document, &bodyBuffer, request.Header.Get("Signature")); err != nil {
+	if err := validateRequest(request, document); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Request is invalid")
 	}
 

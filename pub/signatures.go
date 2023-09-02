@@ -1,20 +1,11 @@
 package pub
 
 import (
-	"bytes"
-	"crypto"
-	"crypto/x509"
-	"encoding/pem"
 	"net/http"
-	"strings"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/sigs"
 	"github.com/benpate/hannibal/streams"
-	"github.com/benpate/rosetta/list"
-	"github.com/benpate/rosetta/mapof"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/gliderlabs/ssh"
-	"github.com/go-fed/httpsig"
 )
 
 /******************************************
@@ -26,87 +17,38 @@ import (
 
 // validateRequest verifies that the HTTP request is signed with a valid key.
 // This function loads the public key from the ActivityPub actor, then verifies their signature.
-func validateRequest(request *http.Request, document streams.Document, bodyBuffer *bytes.Buffer, httpHeaderSignature string) error {
-	// TODO: HIGH: Validate Digest headers, too?
+func validateRequest(request *http.Request, document streams.Document) error {
+
+	// TODO: HIGH: Validate http Signature headers
+	// TODO: HIGH: Validate Digest headers
+	// TODO: HIGH: Confirm that the http signature includes "(request-target)" "host" "date" and "digest" (extras are ok)
+
+	// Add required "host" header if it doesn't already exist
+	request.Header.Set("host", request.Host)
 
 	const location = "activitypub.validateRequest"
-
-	signature := ParseSignatureHeader(httpHeaderSignature)
 
 	// Get the Actor from the document
 	actor, err := document.Actor().Load()
 
 	if err != nil {
-		return derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document")
+		err = derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document")
+		derp.Report(err)
+		return err
 	}
 
 	// Get the Actor's Public Key
-	spew.Dump("----------------------", "ValidateHTTPSignature", actor.PublicKey().Value())
 	actorPublicKey, err := actor.PublicKey().Load()
 
 	if err != nil {
 		return derp.Wrap(err, location, "Error retrieving Public Key from Actor")
 	}
 
-	actorPublicKeyPEM := actorPublicKey.PublicKeyPEM()
-
-	// Parse the Public Key
-	key, err := ssh.ParsePublicKey([]byte(actorPublicKeyPEM))
-
-	if err != nil {
-		return derp.Wrap(err, location, "Error parsing Public Key", actorPublicKeyPEM)
-	}
-
-	// Finally, Verify request signatures
-	verifier, err := httpsig.NewVerifier(request)
-
-	if err != nil {
-		return derp.Wrap(err, location, "Error creating HTTP Signature verifier")
-	}
-
-	algorithm := httpsig.Algorithm(signature.GetString("algorithm"))
-
-	if err := verifier.Verify(key, algorithm); err != nil {
-		return derp.Wrap(err, location, "Error verifying HTTP Signature")
+	// Verify the request using the Actor's public key
+	if err := sigs.Verify(request, actorPublicKey.PublicKeyPEM()); err != nil {
+		derp.SetErrorCode(err, derp.CodeForbiddenError)
+		return derp.Wrap(err, location, "Unable to verify HTTP signature")
 	}
 
 	return nil
-}
-
-func ParsePublicKeyFromPEM(pemString string) (crypto.PublicKey, error) {
-	block, _ := pem.Decode([]byte(pemString))
-
-	if block == nil {
-		return nil, derp.New(derp.CodeInternalError, "pub.ParseKeyFromPEM", "Block is nil", pemString)
-	}
-
-	switch block.Type {
-
-	case "RSA PUBLIC KEY":
-		return x509.ParsePKCS1PublicKey(block.Bytes)
-
-	case "PUBLIC KEY":
-		return x509.ParsePKIXPublicKey(block.Bytes)
-
-	default:
-		return nil, derp.New(derp.CodeInternalError, "pub.ParseKeyFromPEM", "Invalid block type", block.Type)
-	}
-}
-
-func ParseSignatureHeader(value string) mapof.String {
-
-	result := mapof.NewString()
-
-	item := ""
-	itemList := list.ByComma(value)
-
-	for !itemList.IsEmpty() {
-		item, itemList = itemList.Split()
-		name, value := list.Split(item, '=')
-		value = strings.Trim(value, "\" ")
-
-		result[name] = value
-	}
-
-	return result
 }

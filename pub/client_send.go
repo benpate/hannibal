@@ -58,7 +58,6 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 	transaction := remote.Post(inbox).
 		Accept(vocab.ContentTypeActivityPub).
 		ContentType(vocab.ContentTypeActivityPub).
-		Use(RequestMakeDigest()).
 		Use(RequestSignature(actor)).
 		// Use(middleware.Debug()).
 		JSON(document)
