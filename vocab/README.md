@@ -1,4 +1,4 @@
-## Hannibal / Vocab
+## Hannibal / vocab
 
 This package contains all of the commonly used constants from the current 
 [ActivityStreams Vocabulary](https://www.w3.org/TR/activitystreams-vocabulary/), 

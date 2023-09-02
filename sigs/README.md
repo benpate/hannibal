@@ -1,4 +1,4 @@
-# Hannibal / Sigs
+# Hannibal / sigs
 
 Common-Sense HTTP Signatures
 
