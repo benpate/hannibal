@@ -37,9 +37,9 @@ func NewSigner(options ...SignerOption) Signer {
 
 // Sign signs a given http.Request.  It is syntactic
 // sugar for NewSigner(options...).Sign(request)
-func Sign(request *http.Request, privateKeyID string, privateKey crypto.PrivateKey, options ...SignerOption) error {
+func Sign(request *http.Request, publicKeyID string, privateKey crypto.PrivateKey, options ...SignerOption) error {
 	signer := NewSigner(options...)
-	return signer.Sign(request, privateKeyID, privateKey)
+	return signer.Sign(request, publicKeyID, privateKey)
 }
 
 // Use applies the given options to the Signer
@@ -50,7 +50,7 @@ func (signer *Signer) Use(options ...SignerOption) {
 }
 
 // Sign signs the given http.Request
-func (signer *Signer) Sign(request *http.Request, privateKeyID string, privateKey crypto.PrivateKey) error {
+func (signer *Signer) Sign(request *http.Request, publicKeyID string, privateKey crypto.PrivateKey) error {
 
 	// Add a body digest to the request
 	digestFunc, err := getDigestFunc(signer.BodyDigest)
@@ -91,7 +91,7 @@ func (signer *Signer) Sign(request *http.Request, privateKeyID string, privateKe
 
 	// Assemble the signature object
 	signature := NewSignature()
-	signature.KeyID = privateKeyID
+	signature.KeyID = publicKeyID
 	signature.Headers = signer.Fields
 	signature.Algorithm = Algorithm_HS2019
 	signature.Signature = signedDigest
