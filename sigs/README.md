@@ -102,7 +102,7 @@ In the event that you need to customize the way you verify a Request, you can pa
 |--------|-------------|---------|
 | VerifierFields | Sets the list of fields that MUST ALL be present in the signature.  Additional fields are allowed in the signature, and will still be verified. | `(request-target) host date digest` |
 | VerifierBodyDigests | Sets the list of algorithms to acccept from remote servers when they create a "Digest" header. ALL recofnized digests must be valid to pass, and AT LEAST ONE of the algorithms must be from this list. If present, additional algorithms will be ignored. | `sha-256` |
-| VerifierSignatureHash | Sets the hashing algorithm to use when validating the "Signature" header. | `sha-256` |
+| VerifierSignatureHashes | Sets the hashing algorithms to try when validating the "Signature" header.  Validation fails if checks on ALL algorithms are unsuccessful. | `sha-256`, `sha-512` |
 
 ```go
 // How to verify a request using additional options

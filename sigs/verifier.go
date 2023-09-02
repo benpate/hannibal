@@ -12,19 +12,19 @@ import (
 
 // Verifier contains all of the settings necessary to verify a request
 type Verifier struct {
-	Fields        []string
-	SignatureHash string   // Digest algorithm used to create the signature.  Default is SHA256
-	BodyDigests   []string // List of algorithms to accept from remote servers when they create a Digest header.  Default is SHA256 and SHA512
-	Timeout       int      // Number of seconds before signatures are expired. Default is 43200 seconds (12 hours).
+	Fields          []string
+	BodyDigests     []string // List of algorithms to accept from remote servers when they create a Digest header.  Default is SHA256 and SHA512
+	SignatureHashes []string // Digest algorithm used to create the signature.  Default is SHA256, SHA512
+	Timeout         int      // Number of seconds before signatures are expired. Default is 43200 seconds (12 hours).
 }
 
 // NewVerifier returns a fully initialized Verifier
 func NewVerifier(options ...VerifierOption) Verifier {
 	result := Verifier{
-		Fields:        []string{FieldRequestTarget, FieldHost, FieldDate, FieldDigest},
-		SignatureHash: Digest_SHA256,
-		BodyDigests:   []string{Digest_SHA256, Digest_SHA512},
-		Timeout:       12 * 60 * 60, // 12 hours
+		Fields:          []string{FieldRequestTarget, FieldHost, FieldDate, FieldDigest},
+		BodyDigests:     []string{Digest_SHA256, Digest_SHA512},
+		SignatureHashes: []string{Digest_SHA256, Digest_SHA512},
+		Timeout:         12 * 60 * 60, // 12 hours
 	}
 	result.Use(options...)
 	return result
@@ -66,14 +66,6 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.NewForbiddenError("hannibal.sigs.Verify", "Signature must include ALL of these fields", verifier.Fields)
 	}
 
-	// Recreate the plaintext and digest used to make the Signature
-	plaintext := makePlaintext(request, signature.Headers...)
-	digest, err := makeSignatureHash(plaintext, verifier.SignatureHash)
-
-	if err != nil {
-		return derp.Wrap(err, location, "Error creating digest")
-	}
-
 	// Decode the PEM certificate into a public key
 	publicKey, err := DecodePublicPEM(certificate)
 
@@ -81,20 +73,48 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.Wrap(err, location, "Error decoding public key")
 	}
 
-	// Verify the signature matches the message digest
-	if err := verifySignature(digest, signature.Signature, publicKey); err != nil {
-		return derp.Wrap(err, location, "Invalid signature")
+	// Recreate the plaintext and digest used to make the Signature
+	plaintext := makePlaintext(request, signature.Headers...)
+
+	// Try each hash in order
+	for _, hash := range verifier.SignatureHashes {
+		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
+			return nil
+		}
 	}
 
-	// Once I realzed it was successful, everything changed...
-	return nil
+	return derp.NewForbiddenError(location, "Invalid signature")
 }
 
 /******************************************
  * Helper Functions
  ******************************************/
 
-// verifySignature
+// Verify Hash And Signature computes the hashed value of the plaintext, then verifies
+// that this result matches the provided public key and signature.  It returns an error
+// if the signature does not match.
+func verifyHashAndSignature(plaintext string, hash string, publicKey crypto.PublicKey, signature []byte) error {
+
+	const location = "hannibal.sigs.verifyHashAndSignature"
+
+	// Make a digest using the hash algorithm
+	digest, err := makeSignatureHash(plaintext, hash)
+
+	if err != nil {
+		return derp.Wrap(err, location, "Error creating digest")
+	}
+
+	// Verify the signature matches the message digest
+	if err := verifySignature(digest, signature, publicKey); err != nil {
+		return derp.Wrap(err, location, "Invalid signature")
+	}
+
+	// Beauty is in the eye of the beholder.
+	return nil
+}
+
+// verifySignature verifies the given signature using the provided public key.
+// The public key can be either an RSA or ECDSA keys.
 func verifySignature(digest []byte, signature []byte, publicKey crypto.PublicKey) error {
 
 	const location = "hannibal.sigs.verifySignature"

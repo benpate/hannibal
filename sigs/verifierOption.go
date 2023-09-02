@@ -25,11 +25,12 @@ func VerifierBodyDigests(digests ...string) VerifierOption {
 	}
 }
 
-// VerifierSignatureHash sets the hashing algorithm to use
-// when validating the "Signature" header. According to
-// the http signatures spec, this should always be sha-256.
-func VerifierSignatureHash(hash string) VerifierOption {
+// VerifierSignatureHashes sets the hashing algorithms to use
+// when validating the "Signature" header. Hashes are tried
+// in order, and the FIRST successful match returns success.
+// If ALL hash attempts fail, then validation fails.
+func VerifierSignatureHashes(hashes ...string) VerifierOption {
 	return func(verifier *Verifier) {
-		verifier.SignatureHash = hash
+		verifier.SignatureHashes = hashes
 	}
 }
