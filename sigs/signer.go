@@ -7,28 +7,29 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/sha512"
-	"encoding/base64"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/rosetta/slice"
 	"github.com/rs/zerolog/log"
 )
 
 // Signer contains all of the settings necessary to sign a request
 type Signer struct {
-	Fields          []string
-	SignatureDigest string
-	BodyDigest      string
+	Fields        []string
+	SignatureHash string
+	BodyDigest    string
 }
 
 // NewSigner returns a fully initialized Signer
 func NewSigner(options ...SignerOption) Signer {
 	result := Signer{
-		Fields:          []string{FieldRequestTarget, FieldHost, FieldDate, FieldDigest},
-		SignatureDigest: Digest_SHA256,
-		BodyDigest:      Digest_SHA256,
+		Fields:        []string{FieldRequestTarget, FieldHost, FieldDate, FieldDigest},
+		SignatureHash: Digest_SHA256,
+		BodyDigest:    Digest_SHA256,
 	}
 	result.Use(options...)
 	return result
@@ -62,11 +63,20 @@ func (signer *Signer) Sign(request *http.Request, privateKeyID string, privateKe
 		return derp.Wrap(err, "hannibal.sigs.Sign", "Error applying digest")
 	}
 
+	// If "date" field is in use, then verify that it's present in the header.
+	// If the "date" field is invalid or unset, use the current time.
+	if slice.Contains(signer.Fields, FieldDate) {
+		date := request.Header.Get(FieldDate)
+		if _, err := time.Parse(http.TimeFormat, date); err != nil {
+			request.Header.Set(FieldDate, time.Now().Format(http.TimeFormat))
+		}
+	}
+
 	// Assemble the plaintext string from the configured request fields
 	plainText := makePlaintext(request, signer.Fields...)
 
 	// Create a digest of the plaintext string using the configured digest algorithm
-	digestText, err := makePlaintextDigest(plainText, signer.SignatureDigest)
+	digestText, err := makeSignatureHash(plainText, signer.SignatureHash)
 
 	if err != nil {
 		return derp.Wrap(err, "hannibal.sigs.Sign", "Error creating digest")
@@ -115,47 +125,55 @@ func makePlaintext(request *http.Request, fields ...string) string {
 	return result
 }
 
-// makePlaintextDigest creates a digest of the provided plaintext string using the given digest algorithm
-func makePlaintextDigest(plaintext string, digestAlgorithm string) ([]byte, error) {
+// makeSignatureHash creates a digest of the provided plaintext string using the given digest algorithm
+func makeSignatureHash(plaintext string, digestAlgorithm string) ([]byte, error) {
+
+	var result []byte
 
 	switch digestAlgorithm {
 
 	case Digest_SHA256:
 		hash := sha256.New()
 		hash.Write([]byte(plaintext))
-		return hash.Sum(nil), nil
+		result = hash.Sum(nil)
 
 	case Digest_SHA512:
 		hash := sha512.New()
 		hash.Write([]byte(plaintext))
-		return hash.Sum(nil), nil
+		result = hash.Sum(nil)
+
+	default:
+		return nil, derp.New(500, "hannibal.sigs.hashPlaintext", "Unknown digest algorithm", digestAlgorithm)
 	}
 
-	return nil, derp.New(500, "hannibal.sigs.hashPlaintext", "Unknown digest algorithm", digestAlgorithm)
+	log.Trace().Str("location", "hannibal.sigs.makeSignatureHash").Str("plaintext", plaintext).Str("result", string(result)).Send()
+	return result, nil
 }
 
 // makeSignedDigest signs the given digest using the provided private key.  It returns
 // an error if the private key is not an RSA or ECDSA key.
-func makeSignedDigest(digest []byte, privateKey crypto.PrivateKey) (string, error) {
+func makeSignedDigest(digest []byte, privateKey crypto.PrivateKey) ([]byte, error) {
+
+	const location = "hannibal.sigs.makeSignedDigest"
 
 	switch typedValue := privateKey.(type) {
 
 	case *rsa.PrivateKey:
 		if resultBytes, err := rsa.SignPKCS1v15(rand.Reader, typedValue, 0, digest); err != nil {
-			return "", derp.Wrap(err, "hannibal.sigs.signHash", "Error signing hash")
+			return nil, derp.Wrap(err, location, "Error signing hash")
 		} else {
-			return base64.StdEncoding.EncodeToString(resultBytes), nil
+			return resultBytes, nil
 		}
 
 	case *ecdsa.PrivateKey:
 		if resultBytes, err := ecdsa.SignASN1(rand.Reader, typedValue, digest); err != nil {
-			return "", derp.Wrap(err, "hannibal.sigs.signHash", "Error signing hash")
+			return nil, derp.Wrap(err, location, "Error signing hash")
 		} else {
-			return base64.StdEncoding.EncodeToString(resultBytes), nil
+			return resultBytes, nil
 		}
 	}
 
-	return "", derp.NewInternalError("hannibal.sigs.signHash", "Unrecognized private key type")
+	return nil, derp.NewInternalError(location, "Unrecognized private key type")
 }
 
 // getField retrieves the value of a named field from an HTTP request.

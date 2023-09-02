@@ -38,6 +38,23 @@ func TestMakePlaintext(t *testing.T) {
 	require.Nil(t, err)
 	request.Header.Set("Content-Type", "text/plain")
 
+	result := makePlaintext(request, FieldRequestTarget, FieldHost, FieldDate, FieldDigest)
+	expected := removeTabs(
+		`(request-target): get /something?test=true
+		host: example.com
+		date: 
+		digest: `)
+	require.Equal(t, expected, result)
+}
+
+func TestMakePlaintext_Alternate(t *testing.T) {
+
+	bodyReader := strings.NewReader("This is the body of the request")
+
+	request, err := http.NewRequest("GET", "http://example.com/something?test=true", bodyReader)
+	require.Nil(t, err)
+	request.Header.Set("Content-Type", "text/plain")
+
 	result := makePlaintext(request, FieldRequestTarget, FieldHost, "Content-Type")
 	expected := removeTabs(
 		`(request-target): get /something?test=true
@@ -47,24 +64,24 @@ func TestMakePlaintext(t *testing.T) {
 	require.Equal(t, expected, result)
 }
 
-func TestMakeDigest_SHA256(t *testing.T) {
-	result, err := makePlaintextDigest("This is digest-able", "sha-256")
+func TestMakeSignatureHash_SHA256(t *testing.T) {
+	result, err := makeSignatureHash("This is digest-able", "sha-256")
 	require.Nil(t, err)
 
 	actual := base64.StdEncoding.EncodeToString(result)
 	require.Equal(t, "jlBmJDmZdMjhLZga/ZjDrlloKd5lukG9S0lu/f7Xc64=", actual)
 }
 
-func TestMakeDigest_SHA512(t *testing.T) {
-	result, err := makePlaintextDigest("This is digest-able", "sha-512")
+func TestMakeSignatureHash_SHA512(t *testing.T) {
+	result, err := makeSignatureHash("This is digest-able", "sha-512")
 	require.Nil(t, err)
 
 	actual := base64.StdEncoding.EncodeToString(result)
 	require.Equal(t, "s2JJ/rYbVQTrkNR440jq+wuNk9ktJgvmVSDq805iC0EP4ONQPwfvuQK0yR/YuX7riJtNRwxMq6R1GL8W7A5vzg==", actual)
 }
 
-func TestMakeDigest_Other(t *testing.T) {
-	result, err := makePlaintextDigest("This is digest-able", "invalid-hash-function")
+func TestMakeSignatureHash_Other(t *testing.T) {
+	result, err := makeSignatureHash("This is digest-able", "invalid-hash-function")
 	require.NotNil(t, err)
 	require.Nil(t, result)
 }

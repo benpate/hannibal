@@ -49,10 +49,13 @@ func EncodePublicPEM(privateKey *rsa.PrivateKey) string {
 
 // DecodePrivatePEM converts a PEM string into a private key
 func DecodePrivatePEM(pemString string) (crypto.PrivateKey, error) {
+
+	const location = "hannibal.sigs.DecodePrivatePEM"
+
 	block, _ := pem.Decode([]byte(pemString))
 
 	if block == nil {
-		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePrivatePEM", "Block is nil", pemString)
+		return nil, derp.NewInternalError(location, "Block is nil", pemString)
 	}
 
 	switch block.Type {
@@ -63,20 +66,19 @@ func DecodePrivatePEM(pemString string) (crypto.PrivateKey, error) {
 	case "PRIVATE KEY":
 		return x509.ParsePKCS8PrivateKey(block.Bytes)
 
-	case "EC PRIVATE KEY":
-		return x509.ParseECPrivateKey(block.Bytes)
-
 	default:
-		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePrivatePEM", "Invalid block type", block.Type)
+		return nil, derp.NewInternalError(location, "Invalid block type", block.Type)
 	}
 }
 
 // DecodePublicPEM converts a PEM string into a public key
 func DecodePublicPEM(pemString string) (crypto.PublicKey, error) {
+
+	const location = "hannibal.sigs.DecodePublicPEM"
 	block, _ := pem.Decode([]byte(pemString))
 
 	if block == nil {
-		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePublicPEM", "Block is nil", pemString)
+		return nil, derp.NewInternalError(location, "Block is nil", pemString)
 	}
 
 	switch block.Type {
@@ -88,6 +90,6 @@ func DecodePublicPEM(pemString string) (crypto.PublicKey, error) {
 		return x509.ParsePKIXPublicKey(block.Bytes)
 
 	default:
-		return nil, derp.New(derp.CodeInternalError, "hannibal.sigs.DecodePublicPEM", "Invalid block type", block.Type)
+		return nil, derp.NewInternalError(location, "Invalid block type", block.Type)
 	}
 }

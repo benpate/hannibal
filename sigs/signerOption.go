@@ -3,24 +3,24 @@ package sigs
 // SignerOption is a function that modifies a Signer
 type SignerOption func(*Signer)
 
-// SignFields sets the http.Request fields to be signed
-func SignFields(fields ...string) SignerOption {
+// SignerFields sets the http.Request fields to be signed
+func SignerFields(fields ...string) SignerOption {
 	return func(signer *Signer) {
 		signer.Fields = fields
 	}
 }
 
-// SignSignatureDigest sets the digest algorithm to be used when
-// signing the request.
-func SignSignatureDigest(digest string) SignerOption {
+// SignerSignatureDigest sets the hashing algorithm to be used
+// when we sign a request.
+func SignerSignatureHash(hash string) SignerOption {
 	return func(signer *Signer) {
-		signer.SignatureDigest = digest
+		signer.SignatureHash = hash
 	}
 }
 
-// SignBodyDigests sets the digest algorithms to be used when creating
-// the "Digest" header.
-func SignBodyDigest(digest string) SignerOption {
+// SignerBodyDigests sets the digest algorithm to be used
+// when creating the "Digest" header.
+func SignerBodyDigest(digest string) SignerOption {
 	return func(signer *Signer) {
 		signer.BodyDigest = digest
 	}

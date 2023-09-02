@@ -1,4 +1,4 @@
-# sigs
+# Hannibal / Sigs
 
 Common-Sense HTTP Signatures
 
@@ -36,7 +36,9 @@ privateKey, err := rsa.GeneratePrivateKey(rand.Reader, 2048)
 request := http.NewRequest("POST", "https://example.com", nil)
 
 // Sign the Request with the Private Key. Yes, that's it.
-err = sigs.Sign(request, privateKey)
+if err := sigs.Sign(request, privateKey); err != nil {
+	// handle error...
+}
 
 ```
 
@@ -46,8 +48,9 @@ In the event that you need to customize the way you sign a Request, you can pass
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| SignDigests | Sets the algorithm(s) to use when creating the "Digest" header. | `sha-256` |
-| SignFields | Sets the field(s) to use when creating the "Signature" header . | `(request-target) host date digest` |
+| SignerFields | Sets the field(s) to use when creating the "Signature" header . | `(request-target) host date digest` |
+| SignerSignatureHash | Sets the algorithm to use when validating the "Signature" header. | `sha-256` |
+| SignerBodyDigests | Sets the algorithm to use when creating the "Digest" header. | `sha-256` |
 
 ```go
 // How to sign a request using additional options
@@ -68,7 +71,7 @@ signer := sigs.NewSigner()
 signer.Use(SignFields("content-type", "date"))
 
 if err := signer.Sign(request, privateKey); err != nil {
-	// handle error
+	// handle error...
 }
 
 ```
@@ -86,7 +89,9 @@ publicKeyPEM := `-----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY-----`
 
 // Verify the request has a valid signature from the certificate.
 // Yes, that's it.
-err := sigs.Verify(request, publicKeyPEM)
+if err := sigs.Verify(request, publicKeyPEM); err != nil {
+	// handle error...
+}
 ```
 
 ### Verification Options
@@ -95,8 +100,9 @@ In the event that you need to customize the way you verify a Request, you can pa
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| VerifyDigests | Identifies one ore more digest algorithms to use when verifying the "Digest" header. AT LEAST ONE algorithm must match for verification to succeed. If present, additional algorithms will be ignored. | `sha-256` |
-| VerifyFields | Identifies a list of fields that MUST ALL be present in the signature.  If present, additional fields will be ignored. | `(request-target) host date digest` |
+| VerifierFields | Sets the list of fields that MUST ALL be present in the signature.  Additional fields are allowed in the signature, and will still be verified. | `(request-target) host date digest` |
+| VerifierBodyDigests | Sets the list of algorithms to acccept from remote servers when they create a "Digest" header. ALL recofnized digests must be valid to pass, and AT LEAST ONE of the algorithms must be from this list. If present, additional algorithms will be ignored. | `sha-256` |
+| VerifierSignatureHash | Sets the hashing algorithm to use when validating the "Signature" header. | `sha-256` |
 
 ```go
 // How to verify a request using additional options
@@ -116,7 +122,7 @@ verifier := sigs.NewVerifier()
 verifier.Use(VerifyFields("content-type","date"))
 
 if err := verifier.Verify(request, publicKeyPEM); err != nil {
-	// handle error
+	// handle error...
 }
 
 ```
@@ -143,7 +149,7 @@ func main() {
 
 * hs2019
 * rsa-sha256
-* rsa-shaA512
+* rsa-sha512
 * hmac-sha256 (In Progress)
 * ecdsa-sha256 (In Progress)
 
@@ -151,11 +157,6 @@ func main() {
 
 * sha256
 * sha512
-* unixsum (In Progress)
-* unixcksum (In Progress)
-* crc32c  (In Progress)
-* id-sha-256 (In Progress) 
-* id-sha-512 (In Progress)
 
 ## References
 

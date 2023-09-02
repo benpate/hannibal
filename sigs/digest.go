@@ -50,9 +50,17 @@ func ApplyDigest(request *http.Request, fn DigestFunc) error {
 
 // VerifyDigest verifies that the digest in the http.Request header
 // matches the contents of the http.Request body.
-func VerifyDigest(request *http.Request) error {
+func VerifyDigest(request *http.Request, allowedAlgorithms ...string) error {
 
 	var body bytes.Buffer
+
+	// Retrieve the digest(s) included in the HTTP Request
+	digestHeader := request.Header.Get(FieldDigest)
+
+	// If there is no digest header, then there is nothing to verify
+	if digestHeader == "" {
+		return nil
+	}
 
 	// Try to get a copy of the Request body
 	bodyReader, err := request.GetBody()
@@ -66,13 +74,13 @@ func VerifyDigest(request *http.Request) error {
 		return derp.Wrap(err, "pub.RequestDigest", "Error reading request body")
 	}
 
-	// Retrieve the digest(s) included in the HTTP Request
-	header := request.Header.Get(FieldDigest)
-	headerValues := strings.Split(header, ",")
+	// Process the digest header into separate values
+	headerValues := strings.Split(digestHeader, ",")
+	atLeastOneAlgorithmMatches := false
 
-	// Scan multiple digest values
 	for _, headerValue := range headerValues {
 
+		headerValue = strings.Trim(headerValue, " ")
 		digestAlgorithm, digestValue := list.Split(headerValue, '=')
 
 		// If we recognize the digest algorithm, then use it to verify the body/digest
@@ -86,7 +94,8 @@ func VerifyDigest(request *http.Request) error {
 		// If the values match, then success!
 		if headerValue == fn(body.Bytes()) {
 			log.Trace().Msg("sigs.VerifyDigest: Valid Digest Found. Algorithm: " + digestAlgorithm)
-			return nil
+			atLeastOneAlgorithmMatches = true
+			continue
 		}
 
 		// If the values DON'T MATCH, then fail immediately.
@@ -94,6 +103,11 @@ func VerifyDigest(request *http.Request) error {
 		return derp.NewForbiddenError("sigs.VerifyDigest", "Digest verification failed", digestValue)
 	}
 
-	// Fall through means that we could not find a digest that we can use
+	// If we have found at least one digest that matches, then success!
+	if atLeastOneAlgorithmMatches {
+		return nil
+	}
+
+	// Otherwise, the digest hash does not meet our minimum requirements.  Fail.
 	return derp.NewForbiddenError("sigs.VerifyDigest", "No matching digest found")
 }
