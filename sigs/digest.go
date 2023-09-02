@@ -1,7 +1,6 @@
 package sigs
 
 import (
-	"bytes"
 	"net/http"
 	"strings"
 
@@ -10,38 +9,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// CalcDigest uses a DigestFunc to calculate the digest from the body
-// of a given http.Request.
-func CalcDigest(request *http.Request, fn DigestFunc) (string, error) {
-
-	var body bytes.Buffer
-
-	// Try to get a copy of the Request body
-	bodyReader, err := request.GetBody()
-
-	if err != nil {
-		return "", derp.Wrap(err, "pub.RequestDigest", "Error getting request body")
-	}
-
-	// Try to read the request body into a buffer
-	if _, err := body.ReadFrom(bodyReader); err != nil {
-		return "", derp.Wrap(err, "pub.RequestDigest", "Error reading request body")
-	}
-
-	// Calculate the digest with the DigestFunc
-	return fn(body.Bytes()), nil
-}
-
 // ApplyDigest calculates the digest of the body from a given
 // http.Request, then adds the digest to the Request's header.
-func ApplyDigest(request *http.Request, fn DigestFunc) error {
+func ApplyDigest(request *http.Request, body []byte, fn DigestFunc) error {
 
 	// Try to calculate the digest with the DigestFunc
-	result, err := CalcDigest(request, fn)
-
-	if err != nil {
-		return derp.Wrap(err, "pub.RequestDigest", "Error calculating digest")
-	}
+	result := fn(body)
 
 	// Apply the digest to the Request
 	request.Header.Set(FieldDigest, result)
@@ -50,9 +23,7 @@ func ApplyDigest(request *http.Request, fn DigestFunc) error {
 
 // VerifyDigest verifies that the digest in the http.Request header
 // matches the contents of the http.Request body.
-func VerifyDigest(request *http.Request, allowedAlgorithms ...string) error {
-
-	var body bytes.Buffer
+func VerifyDigest(request *http.Request, body []byte, allowedAlgorithms ...string) error {
 
 	// Retrieve the digest(s) included in the HTTP Request
 	digestHeader := request.Header.Get(FieldDigest)
@@ -60,18 +31,6 @@ func VerifyDigest(request *http.Request, allowedAlgorithms ...string) error {
 	// If there is no digest header, then there is nothing to verify
 	if digestHeader == "" {
 		return nil
-	}
-
-	// Try to get a copy of the Request body
-	bodyReader, err := request.GetBody()
-
-	if err != nil {
-		return derp.Wrap(err, "pub.RequestDigest", "Error getting request body")
-	}
-
-	// Try to read the request body into a buffer
-	if _, err := body.ReadFrom(bodyReader); err != nil {
-		return derp.Wrap(err, "pub.RequestDigest", "Error reading request body")
 	}
 
 	// Process the digest header into separate values
@@ -92,7 +51,7 @@ func VerifyDigest(request *http.Request, allowedAlgorithms ...string) error {
 		}
 
 		// If the values match, then success!
-		if headerValue == fn(body.Bytes()) {
+		if headerValue == fn(body) {
 			log.Trace().Msg("sigs.VerifyDigest: Valid Digest Found. Algorithm: " + digestAlgorithm)
 			atLeastOneAlgorithmMatches = true
 			continue

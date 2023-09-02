@@ -4,10 +4,13 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"encoding/base64"
 	"net/http"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/slice"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Verifier contains all of the settings necessary to verify a request
@@ -32,9 +35,9 @@ func NewVerifier(options ...VerifierOption) Verifier {
 
 // Verify verifies the given http.Request. This is
 // syntactic sugar for NewVerifier(options...).Verify(request)
-func Verify(request *http.Request, certificate string, options ...VerifierOption) error {
+func Verify(request *http.Request, body []byte, certificate string, options ...VerifierOption) error {
 	verifier := NewVerifier(options...)
-	return verifier.Verify(request, certificate)
+	return verifier.Verify(request, body, certificate)
 }
 
 // Use applies the given options to the Verifier
@@ -45,12 +48,20 @@ func (verifier *Verifier) Use(options ...VerifierOption) {
 }
 
 // Verify verifies the given http.Request
-func (verifier *Verifier) Verify(request *http.Request, certificate string) error {
+func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate string) error {
 
 	const location = "hannibal.sigs.Verify"
 
+	if request == nil {
+		return derp.NewInternalError("hannibal.sigs.Verify", "Request cannot be nil")
+	}
+
+	log.Debug().
+		Str("certificate", certificate).
+		Msg("Verifying Signature")
+
 	// Verify the body Digest
-	if err := VerifyDigest(request, verifier.BodyDigests...); err != nil {
+	if err := VerifyDigest(request, body, verifier.BodyDigests...); err != nil {
 		return derp.Wrap(err, location, "Error verifying body digest")
 	}
 
@@ -60,6 +71,10 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 	if err != nil {
 		return derp.Wrap(err, location, "Error parsing signature")
 	}
+
+	log.Trace().
+		Interface("signature", signature).
+		Msg("Parsed Signature")
 
 	// RULE: Verify that the signature contains all of the fields that we require
 	if !slice.ContainsAll(signature.Headers, verifier.Fields...) {
@@ -79,7 +94,10 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 	// Try each hash in order
 	for _, hash := range verifier.SignatureHashes {
 		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
+			log.Trace().Msg("Trying " + hash + ": Succeeded")
 			return nil
+		} else {
+			log.Trace().Err(err).Msg("Trying " + hash + ": Failed")
 		}
 	}
 
@@ -102,6 +120,14 @@ func verifyHashAndSignature(plaintext string, hash string, publicKey crypto.Publ
 
 	if err != nil {
 		return derp.Wrap(err, location, "Error creating digest")
+	}
+
+	if log.Logger.GetLevel() == zerolog.TraceLevel {
+		log.Trace().
+			Str("plaintext", plaintext).
+			Str("hash", hash).
+			Str("signature", base64.StdEncoding.EncodeToString(signature)).
+			Msg("VerifyHashAndSignature")
 	}
 
 	// Verify the signature matches the message digest

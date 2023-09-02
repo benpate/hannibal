@@ -1,11 +1,13 @@
 package pub
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/sigs"
 	"github.com/benpate/hannibal/streams"
+	"github.com/davecgh/go-spew/spew"
 )
 
 /******************************************
@@ -17,7 +19,7 @@ import (
 
 // validateRequest verifies that the HTTP request is signed with a valid key.
 // This function loads the public key from the ActivityPub actor, then verifies their signature.
-func validateRequest(request *http.Request, document streams.Document) error {
+func validateRequest(request *http.Request, body []byte, document streams.Document) error {
 
 	// TODO: HIGH: Validate http Signature headers
 	// TODO: HIGH: Validate Digest headers
@@ -26,7 +28,7 @@ func validateRequest(request *http.Request, document streams.Document) error {
 	// Add required "host" header if it doesn't already exist
 	request.Header.Set("host", request.Host)
 
-	const location = "activitypub.validateRequest"
+	const location = "hannibal.pub.validateRequest"
 
 	// Get the Actor from the document
 	actor, err := document.Actor().Load()
@@ -44,8 +46,17 @@ func validateRequest(request *http.Request, document streams.Document) error {
 		return derp.Wrap(err, location, "Error retrieving Public Key from Actor")
 	}
 
+	actorPublicPEM := actorPublicKey.PublicKeyPEM()
+
+	if packageDebugLevel >= DebugLevelVerbose {
+		fmt.Println("------------------------------------------")
+		fmt.Println(location)
+		spew.Dump(actor.Value())
+		fmt.Println("PEM: " + actorPublicPEM)
+	}
+
 	// Verify the request using the Actor's public key
-	if err := sigs.Verify(request, actorPublicKey.PublicKeyPEM()); err != nil {
+	if err := sigs.Verify(request, body, actorPublicPEM); err != nil {
 		derp.SetErrorCode(err, derp.CodeForbiddenError)
 		return derp.Wrap(err, location, "Unable to verify HTTP signature")
 	}

@@ -7,6 +7,8 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/base64"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -52,15 +54,25 @@ func (signer *Signer) Use(options ...SignerOption) {
 // Sign signs the given http.Request
 func (signer *Signer) Sign(request *http.Request, publicKeyID string, privateKey crypto.PrivateKey) error {
 
-	// Add a body digest to the request
+	const location = "hannibal.sigs.Sign"
+
+	// Try to read the body into a bytes.Buffer
+	body, err := bodyAsBytes(request)
+
+	if err != nil {
+		return derp.Wrap(err, location, "Error getting request body")
+	}
+
+	// Select a Digest Function
 	digestFunc, err := getDigestFunc(signer.BodyDigest)
 
 	if err != nil {
-		return derp.Wrap(err, "hannibal.sigs.Sign", "Error creating digest function")
+		return derp.Wrap(err, location, "Error creating digest function")
 	}
 
-	if err := ApplyDigest(request, digestFunc); err != nil {
-		return derp.Wrap(err, "hannibal.sigs.Sign", "Error applying digest")
+	// Apply the Digest function to the body
+	if err := ApplyDigest(request, body, digestFunc); err != nil {
+		return derp.Wrap(err, location, "Error applying digest")
 	}
 
 	// If "date" field is in use, then verify that it's present in the header.
@@ -79,14 +91,14 @@ func (signer *Signer) Sign(request *http.Request, publicKeyID string, privateKey
 	digestText, err := makeSignatureHash(plainText, signer.SignatureHash)
 
 	if err != nil {
-		return derp.Wrap(err, "hannibal.sigs.Sign", "Error creating digest")
+		return derp.Wrap(err, location, "Error creating digest")
 	}
 
 	// Sign the digest using the private key
 	signedDigest, err := makeSignedDigest(digestText, privateKey)
 
 	if err != nil {
-		return derp.Wrap(err, "hannibal.sigs.Sign", "Error signing digest")
+		return derp.Wrap(err, location, "Error signing digest")
 	}
 
 	// Assemble the signature object
@@ -121,7 +133,10 @@ func makePlaintext(request *http.Request, fields ...string) string {
 	result := strings.Join(resultSlice, "\n")
 
 	// Return the result (with logging)
-	log.Trace().Str("location", "hannibal.sigs.makePlaintext").Msg(result)
+	log.Trace().
+		Str("plaintext", result).
+		Msg("hannibal.sigs.makePlaintext")
+
 	return result
 }
 
@@ -146,7 +161,10 @@ func makeSignatureHash(plaintext string, digestAlgorithm string) ([]byte, error)
 		return nil, derp.New(500, "hannibal.sigs.hashPlaintext", "Unknown digest algorithm", digestAlgorithm)
 	}
 
-	log.Trace().Str("location", "hannibal.sigs.makeSignatureHash").Str("plaintext", plaintext).Str("result", string(result)).Send()
+	log.Trace().
+		Str("result", base64.StdEncoding.EncodeToString(result)).
+		Msg("hannibal.sigs.makeSignatureHash")
+
 	return result, nil
 }
 
@@ -213,4 +231,26 @@ func getPathAndQuery(url *url.URL) string {
 	}
 
 	return result
+}
+
+// bodyAsBytesBuffer returns a copy of the request body as a bytes.Buffer
+// This can only be done on a CLIENT request.  SERVER requests will panic.
+func bodyAsBytes(request *http.Request) ([]byte, error) {
+
+	// Get a copy of the request body.  This is okay because we're only signing OUTBOUND requests.
+	reader, err := request.GetBody()
+
+	if err != nil {
+		return nil, derp.Wrap(err, "hannibal.sigs.bodyAsBytesBuffer", "Error getting request body")
+	}
+
+	// Read the request body into a buffer
+	result, err := io.ReadAll(reader)
+
+	if err != nil {
+		return result, derp.Wrap(err, "hannibal.sigs.bodyAsBytesBuffer", "Error reading request body")
+	}
+
+	// Return the buffer.
+	return result, nil
 }

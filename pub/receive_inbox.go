@@ -1,9 +1,9 @@
 package pub
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -18,9 +18,10 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 	const location = "activitypub.ReceiveInboxRequest"
 
 	// Try to read the body from the request
-	var bodyBuffer bytes.Buffer
-	if _, err := bodyBuffer.ReadFrom(request.Body); err != nil {
-		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body into buffer")
+	body, err := io.ReadAll(request.Body)
+
+	if err != nil {
+		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
 	}
 
 	// Debug if necessary
@@ -33,7 +34,7 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 		}
 		fmt.Println("")
 		fmt.Println("Body:")
-		fmt.Println(bodyBuffer.String())
+		fmt.Println(string(body))
 		fmt.Println("")
 	}
 
@@ -45,12 +46,12 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 	// Try to retrieve the object from the buffer
 	document = streams.NilDocument(streams.WithClient(client))
 
-	if err := json.Unmarshal(bodyBuffer.Bytes(), &document); err != nil {
+	if err := json.Unmarshal(body, &document); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub document")
 	}
 
 	// Validate the Actor and Public Key
-	if err := validateRequest(request, document); err != nil {
+	if err := validateRequest(request, body, document); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Request is invalid")
 	}
 
