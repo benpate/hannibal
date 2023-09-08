@@ -1,5 +1,7 @@
 package sigs
 
+import "crypto"
+
 // VerifierOption is a function that modifies a Verifier
 type VerifierOption func(*Verifier)
 
@@ -19,7 +21,7 @@ func VerifierFields(fields ...string) VerifierOption {
 // http header. ALL recognized digests must be valid to
 // pass, and AT LEAST ONE of the algorithms must be from
 // this list.
-func VerifierBodyDigests(digests ...string) VerifierOption {
+func VerifierBodyDigests(digests ...crypto.Hash) VerifierOption {
 	return func(verifier *Verifier) {
 		verifier.BodyDigests = digests
 	}
@@ -29,8 +31,28 @@ func VerifierBodyDigests(digests ...string) VerifierOption {
 // when validating the "Signature" header. Hashes are tried
 // in order, and the FIRST successful match returns success.
 // If ALL hash attempts fail, then validation fails.
-func VerifierSignatureHashes(hashes ...string) VerifierOption {
+func VerifierSignatureHashes(hashes ...crypto.Hash) VerifierOption {
 	return func(verifier *Verifier) {
 		verifier.SignatureHashes = hashes
+	}
+}
+
+// VerifierTimeout sets the maximum age of a request and
+// signature (in seconds).  Messages received after this
+// time duration will be rejected.
+// Default is 43200 seconds (12 hours).
+func VerifierTimeout(seconds int) VerifierOption {
+	return func(verifier *Verifier) {
+		verifier.Timeout = seconds
+	}
+}
+
+// VerifierIgnoreTimeout sets the verifier to ignore
+// message and signature time stamps.  This is useful
+// for testing signatures, but should not be used in
+// production.
+func VerifierIgnoreTimeout() VerifierOption {
+	return func(verifier *Verifier) {
+		verifier.Timeout = 0
 	}
 }

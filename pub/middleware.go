@@ -1,6 +1,7 @@
 package pub
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/benpate/derp"
@@ -19,8 +20,20 @@ func RequestSignature(actor Actor) remote.Middleware {
 
 		Request: func(request *http.Request) error {
 
+			bodyReader, err := request.GetBody()
+
+			if err != nil {
+				return derp.Wrap(err, "activitypub.RequestSignature", "Error getting body from request")
+			}
+
+			body, err := io.ReadAll(bodyReader)
+
+			if err != nil {
+				return derp.Wrap(err, "activitypub.RequestSignature", "Error reading body from request")
+			}
+
 			// Sign the outgoing request.  This also adds a "Digest" header to the request.
-			if err := sigs.Sign(request, actor.PublicKeyID, actor.PrivateKey); err != nil {
+			if err := sigs.Sign(request, body, actor.PublicKeyID, actor.PrivateKey); err != nil {
 				return derp.Wrap(err, "activitypub.RequestSignature", "Error signing HTTP request.  This is likely because of a problem with the actor's private key.")
 			}
 

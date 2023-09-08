@@ -1,5 +1,7 @@
 package sigs
 
+import "crypto"
+
 // SignerOption is a function that modifies a Signer
 type SignerOption func(*Signer)
 
@@ -12,7 +14,7 @@ func SignerFields(fields ...string) SignerOption {
 
 // SignerSignatureDigest sets the hashing algorithm to be used
 // when we sign a request.
-func SignerSignatureHash(hash string) SignerOption {
+func SignerSignatureHash(hash crypto.Hash) SignerOption {
 	return func(signer *Signer) {
 		signer.SignatureHash = hash
 	}
@@ -20,7 +22,7 @@ func SignerSignatureHash(hash string) SignerOption {
 
 // SignerBodyDigests sets the digest algorithm to be used
 // when creating the "Digest" header.
-func SignerBodyDigest(digest string) SignerOption {
+func SignerBodyDigest(digest crypto.Hash) SignerOption {
 	return func(signer *Signer) {
 		signer.BodyDigest = digest
 	}

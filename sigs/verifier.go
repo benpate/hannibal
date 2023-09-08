@@ -6,6 +6,8 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/slice"
@@ -16,17 +18,17 @@ import (
 // Verifier contains all of the settings necessary to verify a request
 type Verifier struct {
 	Fields          []string
-	BodyDigests     []string // List of algorithms to accept from remote servers when they create a Digest header.  Default is SHA256 and SHA512
-	SignatureHashes []string // Digest algorithm used to create the signature.  Default is SHA256, SHA512
-	Timeout         int      // Number of seconds before signatures are expired. Default is 43200 seconds (12 hours).
+	BodyDigests     []crypto.Hash // List of algorithms to accept from remote servers when they create a Digest header.  Default is SHA256 and SHA512
+	SignatureHashes []crypto.Hash // Digest algorithm used to create the signature.  Default is SHA256, SHA512
+	Timeout         int           // Number of seconds before signatures are expired. Default is 43200 seconds (12 hours).
 }
 
 // NewVerifier returns a fully initialized Verifier
 func NewVerifier(options ...VerifierOption) Verifier {
 	result := Verifier{
 		Fields:          []string{FieldRequestTarget, FieldHost, FieldDate, FieldDigest},
-		BodyDigests:     []string{Digest_SHA256, Digest_SHA512},
-		SignatureHashes: []string{Digest_SHA256, Digest_SHA512},
+		BodyDigests:     []crypto.Hash{crypto.SHA256, crypto.SHA512},
+		SignatureHashes: []crypto.Hash{crypto.SHA256, crypto.SHA512},
 		Timeout:         12 * 60 * 60, // 12 hours
 	}
 	result.Use(options...)
@@ -57,8 +59,22 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 	}
 
 	log.Debug().
+		Str("loc", location).
 		Str("certificate", certificate).
 		Msg("Verifying Signature")
+
+	// Verify the request date
+	if verifier.Timeout > 0 {
+		date, err := time.Parse(http.TimeFormat, request.Header.Get(FieldDate))
+
+		if err != nil {
+			return derp.Wrap(err, location, "Invalid Date header.  Must match 'Mon, 02 Jan 2006 15:04:05 GMT'")
+		}
+
+		if date.Unix() < time.Now().Add(-1*time.Duration(verifier.Timeout)*time.Second).Unix() {
+			return derp.NewForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
+		}
+	}
 
 	// Verify the body Digest
 	if err := VerifyDigest(request, body, verifier.BodyDigests...); err != nil {
@@ -73,12 +89,18 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 	}
 
 	log.Trace().
+		Str("loc", location).
 		Interface("signature", signature).
 		Msg("Parsed Signature")
 
+	// RULE: If the signature has expired, then reject it.
+	if signature.IsExpired(verifier.Timeout) {
+		return derp.NewForbiddenError(location, "Signature has expired")
+	}
+
 	// RULE: Verify that the signature contains all of the fields that we require
 	if !slice.ContainsAll(signature.Headers, verifier.Fields...) {
-		return derp.NewForbiddenError("hannibal.sigs.Verify", "Signature must include ALL of these fields", verifier.Fields)
+		return derp.NewForbiddenError(location, "Signature must include ALL of these fields", verifier.Fields)
 	}
 
 	// Decode the PEM certificate into a public key
@@ -89,15 +111,12 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 	}
 
 	// Recreate the plaintext and digest used to make the Signature
-	plaintext := makePlaintext(request, signature.Headers...)
+	plaintext := makePlaintext(request, signature, signature.Headers...)
 
 	// Try each hash in order
 	for _, hash := range verifier.SignatureHashes {
 		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
-			log.Trace().Msg("Trying " + hash + ": Succeeded")
 			return nil
-		} else {
-			log.Trace().Err(err).Msg("Trying " + hash + ": Failed")
 		}
 	}
 
@@ -111,7 +130,7 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 // Verify Hash And Signature computes the hashed value of the plaintext, then verifies
 // that this result matches the provided public key and signature.  It returns an error
 // if the signature does not match.
-func verifyHashAndSignature(plaintext string, hash string, publicKey crypto.PublicKey, signature []byte) error {
+func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto.PublicKey, signature []byte) error {
 
 	const location = "hannibal.sigs.verifyHashAndSignature"
 
@@ -122,16 +141,18 @@ func verifyHashAndSignature(plaintext string, hash string, publicKey crypto.Publ
 		return derp.Wrap(err, location, "Error creating digest")
 	}
 
+	// Logging here.. wrapping it in an "if" because the base64 encoding is expensive
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
 		log.Trace().
 			Str("plaintext", plaintext).
-			Str("hash", hash).
+			Int("hash", int(hash)).
 			Str("signature", base64.StdEncoding.EncodeToString(signature)).
+			Str("digest", base64.StdEncoding.EncodeToString(digest)).
 			Msg("VerifyHashAndSignature")
 	}
 
 	// Verify the signature matches the message digest
-	if err := verifySignature(digest, signature, publicKey); err != nil {
+	if err := verifySignature(publicKey, hash, digest, signature); err != nil {
 		return derp.Wrap(err, location, "Invalid signature")
 	}
 
@@ -141,20 +162,20 @@ func verifyHashAndSignature(plaintext string, hash string, publicKey crypto.Publ
 
 // verifySignature verifies the given signature using the provided public key.
 // The public key can be either an RSA or ECDSA keys.
-func verifySignature(digest []byte, signature []byte, publicKey crypto.PublicKey) error {
+func verifySignature(publicKey crypto.PublicKey, hash crypto.Hash, digest []byte, signature []byte) error {
 
 	const location = "hannibal.sigs.verifySignature"
 
-	switch typedValue := publicKey.(type) {
+	switch typedKey := publicKey.(type) {
 
 	case *rsa.PublicKey:
-		if err := rsa.VerifyPKCS1v15(typedValue, 0, digest, signature); err != nil {
+		if err := rsa.VerifyPKCS1v15(typedKey, hash, digest, signature); err != nil {
 			return derp.Wrap(err, location, "Error verifying RSA signature")
 		}
 		return nil
 
 	case *ecdsa.PublicKey:
-		if !ecdsa.VerifyASN1(typedValue, digest, signature) {
+		if !ecdsa.VerifyASN1(typedKey, digest, signature) {
 			return derp.NewForbiddenError(location, "Invalid ECDSA signature")
 		}
 		return nil

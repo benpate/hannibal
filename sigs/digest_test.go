@@ -2,6 +2,7 @@ package sigs
 
 import (
 	"bytes"
+	"crypto"
 	"net/http"
 	"testing"
 
@@ -23,15 +24,22 @@ func TestApplyDigest(t *testing.T) {
 
 func TestVerifyDigest(t *testing.T) {
 
-	var body bytes.Buffer
-	body.WriteString("This is my body. There are many like it, but this one is mine.")
+	body := []byte("This is my body. There are many like it, but this one is mine.")
 
-	request, err := http.NewRequest("GET", "http://example.com/foo", &body)
+	request, err := http.NewRequest("GET", "http://example.com/foo", bytes.NewReader(body))
 	require.Nil(t, err)
 
-	err = ApplyDigest(request, body.Bytes(), DigestSHA256)
+	err = ApplyDigest(request, body, DigestSHA256)
 	require.Nil(t, err)
 
-	err = VerifyDigest(request, body.Bytes())
+	err = VerifyDigest(request, body, crypto.SHA256)
+	require.Nil(t, err)
+}
+
+func TestVerifyDigest_PixelFed(t *testing.T) {
+
+	request, body := getTestPixelFedRequest()
+
+	err := VerifyDigest(request, body, crypto.SHA256)
 	require.Nil(t, err)
 }

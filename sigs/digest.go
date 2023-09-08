@@ -1,11 +1,13 @@
 package sigs
 
 import (
+	"crypto"
 	"net/http"
 	"strings"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/list"
+	"github.com/benpate/rosetta/slice"
 	"github.com/rs/zerolog/log"
 )
 
@@ -23,7 +25,7 @@ func ApplyDigest(request *http.Request, body []byte, fn DigestFunc) error {
 
 // VerifyDigest verifies that the digest in the http.Request header
 // matches the contents of the http.Request body.
-func VerifyDigest(request *http.Request, body []byte, allowedAlgorithms ...string) error {
+func VerifyDigest(request *http.Request, body []byte, allowedHashes ...crypto.Hash) error {
 
 	// Retrieve the digest(s) included in the HTTP Request
 	digestHeader := request.Header.Get(FieldDigest)
@@ -43,7 +45,7 @@ func VerifyDigest(request *http.Request, body []byte, allowedAlgorithms ...strin
 		digestAlgorithm, digestValue := list.Split(headerValue, '=')
 
 		// If we recognize the digest algorithm, then use it to verify the body/digest
-		fn, err := getDigestFunc(digestAlgorithm)
+		fn, err := getDigestFuncByName(digestAlgorithm)
 
 		if err != nil {
 			log.Trace().Msg("sigs.VerifyDigest: Unknown digest algorithm: " + digestAlgorithm)
@@ -53,7 +55,12 @@ func VerifyDigest(request *http.Request, body []byte, allowedAlgorithms ...strin
 		// If the values match, then success!
 		if headerValue == fn(body) {
 			log.Trace().Msg("sigs.VerifyDigest: Valid Digest Found. Algorithm: " + digestAlgorithm)
-			atLeastOneAlgorithmMatches = true
+
+			// Verify that this algorithm is in the list of allowed hashes
+			hash := getHashByName(digestAlgorithm)
+			if slice.Contains(allowedHashes, hash) {
+				atLeastOneAlgorithmMatches = true
+			}
 			continue
 		}
 

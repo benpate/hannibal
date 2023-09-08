@@ -92,4 +92,5 @@ func DecodePublicPEM(pemString string) (crypto.PublicKey, error) {
 	default:
 		return nil, derp.NewInternalError(location, "Invalid block type", block.Type)
 	}
+
 }

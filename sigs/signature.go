@@ -33,7 +33,12 @@ func NewSignature() Signature {
 // createDate + duration is less than the current date.
 // Calculations are skipped if the duration, created,
 // or expires values are zero.
-func (signature Signature) IsExpired(duration int64) bool {
+func (signature Signature) IsExpired(duration int) bool {
+
+	// If there is no timeout set, then the signature has not expired.
+	if duration == 0 {
+		return false
+	}
 
 	now := time.Now().Unix()
 
@@ -47,7 +52,7 @@ func (signature Signature) IsExpired(duration int64) bool {
 	// If the "created" and "duration" values are valid,
 	// and their sum is in the past, then the signature is expired
 	if (signature.Created > 0) && (duration > 0) {
-		if (signature.Created + duration) < now {
+		if (signature.Created + int64(duration)) < now {
 			return true
 		}
 	}
@@ -148,6 +153,11 @@ func (signature Signature) String() string {
 	return buffer.String()
 }
 
+// Bytes returns the Signature as a slice of bytes
+func (signature Signature) Bytes() []byte {
+	return []byte(signature.String())
+}
+
 // AlgorithmPrefix returns the first part of the algorithm name, such as "rsa", "hmac", or "ecdsa"
 func (signature Signature) AlgorithmPrefix() string {
 	return list.Head(signature.Algorithm, '-')
@@ -156,4 +166,20 @@ func (signature Signature) AlgorithmPrefix() string {
 // SignatureBytes returns the signature as a slice of bytes
 func (signature Signature) Base64() string {
 	return base64.StdEncoding.EncodeToString(signature.Signature)
+}
+
+func (signature Signature) CreatedString() string {
+	if signature.Created == 0 {
+		return ""
+	}
+
+	return strconv.FormatInt(signature.Created, 10)
+}
+
+func (signature Signature) ExpiresString() string {
+	if signature.Expires == 0 {
+		return ""
+	}
+
+	return strconv.FormatInt(signature.Expires, 10)
 }
