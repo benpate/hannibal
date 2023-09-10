@@ -19,7 +19,7 @@ import (
 
 // validateRequest verifies that the HTTP request is signed with a valid key.
 // This function loads the public key from the ActivityPub actor, then verifies their signature.
-func validateRequest(request *http.Request, body []byte, document streams.Document) error {
+func validateRequest(request *http.Request, document streams.Document) error {
 
 	// TODO: HIGH: Validate http Signature headers
 	// TODO: HIGH: Validate Digest headers
@@ -56,7 +56,7 @@ func validateRequest(request *http.Request, body []byte, document streams.Docume
 	}
 
 	// Verify the request using the Actor's public key
-	if err := sigs.Verify(request, body, actorPublicPEM); err != nil {
+	if err := sigs.Verify(request, actorPublicPEM); err != nil {
 		derp.SetErrorCode(err, derp.CodeForbiddenError)
 		return derp.Wrap(err, location, "Unable to verify HTTP signature")
 	}

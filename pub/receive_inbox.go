@@ -3,13 +3,13 @@ package pub
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/re"
 )
 
 // ReceiveInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
@@ -18,7 +18,7 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 	const location = "activitypub.ReceiveInboxRequest"
 
 	// Try to read the body from the request
-	body, err := io.ReadAll(request.Body)
+	body, err := re.ReadBody(request)
 
 	if err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
@@ -51,7 +51,7 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 	}
 
 	// Validate the Actor and Public Key
-	if err := validateRequest(request, body, document); err != nil {
+	if err := validateRequest(request, document); err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Request is invalid")
 	}
 

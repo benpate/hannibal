@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/re"
 	"github.com/benpate/rosetta/list"
 	"github.com/benpate/rosetta/slice"
 	"github.com/rs/zerolog/log"
@@ -13,7 +14,14 @@ import (
 
 // ApplyDigest calculates the digest of the body from a given
 // http.Request, then adds the digest to the Request's header.
-func ApplyDigest(request *http.Request, body []byte, fn DigestFunc) error {
+func ApplyDigest(request *http.Request, fn DigestFunc) error {
+
+	// Retrieve the request body (in a replayable manner)
+	body, err := re.ReadBody(request)
+
+	if err != nil {
+		return derp.Wrap(err, "sigs.ApplyDigest", "Error reading request body")
+	}
 
 	// Try to calculate the digest with the DigestFunc
 	result := fn(body)
@@ -25,7 +33,14 @@ func ApplyDigest(request *http.Request, body []byte, fn DigestFunc) error {
 
 // VerifyDigest verifies that the digest in the http.Request header
 // matches the contents of the http.Request body.
-func VerifyDigest(request *http.Request, body []byte, allowedHashes ...crypto.Hash) error {
+func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
+
+	// Retrieve the request body (in a replayable manner)
+	body, err := re.ReadBody(request)
+
+	if err != nil {
+		return derp.Wrap(err, "sigs.VerifyDigest", "Error reading request body")
+	}
 
 	// Retrieve the digest(s) included in the HTTP Request
 	digestHeader := request.Header.Get(FieldDigest)

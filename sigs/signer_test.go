@@ -25,7 +25,7 @@ func TestSignRequest(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.Nil(t, err)
 
-	err = Sign(request, body, "test-key", privateKey)
+	err = Sign(request, "test-key", privateKey)
 	require.Nil(t, err)
 
 	require.Equal(t, "SHA-256=65F8+S1Bg7oPQS/fIxVg4x7PoLWnOxWlGMFB/hafojg=", request.Header.Get("Digest"))

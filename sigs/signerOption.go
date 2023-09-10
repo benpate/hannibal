@@ -27,3 +27,15 @@ func SignerBodyDigest(digest crypto.Hash) SignerOption {
 		signer.BodyDigest = digest
 	}
 }
+
+func SignerCreated(created int64) SignerOption {
+	return func(signer *Signer) {
+		signer.Created = created
+	}
+}
+
+func SignerExpires(expires int64) SignerOption {
+	return func(signer *Signer) {
+		signer.Expires = expires
+	}
+}

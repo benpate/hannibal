@@ -24,6 +24,8 @@ type Signer struct {
 	Fields        []string
 	SignatureHash crypto.Hash
 	BodyDigest    crypto.Hash
+	Created       int64
+	Expires       int64
 }
 
 // NewSigner returns a fully initialized Signer
@@ -32,6 +34,8 @@ func NewSigner(options ...SignerOption) Signer {
 		Fields:        []string{FieldRequestTarget, FieldHost, FieldDate, FieldDigest},
 		SignatureHash: crypto.SHA256,
 		BodyDigest:    crypto.SHA256,
+		Created:       0,
+		Expires:       0,
 	}
 	result.Use(options...)
 	return result
@@ -39,9 +43,9 @@ func NewSigner(options ...SignerOption) Signer {
 
 // Sign signs a given http.Request.  It is syntactic
 // sugar for NewSigner(options...).Sign(request)
-func Sign(request *http.Request, body []byte, publicKeyID string, privateKey crypto.PrivateKey, options ...SignerOption) error {
+func Sign(request *http.Request, publicKeyID string, privateKey crypto.PrivateKey, options ...SignerOption) error {
 	signer := NewSigner(options...)
-	return signer.SetSignature(request, body, publicKeyID, privateKey)
+	return signer.SetSignature(request, publicKeyID, privateKey)
 }
 
 // Use applies the given options to the Signer
@@ -52,14 +56,17 @@ func (signer *Signer) Use(options ...SignerOption) {
 }
 
 // SetSignature generates a signature and applies it to the given http.Request
-func (signer *Signer) SetSignature(request *http.Request, body []byte, publicKeyID string, privateKey crypto.PrivateKey) error {
+func (signer *Signer) SetSignature(request *http.Request, publicKeyID string, privateKey crypto.PrivateKey) error {
 
 	// Try to generate a signature
-	signature, err := signer.MakeSignature(request, body, publicKeyID, privateKey)
+	signature, err := signer.MakeSignature(request, publicKeyID, privateKey)
 
 	if err != nil {
 		return derp.Wrap(err, "hannibal.sigs.SetSignature", "Error getting signature")
 	}
+
+	signature.Created = signer.Created
+	signature.Expires = signer.Expires
 
 	// Apply the signature to the request
 	request.Header.Set("Signature", signature.String())
@@ -70,7 +77,7 @@ func (signer *Signer) SetSignature(request *http.Request, body []byte, publicKey
 }
 
 // MakeSignature generates a Signature string for the given http.Request
-func (signer *Signer) MakeSignature(request *http.Request, body []byte, publicKeyID string, privateKey crypto.PrivateKey) (Signature, error) {
+func (signer *Signer) MakeSignature(request *http.Request, publicKeyID string, privateKey crypto.PrivateKey) (Signature, error) {
 
 	const location = "hannibal.sigs.MakeSignature"
 
@@ -84,7 +91,7 @@ func (signer *Signer) MakeSignature(request *http.Request, body []byte, publicKe
 	}
 
 	// Apply the Digest function to the body
-	if err := ApplyDigest(request, body, digestFunc); err != nil {
+	if err := ApplyDigest(request, digestFunc); err != nil {
 		return Signature{}, derp.Wrap(err, location, "Error applying digest")
 	}
 

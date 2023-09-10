@@ -3,7 +3,6 @@ package sigs
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,8 +16,6 @@ func TestEncodeDecodePEM(t *testing.T) {
 
 	publicPEM := EncodePublicPEM(key)
 	parsedKey, err := DecodePublicPEM(publicPEM)
-
-	fmt.Println(publicPEM)
 
 	require.Nil(t, err)
 	require.Equal(t, key.PublicKey.N, parsedKey.(*rsa.PublicKey).N)

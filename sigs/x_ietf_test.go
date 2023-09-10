@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"crypto"
-	"io"
 	"net/http"
 	"testing"
 
@@ -19,10 +18,10 @@ import (
 // https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures#appendix-C.1
 func Test_IETF_Default_Test_C1(t *testing.T) {
 	signedFields := []string{"date"}
-	request, body := test_IETF_Request()
+	request := test_IETF_Request()
 
 	// Sign the document
-	err := Sign(request, body, "Test", test_IETF_PrivateKey(), SignerFields(signedFields...))
+	err := Sign(request, "Test", test_IETF_PrivateKey(), SignerFields(signedFields...))
 	require.Nil(t, err)
 
 	// Check the signature with "require"
@@ -30,17 +29,17 @@ func Test_IETF_Default_Test_C1(t *testing.T) {
 	require.Equal(t, expectedSignature, request.Header.Get("Signature"))
 
 	// Verify the signature
-	err = Verify(request, body, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
+	err = Verify(request, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }
 
 // https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures#appendix-C.2
 func Test_IETF_Basic_Test_C2(t *testing.T) {
 	signedFields := []string{"(request-target)", "host", "date"}
-	request, body := test_IETF_Request()
+	request := test_IETF_Request()
 
 	// Sign the document
-	err := Sign(request, body, "Test", test_IETF_PrivateKey(), SignerFields(signedFields...))
+	err := Sign(request, "Test", test_IETF_PrivateKey(), SignerFields(signedFields...))
 	require.Nil(t, err)
 
 	// Check the signature with "require"
@@ -48,47 +47,93 @@ func Test_IETF_Basic_Test_C2(t *testing.T) {
 	require.Equal(t, expectedSignature, request.Header.Get("Signature"))
 
 	// Verify the signature
-	err = Verify(request, body, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
+	err = Verify(request, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }
 
 func Test_IETF_All_Headers_Prep(t *testing.T) {
 	signedFields := []string{"(request-target)", "(created)", "(expires)", "host", "date", "content-type", "digest", "content-length"}
-	request, body := test_IETF_Request()
+	request := test_IETF_Request()
 
 	signature := NewSignature()
 	signature.Created = 1402170695
 	signature.Expires = 1402170699
 
 	plaintext := makePlaintext(request, signature, signedFields...)
-	t.Log(plaintext)
-	t.Log(string(body))
+
+	expectedPlaintext := removeTabs(
+		`(request-target): post /foo?param=value&pet=dog
+		(created): 1402170695
+		(expires): 1402170699
+		host: example.com
+		date: Sun, 05 Jan 2014 21:31:40 GMT
+		content-type: application/json
+		digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=
+		content-length: 18`)
+
+	require.Equal(t, expectedPlaintext, plaintext)
 }
 
 /*
-	Removing this for now because we don't have a mechanism to pass created/expires vaues into the Signer.
-	Plus, it may not be so important because the spec says that the created/expires values SHOULD NOT be used
-	for RSA keys.
+Removing this test (for now?) because there appears to be a bug in the official IETF
+spec (because OF COURSE there is).  The "all headers test in section 3 requires  the
+(created) and (expires) headers in the signature, but the provided plaintext doesn't
+include these values, which means that the whole signature is wrong.  FML.
 
 // https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures#appendix-C.3
+func Test_IETF_All_Headers_Test_C3(t *testing.T) {
+	signedFields := []string{"(request-target)", "(created)", "(expires)", "host", "date", "content-type", "digest", "content-length"}
+	request := test_IETF_Request()
 
-	func Test_IETF_All_Headers_Test_C3(t *testing.T) {
-		signedFields := []string{"(request-target)", "(created)", "(expires)", "host", "date", "content-type", "digest", "content-length"}
-		request, body := test_IETF_Request()
+	err := Sign(request, "Test", test_IETF_PrivateKey(), SignerFields(signedFields...), SignerCreated(1402170695), SignerExpires(1402170699))
+	require.Nil(t, err)
 
-		err := Sign(request, body, "Test", test_IETF_PrivateKey(), SignerFields(signedFields...))
-		require.Nil(t, err)
+	// handling this one differently because we can't *force* the created/expires dates to be these correct values
+	// so let's just Verify this signature straight out.
+	expectedSignature := `keyId="Test",algorithm="rsa-sha256",created=1402170695,expires=1402170699,headers="(request-target) (created) (expires) host date content-type digest content-length",signature="vSdrb+dS3EceC9bcwHSo4MlyKS59iFIrhgYkz8+oVLEEzmYZZvRs8rgOp+63LEM3v+MFHB32NfpB2bEKBIvB1q52LaEUHFv120V01IL+TAD48XaERZFukWgHoBTLMhYS2Gb51gWxpeIq8knRmPnYePbF5MOkR0Zkly4zKH7s1dE="`
 
-		// handling this one differently because we can't *force* the created/expires dates to be these correct values
-		// so let's just Verify this signature straight out.
-		expectedSignature := `keyId="Test",algorithm="rsa-sha256",created=1402170695,expires=1402170699,headers="(request-target) (created) (expires) host date content-type digest content-length",signature="vSdrb+dS3EceC9bcwHSo4MlyKS59iFIrhgYkz8+oVLEEzmYZZvRs8rgOp+63LEM3v+MFHB32NfpB2bEKBIvB1q52LaEUHFv120V01IL+TAD48XaERZFukWgHoBTLMhYS2Gb51gWxpeIq8knRmPnYePbF5MOkR0Zkly4zKH7s1dE="`
-		request.Header.Set("Signature", expectedSignature)
+	require.Equal(t, expectedSignature, request.Header.Get("Signature"))
 
-		err = Verify(request, body, test_IETF_PublicPEM(), VerifierIgnoreTimeout())
-		require.Nil(t, err)
-	}
+	err = Verify(request, test_IETF_PublicPEM(), VerifierIgnoreTimeout())
+	require.Nil(t, err)
+}
 */
-func test_IETF_Request() (*http.Request, []byte) {
+
+// https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures#section-2.3
+func Test_IEFT_SignatureStringConstruction(t *testing.T) {
+
+	requestString := removeTabs(
+		`GET /foo HTTP/1.1
+		Host: example.org
+		Date: Tue, 07 Jun 2014 20:51:35 GMT
+		X-Example: Example header with some whitespace.
+		X-EmptyHeader:
+		Cache-Control: max-age=60
+		Cache-Control: must-revalidate
+		
+		`)
+
+	requestReader := bufio.NewReader(bytes.NewReader([]byte(requestString)))
+	request := must(http.ReadRequest(requestReader))
+
+	signature := NewSignature()
+	signature.Created = 1402170695
+
+	plaintext := makePlaintext(request, signature, "(request-target)", "(created)", "host", "date", "cache-control", "x-emptyheader", "x-example")
+
+	expectedPlainText := removeTabs(
+		`(request-target): get /foo
+		(created): 1402170695
+		host: example.org
+		date: Tue, 07 Jun 2014 20:51:35 GMT
+		cache-control: max-age=60, must-revalidate
+		x-emptyheader: 
+		x-example: Example header with some whitespace.`)
+
+	require.Equal(t, expectedPlainText, plaintext)
+}
+
+func test_IETF_Request() *http.Request {
 
 	requestString := removeTabs(
 		`POST /foo?param=value&pet=dog HTTP/1.1
@@ -100,14 +145,10 @@ func test_IETF_Request() (*http.Request, []byte) {
 
 		{"hello": "world"}`)
 
-	bodyReader := bufio.NewReader(bytes.NewReader([]byte(requestString)))
-	request := must(http.ReadRequest(bodyReader))
-	body := must(io.ReadAll(request.Body))
-
 	requestReader := bufio.NewReader(bytes.NewReader([]byte(requestString)))
 	result := must(http.ReadRequest(requestReader))
 
-	return result, body
+	return result
 }
 
 func test_IETF_PublicPEM() string {

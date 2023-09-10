@@ -37,9 +37,9 @@ func NewVerifier(options ...VerifierOption) Verifier {
 
 // Verify verifies the given http.Request. This is
 // syntactic sugar for NewVerifier(options...).Verify(request)
-func Verify(request *http.Request, body []byte, certificate string, options ...VerifierOption) error {
+func Verify(request *http.Request, certificate string, options ...VerifierOption) error {
 	verifier := NewVerifier(options...)
-	return verifier.Verify(request, body, certificate)
+	return verifier.Verify(request, certificate)
 }
 
 // Use applies the given options to the Verifier
@@ -50,7 +50,7 @@ func (verifier *Verifier) Use(options ...VerifierOption) {
 }
 
 // Verify verifies the given http.Request
-func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate string) error {
+func (verifier *Verifier) Verify(request *http.Request, certificate string) error {
 
 	const location = "hannibal.sigs.Verify"
 
@@ -60,7 +60,6 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 
 	log.Debug().
 		Str("loc", location).
-		Str("certificate", certificate).
 		Msg("Verifying Signature")
 
 	// Verify the request date
@@ -77,7 +76,7 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 	}
 
 	// Verify the body Digest
-	if err := VerifyDigest(request, body, verifier.BodyDigests...); err != nil {
+	if err := VerifyDigest(request, verifier.BodyDigests...); err != nil {
 		return derp.Wrap(err, location, "Error verifying body digest")
 	}
 
@@ -90,6 +89,7 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 
 	log.Trace().
 		Str("loc", location).
+		Str("certificate", certificate).
 		Interface("signature", signature).
 		Msg("Parsed Signature")
 
@@ -116,11 +116,12 @@ func (verifier *Verifier) Verify(request *http.Request, body []byte, certificate
 	// Try each hash in order
 	for _, hash := range verifier.SignatureHashes {
 		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
+			log.Debug().Str("loc", location).Msg("Signature is VALID")
 			return nil
 		}
 	}
 
-	return derp.NewForbiddenError(location, "Invalid signature")
+	return derp.NewForbiddenError(location, "Signature is INVALID")
 }
 
 /******************************************
@@ -153,7 +154,9 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 
 	// Verify the signature matches the message digest
 	if err := verifySignature(publicKey, hash, digest, signature); err != nil {
-		return derp.Wrap(err, location, "Invalid signature")
+		err = derp.Wrap(err, location, "Invalid signature")
+		log.Debug().Err(err).Msg("Signature is Invalid")
+		return err
 	}
 
 	// Beauty is in the eye of the beholder.

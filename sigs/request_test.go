@@ -2,7 +2,6 @@ package sigs
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -23,16 +22,16 @@ func TestHTTPRequest(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println("---------")
-	fmt.Println(buffer.String())
-	fmt.Println("---------")
-	fmt.Println(request.Header.Get("Cache-Control"))
+	// Guarantee that Go is writing the header the way we'd expect
+	require.Equal(t, removeTabs("Cache-Control: max-age=60\r\nCache-Control: must-revalidate\r\n"), buffer.String())
 
-	fmt.Println("---------")
-	value := request.Header.Get("cAcHe-CoNtRoL")
-	fmt.Println(value)
+	// Proove that we get the FIRST value when we call .Get()
+	require.Equal(t, "max-age=60", request.Header.Get("Cache-Control"))
+	require.Equal(t, "max-age=60", request.Header.Get("cAcHe-CoNtRoL"))
 
-	fmt.Println("---------")
+	// Prove that whe get ALL values when whe access via the map
 	valueSlice := request.Header[http.CanonicalHeaderKey("CAcHe-CoNtroL")]
-	fmt.Println(strings.Join(valueSlice, ", "))
+	result := strings.Join(valueSlice, ", ")
+
+	require.Equal(t, "max-age=60, must-revalidate", result)
 }

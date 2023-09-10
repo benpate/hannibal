@@ -130,6 +130,16 @@ func (signature Signature) String() string {
 	buffer.WriteString(signature.Algorithm)
 	buffer.WriteString(`"`)
 
+	if signature.Created > 0 {
+		buffer.WriteString(`,created=`)
+		buffer.WriteString(strconv.FormatInt(signature.Created, 10))
+	}
+
+	if signature.Expires > 0 {
+		buffer.WriteString(`,expires=`)
+		buffer.WriteString(strconv.FormatInt(signature.Expires, 10))
+	}
+
 	buffer.WriteString(`,headers="`)
 	buffer.WriteString(strings.Join(signature.Headers, " "))
 	buffer.WriteString(`"`)
@@ -137,18 +147,6 @@ func (signature Signature) String() string {
 	buffer.WriteString(`,signature="`)
 	buffer.WriteString(signature.Base64())
 	buffer.WriteString(`"`)
-
-	if signature.Created > 0 {
-		buffer.WriteString(`,created="`)
-		buffer.WriteString(strconv.FormatInt(signature.Created, 10))
-		buffer.WriteString(`"`)
-	}
-
-	if signature.Expires > 0 {
-		buffer.WriteString(`,expires="`)
-		buffer.WriteString(strconv.FormatInt(signature.Expires, 10))
-		buffer.WriteString(`"`)
-	}
 
 	return buffer.String()
 }

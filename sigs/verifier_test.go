@@ -5,25 +5,16 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
-	"encoding/base64"
-	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/benpate/derp"
-	"github.com/benpate/hannibal/streams"
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 )
 
 func TestVerify_Manual(t *testing.T) {
-
-	// Configure logging
-	// zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	// zerolog.SetGlobalLevel(zerolog.TraceLevel)
 
 	// Create a new Request
 	var body bytes.Buffer
@@ -38,7 +29,7 @@ func TestVerify_Manual(t *testing.T) {
 	require.Nil(t, err)
 
 	// Sign the Request
-	err = Sign(request, body.Bytes(), "test-key", privateKey)
+	err = Sign(request, "test-key", privateKey)
 	require.Nil(t, err)
 
 	require.Equal(t, "SHA-256=65F8+S1Bg7oPQS/fIxVg4x7PoLWnOxWlGMFB/hafojg=", request.Header.Get("Digest"))
@@ -47,60 +38,11 @@ func TestVerify_Manual(t *testing.T) {
 	// Verify the Request
 	publicKeyPEM := EncodePublicPEM(privateKey)
 
-	err = Verify(request, body.Bytes(), publicKeyPEM)
+	err = Verify(request, publicKeyPEM)
 	require.Nil(t, err)
 }
 
-func TestVerify_Manual2(t *testing.T) {
-
-	// sample values from https://blog.cubieserver.de/2016/go-verify-cryptographic-signatures/
-	var rawPubKey = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvtjdLkS+FP+0fPC09j25\ny/PiuYDDivIT86COVedvlElk99BBYTrqNaJybxjXbIZ1Q6xFNhOY+iTcBr4E1zJu\ntizF3Xi0V9tOuP/M8Wn4Y/1lCWbQKlWrNQuqNBmhovF4K3mDCYswVbpgTmp+JQYu\nBm9QMdieZMNry5s6aiMA9aSjDlNyedvSENYo18F+NYg1J0C0JiPYTxheCb4optr1\n5xNzFKhAkuGs4XTOA5C7Q06GCKtDNf44s/CVE30KODUxBi0MCKaxiXw/yy55zxX2\n/YdGphIyQiA5iO1986ZmZCLLW8udz9uhW5jUr3Jlp9LbmphAC61bVSf4ou2YsJaN\n0QIDAQAB\n-----END PUBLIC KEY-----"
-	var rawSignature = "c2pkYWpuY2sgZmphbm9panF3b2lqYWRvbmFzbWQgc2EsbWMgc2FuZHBvZHA5cTN1cjA5M3Vyajg4OUoocHEqaDlIUkZKU0ZLQkZPSDk4"
-	var message = []byte("authenticmessage")
-
-	publicKey, err := DecodePublicPEM(rawPubKey)
-	require.Nil(t, err)
-
-	signature, err := base64.StdEncoding.DecodeString(rawSignature)
-	require.Nil(t, err)
-
-	hashedMessage := sha1.Sum(message)
-
-	// err = verifySignature(publicKey, crypto.SHA1, hashedMessage[:], signature)
-	err = rsa.VerifyPKCS1v15(publicKey.(*rsa.PublicKey), crypto.SHA1, hashedMessage[:], signature)
-	require.Nil(t, err)
-
-	require.Nil(t, err)
-}
-
-func TestVerify_PixelFed(t *testing.T) {
-
-	actor := streams.NewDocument("https://pixelfed.social/users/benpate")
-	publicKeyPEM := actor.PublicKey().PublicKeyPEM()
-	log.Trace().Interface("actor", actor.Value()).Send()
-	log.Trace().Str("publicKeyPEM", publicKeyPEM).Send()
-
-	request, body := getTestPixelFedRequest()
-
-	signature := NewSignature()
-	plaintext := makePlaintext(request, signature, "(request-target)", "host", "date", "digest", "content-type", "user-agent")
-	fmt.Println("---------")
-	fmt.Println(string(body))
-	fmt.Println("---------")
-	fmt.Println(plaintext)
-
-	hashed, err := makeSignatureHash(plaintext, crypto.SHA256)
-	require.Nil(t, err)
-	fmt.Println("---------")
-	fmt.Println("hashed plaintext")
-	fmt.Println(base64.StdEncoding.EncodeToString(hashed))
-	fmt.Println("---------")
-
-	err = Verify(request, body, publicKeyPEM, VerifierIgnoreTimeout())
-	require.Nil(t, err)
-}
-
-func TestSignAndVerify_RSASHA256(t *testing.T) {
+func TestSignAndVerify_RSA_SHA256(t *testing.T) {
 
 	// Create an RSA key
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -117,7 +59,7 @@ func TestSignAndVerify_RSASHA256(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestSignAndVerify_RSASHA512(t *testing.T) {
+func TestSignAndVerify_RSA_SHA512(t *testing.T) {
 
 	// Create an RSA key
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -146,33 +88,12 @@ func TestSignAndVerify_Emissary(t *testing.T) {
 		date: Sat, 02 Sep 2023 15:29:05 GMT
 		digest: SHA-256=VgRwIlTTedMmiNk71Zlod3Bq6gXOzJNIRlUXenyNdLw=`)
 
-	fmt.Println("plaintextSignature -------------------")
-	fmt.Println(plaintextSignature)
-	fmt.Println("")
-
 	hashedSignature, err := makeSignatureHash(plaintextSignature, crypto.SHA256)
 	require.Nil(t, err)
 
-	fmt.Println("hashedSignature -------------------")
-	fmt.Println(hashedSignature)
-	fmt.Println("")
-	fmt.Println(base64.StdEncoding.EncodeToString(hashedSignature))
-	fmt.Println("")
-
 	signedSignature, err := makeSignedDigest(hashedSignature, crypto.SHA256, privateKey)
 	require.Nil(t, err)
-	fmt.Println("signedSignature -------------------")
-	fmt.Println(signedSignature)
-	fmt.Println("")
-	fmt.Println(base64.StdEncoding.EncodeToString(signedSignature))
-	fmt.Println("")
 
-	fmt.Println("original Signature --------------------")
-	signature := `xFVaZiSGXc/6KBHEeg8qssbqVwowTA2pQKD46QcbojZLVP90kJpDutZ0DuSYlMjPlRc95meFb+O0B3ikqA8MEyoDQ+1xyn5o7o+zKteTb6FQf3feBDvGWxJh3DWIog3h8Hqxzha++wctUYm1AXSabd1enQwhzlseSJFfie3P0Wr5MTd96H+NcUizZIrapsE8Q8Wbdixaywp1lehrHt/ah72ocbvHX1AVlPAjdfxJ+tftI2MJ03qRshssNtk+r2DMufGiNb8wIEA4E7928+LqDpjZiUmQoSbxto5MTOtNV58wurz5YaBQjpD8zSHmzV17RGWVQYGII+v/aHqXPKD7Gw==`
-	fmt.Println(signature)
-	fmt.Println("")
-
-	fmt.Println("verifyHashAndSignature -------------------")
 	derp.Report(verifyHashAndSignature(plaintextSignature, crypto.SHA256, publicKey, signedSignature))
 }
 
@@ -206,7 +127,6 @@ func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 		ipiwM6zWyC/tumuDlM9qReAKcqBtSNUOHcd9Tbs5zTUvm3RbhqUdgMPZfVG/O9qp
 		7FXferRokfJyjJpo7SW8K57HKPJ4aNMpa1yhG+uZ1rXzqvjD6zwRvto=
 		-----END RSA PRIVATE KEY-----`)
-	fmt.Println(privateKeyPEM)
 
 	privateKey, err := DecodePrivatePEM(privateKeyPEM)
 
@@ -216,7 +136,6 @@ func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 
 	testPrivateKey := privateKey.(*rsa.PrivateKey)
 	testPublicKeyPEM := EncodePublicPEM(testPrivateKey)
-	fmt.Println(testPublicKeyPEM)
 
 	/* sent via browser??
 	publicKeyPEM := removeTabs(
@@ -237,8 +156,6 @@ func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 		9wvJygZsqB4Iok8iatc+I1fGl6XiJcnxAQIDAQAB
 		-----END RSA PUBLIC KEY-----
 		`)
-
-	fmt.Println(publicKeyPEM)
 
 	if publicKeyPEM != testPublicKeyPEM {
 		panic("Public PEMs do not match")

@@ -7,6 +7,7 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
+	"github.com/benpate/remote/middleware"
 	"github.com/benpate/rosetta/mapof"
 )
 
@@ -59,15 +60,19 @@ func Send(actor Actor, document mapof.Any, targetID string) error {
 		Accept(vocab.ContentTypeActivityPub).
 		ContentType(vocab.ContentTypeActivityPub).
 		Use(RequestSignature(actor)).
-		// Use(middleware.Debug()).
 		JSON(document)
+
+	if packageDebugLevel >= DebugLevelVerbose {
+		transaction.Use(middleware.Debug())
+		//	transaction.Use(middleware.Dump())
+	}
 
 	if err := transaction.Send(); err != nil {
 		return derp.Wrap(err, location, "Error sending Follow request", inbox)
 	}
 
 	if packageDebugLevel >= DebugLevelVerbose {
-		fmt.Println("HANNIBAL: Sent Acivity Successfully")
+		fmt.Println("HANNIBAL: Sent Activity Successfully")
 	}
 
 	// Done!
