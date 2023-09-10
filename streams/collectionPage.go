@@ -16,7 +16,7 @@ type CollectionPage struct {
 	Summary    string  `json:"summary,omitempty"     bson:"summary,omitempty"`    // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
 	TotalItems int     `json:"totalItems,omitempty"  bson:"totalItems,omitempty"` // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
 	Current    string  `json:"current,omitempty"     bson:"current,omitempty"`    // In a paged Collection, indicates the page that contains the most recently updated member items.
-	First      string  `json:"first,omitempty"       bson:"first,omitempty"`      // In a paged Collection, indicates the furthest preceeding page of items in the collection.
+	First      string  `json:"first,omitempty"       bson:"first,omitempty"`      // In a paged Collection, indicates the furthest preceding page of items in the collection.
 	Last       string  `json:"last,omitempty"        bson:"last,omitempty"`       // In a paged Collection, indicates the furthest proceeding page of the collection.
 	PartOf     string  `json:"partOf,omitempty"      bson:"partOf,omitempty"`     // dentifies the Collection to which a CollectionPage objects items belong.
 	Prev       string  `json:"prev,omitempty"        bson:"prev,omitempty"`       // In a paged Collection, identifies the previous page of items.
