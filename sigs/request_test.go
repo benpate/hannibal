@@ -25,7 +25,7 @@ func TestHTTPRequest(t *testing.T) {
 	// Guarantee that Go is writing the header the way we'd expect
 	require.Equal(t, removeTabs("Cache-Control: max-age=60\r\nCache-Control: must-revalidate\r\n"), buffer.String())
 
-	// Proove that we get the FIRST value when we call .Get()
+	// Prove that we get the FIRST value when we call .Get()
 	require.Equal(t, "max-age=60", request.Header.Get("Cache-Control"))
 	require.Equal(t, "max-age=60", request.Header.Get("cAcHe-CoNtRoL"))
 
