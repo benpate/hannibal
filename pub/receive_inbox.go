@@ -18,7 +18,7 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 	const location = "activitypub.ReceiveInboxRequest"
 
 	// Try to read the body from the request
-	body, err := re.ReadBody(request)
+	body, err := re.ReadRequestBody(request)
 
 	if err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
