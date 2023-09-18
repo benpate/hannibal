@@ -17,16 +17,9 @@ import (
  *
  ******************************************/
 
-// validateRequest verifies that the HTTP request is signed with a valid key.
-// This function loads the public key from the ActivityPub actor, then verifies their signature.
+// validateRequest uses the hannibal/sigs library to verify that the HTTP
+// request is signed with a valid key.
 func validateRequest(request *http.Request, document streams.Document) error {
-
-	// TODO: HIGH: Validate http Signature headers
-	// TODO: HIGH: Validate Digest headers
-	// TODO: HIGH: Confirm that the http signature includes "(request-target)" "host" "date" and "digest" (extras are ok)
-
-	// Add required "host" header if it doesn't already exist
-	request.Header.Set("host", request.Host)
 
 	const location = "hannibal.pub.validateRequest"
 
