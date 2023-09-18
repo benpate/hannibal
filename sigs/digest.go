@@ -17,7 +17,7 @@ import (
 func ApplyDigest(request *http.Request, fn DigestFunc) error {
 
 	// Retrieve the request body (in a replayable manner)
-	body, err := re.ReadBody(request)
+	body, err := re.ReadRequestBody(request)
 
 	if err != nil {
 		return derp.Wrap(err, "sigs.ApplyDigest", "Error reading request body")
@@ -36,7 +36,7 @@ func ApplyDigest(request *http.Request, fn DigestFunc) error {
 func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 
 	// Retrieve the request body (in a replayable manner)
-	body, err := re.ReadBody(request)
+	body, err := re.ReadRequestBody(request)
 
 	if err != nil {
 		return derp.Wrap(err, "sigs.VerifyDigest", "Error reading request body")
