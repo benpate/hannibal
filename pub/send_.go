@@ -20,18 +20,23 @@ func SendQueueTask(actor Actor, document mapof.Any, recipient streams.Document) 
 
 // Send sends an ActivityStream to a remote ActivityPub service
 // actor: The Actor that is sending the request
-// document: The ActivityStream that is being sent
+// message: The ActivityStream that is being sent
 // recipient: The remote Actor who will receive the request
-func Send(actor Actor, document mapof.Any, recipient streams.Document) error {
+func Send(actor Actor, message mapof.Any, recipient streams.Document) error {
 
 	const location = "hannibal.pub.Send"
 
 	// Try to get the inbox from the recipient' profile
-	inbox := recipient.Inbox().ID()
+	inbox := recipient.Inbox()
 
-	if inbox == "" {
+	if inbox.IsNil() {
 		return derp.NewInternalError(location, "Inbox is empty", recipient.Value())
 	}
+
+	inboxID := inbox.ID()
+
+	// Add a "to" field in the message
+	message[vocab.PropertyTo] = recipient.ID()
 
 	// Optional debugging output
 	if packageDebugLevel >= DebugLevelTerse {
@@ -40,70 +45,17 @@ func Send(actor Actor, document mapof.Any, recipient streams.Document) error {
 		}
 		fmt.Println("HANNIBAL: Sending Activity: " + recipient.ID())
 		if packageDebugLevel >= DebugLevelVerbose {
-			marshalled, _ := json.MarshalIndent(document, "", "  ")
+			marshalled, _ := json.MarshalIndent(message, "", "  ")
 			fmt.Println(string(marshalled))
 		}
 	}
 
-	// Add a "to" field in the document
-	document[vocab.PropertyTo] = inbox
-
-	/*/ Marshal the document into a byte reader
-	bodyBytes, err := json.Marshal(document)
-
-	spew.Dump(string(bodyBytes), len(bodyBytes), err)
-	if err != nil {
-		return derp.Wrap(err, location, "Error marshalling ActivityStream", document)
-	}
-
-	// Create an HTTP request
-	req, err := http.NewRequest("POST", inbox, bytes.NewReader(bodyBytes))
-
-	if err != nil {
-		return derp.Wrap(err, location, "Error creating HTTP Request", inbox)
-	}
-
-	req.Header.Set("Accept", vocab.ContentTypeActivityPub)
-	req.Header.Set("Content-Type", vocab.ContentTypeActivityPub)
-
-	middleware := RequestSignature(actor)
-	if err := middleware.Request(req); err != nil {
-		return derp.Wrap(err, location, "Error signing request", req)
-	}
-
-	spew.Dump("HERE?? ==========")
-
-
-	client := http.Client{}
-	spew.Dump("A")
-	response, err := client.Do(req)
-	spew.Dump("B")
-
-	if err != nil {
-		spew.Dump("C")
-		spew.Dump("FAIL", err)
-		return derp.Wrap(err, location, "Error sending HTTP Request", req)
-	}
-
-	spew.Dump("D")
-	spew.Dump("SUCCESS", response.Header)
-
-	responseBytes, err := io.ReadAll(response.Body)
-
-	if err != nil {
-		spew.Dump("E", err)
-		return derp.Wrap(err, location, "Error reading HTTP Response", response)
-	}
-
-	spew.Dump(string(responseBytes))
-	*/
-
 	// Send the request to the target Actor's inbox
-	transaction := remote.Post(inbox).
+	transaction := remote.Post(inboxID).
 		Accept(vocab.ContentTypeActivityPub).
 		ContentType(vocab.ContentTypeActivityPub).
 		Use(RequestSignature(actor)).
-		JSON(document)
+		JSON(message)
 
 	if packageDebugLevel >= DebugLevelVerbose {
 		transaction.Use(middleware.Debug())

@@ -1,5 +1,8 @@
 package vocab
 
+// JSON-LD context descriptor used by ActivityStreams/ActivityPub
+const AtContext = "@context"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accuracy
 const PropertyAccuracy = "accuracy"
 

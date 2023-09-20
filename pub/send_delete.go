@@ -21,14 +21,14 @@ func SendDeleteQueueTask(actor Actor, activity streams.Document, recipient strea
 func SendDelete(actor Actor, activity streams.Document, recipient streams.Document) error {
 
 	message := mapof.Any{
-		"@context": vocab.ContextTypeActivityStreams,
-		"type":     vocab.ActivityTypeDelete,
-		"actor":    actor.ActorID,
-		"object":   activity.Value(),
+		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:   vocab.ActivityTypeDelete,
+		vocab.PropertyActor:  actor.ActorID,
+		vocab.PropertyObject: activity.Value(),
 	}
 
 	if err := Send(actor, message, recipient); err != nil {
-		return derp.Wrap(err, "activitypub.PostAcceptActivity", "Error sending Accept request")
+		return derp.Wrap(err, "hannibal.pub.PostAcceptActivity", "Error sending Accept request", message)
 	}
 
 	return nil

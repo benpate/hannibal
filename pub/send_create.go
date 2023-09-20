@@ -21,14 +21,14 @@ func SendCreateQueueTask(actor Actor, activity mapof.Any, recipient streams.Docu
 func SendCreate(actor Actor, activity mapof.Any, recipient streams.Document) error {
 
 	message := mapof.Any{
-		"@context": vocab.ContextTypeActivityStreams,
-		"type":     vocab.ActivityTypeCreate,
-		"actor":    actor.ActorID,
-		"object":   activity,
+		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:   vocab.ActivityTypeCreate,
+		vocab.PropertyActor:  actor.ActorID,
+		vocab.PropertyObject: activity,
 	}
 
 	if err := Send(actor, message, recipient); err != nil {
-		return derp.Wrap(err, "activitypub.PostAcceptActivity", "Error sending Accept request")
+		return derp.Wrap(err, "hannibal.pub.PostAcceptActivity", "Error sending Accept request", message)
 	}
 
 	return nil

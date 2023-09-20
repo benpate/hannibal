@@ -236,12 +236,6 @@ func (document Document) Document() Document {
 	return result
 }
 
-// Collection retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
-func (document Document) Collection() Document {
-	result, _ := document.Load()
-	return result
-}
-
 // Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
 func (document Document) Load() (Document, error) {
 

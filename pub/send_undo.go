@@ -25,7 +25,7 @@ func SendUndo(actor Actor, activity mapof.Any, recipient streams.Document) error
 
 	// Send the message to the target
 	if err := Send(actor, message, recipient); err != nil {
-		return derp.Wrap(err, "activitypub.PostUndoActivity", "Error sending Undo request")
+		return derp.Wrap(err, "hannibal.pub.PostUndoActivity", "Error sending Undo request", message)
 	}
 
 	return nil
@@ -37,10 +37,10 @@ func Undo(actorID string, activity mapof.Any) mapof.Any {
 
 	// Build the ActivityPub Message
 	message := mapof.Any{
-		"@context": vocab.ContextTypeActivityStreams,
-		"type":     vocab.ActivityTypeUndo,
-		"actor":    actorID,
-		"object":   activity,
+		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:   vocab.ActivityTypeUndo,
+		vocab.PropertyActor:  actorID,
+		vocab.PropertyObject: activity,
 	}
 
 	return message

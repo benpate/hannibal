@@ -21,6 +21,7 @@ type Verifier struct {
 	BodyDigests     []crypto.Hash // List of algorithms to accept from remote servers when they create a Digest header.  Default is SHA256 and SHA512
 	SignatureHashes []crypto.Hash // Digest algorithm used to create the signature.  Default is SHA256, SHA512
 	Timeout         int           // Number of seconds before signatures are expired. Default is 43200 seconds (12 hours).
+	CheckDigest     bool          // If true, then the verifier will check the Digest header.  Default is true.
 }
 
 // NewVerifier returns a fully initialized Verifier
@@ -30,6 +31,7 @@ func NewVerifier(options ...VerifierOption) Verifier {
 		BodyDigests:     []crypto.Hash{crypto.SHA256, crypto.SHA512},
 		SignatureHashes: []crypto.Hash{crypto.SHA256, crypto.SHA512},
 		Timeout:         12 * 60 * 60, // 12 hours
+		CheckDigest:     true,
 	}
 	result.Use(options...)
 	return result
@@ -75,9 +77,11 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		}
 	}
 
-	// Verify the body Digest
-	if err := VerifyDigest(request, verifier.BodyDigests...); err != nil {
-		return derp.Wrap(err, location, "Error verifying body digest")
+	// Verify the body Digest (default behavior)
+	if verifier.CheckDigest {
+		if err := VerifyDigest(request, verifier.BodyDigests...); err != nil {
+			return derp.Wrap(err, location, "Error verifying body digest")
+		}
 	}
 
 	// Retrieve and parse the Signature from the HTTP Request

@@ -20,15 +20,17 @@ func SendUpdateQueueTask(actor Actor, activity mapof.Any, recipient streams.Docu
 // recipient: The ActivityStreams profile of the message recipient
 func SendUpdate(actor Actor, activity mapof.Any, recipient streams.Document) error {
 
+	delete(activity, vocab.AtContext)
+
 	message := mapof.Any{
-		"@context": vocab.ContextTypeActivityStreams,
-		"type":     vocab.ActivityTypeUpdate,
-		"actor":    actor.ActorID,
-		"object":   activity,
+		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:   vocab.ActivityTypeUpdate,
+		vocab.PropertyActor:  actor.ActorID,
+		vocab.PropertyObject: activity,
 	}
 
 	if err := Send(actor, message, recipient); err != nil {
-		return derp.Wrap(err, "activitypub.PostAcceptActivity", "Error sending Accept request")
+		return derp.Wrap(err, "hannibal.pub.PostAcceptActivity", "Error sending Accept request", message)
 	}
 
 	return nil

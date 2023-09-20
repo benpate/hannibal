@@ -61,10 +61,22 @@ func DecodePrivatePEM(pemString string) (crypto.PrivateKey, error) {
 	switch block.Type {
 
 	case "RSA PRIVATE KEY":
-		return x509.ParsePKCS1PrivateKey(block.Bytes)
+		result, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+
+		if err != nil {
+			return nil, derp.Wrap(err, location, "Error parsing PKCS1 private key")
+		}
+
+		return result, nil
 
 	case "PRIVATE KEY":
-		return x509.ParsePKCS8PrivateKey(block.Bytes)
+		result, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+
+		if err != nil {
+			return nil, derp.Wrap(err, location, "Error parsing PKCS8 private key")
+		}
+
+		return result, nil
 
 	default:
 		return nil, derp.NewInternalError(location, "Invalid block type", block.Type)

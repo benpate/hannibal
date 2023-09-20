@@ -56,3 +56,12 @@ func VerifierIgnoreTimeout() VerifierOption {
 		verifier.Timeout = 0
 	}
 }
+
+// VerifierIgnoreBodyDigest sets the verifier to ignore
+// the "Digest" header.  This is useful for testing
+// but should not be used in production.
+func VerifierIgnoreBodyDigest() VerifierOption {
+	return func(verifier *Verifier) {
+		verifier.CheckDigest = false
+	}
+}

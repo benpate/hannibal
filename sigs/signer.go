@@ -24,6 +24,7 @@ type Signer struct {
 	Fields        []string
 	SignatureHash crypto.Hash
 	BodyDigest    crypto.Hash
+	HS2019        bool
 	Created       int64
 	Expires       int64
 }
@@ -100,7 +101,7 @@ func (signer *Signer) MakeSignature(request *http.Request, publicKeyID string, p
 	if slice.Contains(signer.Fields, FieldDate) {
 		date := request.Header.Get(FieldDate)
 		if _, err := time.Parse(http.TimeFormat, date); err != nil {
-			request.Header.Set(FieldDate, time.Now().Format(http.TimeFormat))
+			request.Header.Set(FieldDate, time.Now().In(time.UTC).Format(http.TimeFormat))
 		}
 	}
 
@@ -124,7 +125,7 @@ func (signer *Signer) MakeSignature(request *http.Request, publicKeyID string, p
 	// Assemble and return the signature object
 	signature.KeyID = publicKeyID
 	signature.Headers = signer.Fields
-	signature.Algorithm = Algorithm_HS2019
+	signature.Algorithm = getAlgorithmName(privateKey, signer.SignatureHash)
 	signature.Signature = signedDigest
 
 	return signature, nil
@@ -209,7 +210,7 @@ func makeSignedDigest(digest []byte, hash crypto.Hash, privateKey crypto.Private
 		}
 	}
 
-	return nil, derp.NewInternalError(location, "Unrecognized private key type")
+	return nil, derp.NewInternalError(location, "Unrecognized private key type", privateKey)
 }
 
 // getField retrieves the value of a named field from an HTTP request.
@@ -255,6 +256,42 @@ func getPathAndQuery(url *url.URL) string {
 
 	if query := url.RawQuery; query != "" {
 		result += "?" + query
+	}
+
+	return result
+}
+
+// getAlgorithmName returns the standard name used for the combination of private key and digest algorithms.
+func getAlgorithmName(privateKey crypto.PrivateKey, digest crypto.Hash) string {
+
+	var result string
+
+	// Handle known private key types
+	switch privateKey.(type) {
+
+	case *rsa.PrivateKey:
+		result = "rsa-"
+
+	case *ecdsa.PrivateKey:
+		result = "ecdsa-"
+
+	default:
+		// This is a fallback. It shouldn't happen.
+		return Algorithm_HS2019
+	}
+
+	// Handle known digest hashes
+	switch digest {
+
+	case crypto.SHA256:
+		result += "sha256"
+
+	case crypto.SHA512:
+		result += "sha512"
+
+	default:
+		// This is a fallback. It shouldn't happen.
+		return Algorithm_HS2019
 	}
 
 	return result

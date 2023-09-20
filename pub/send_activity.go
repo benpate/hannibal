@@ -1,6 +1,7 @@
 package pub
 
 import (
+	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
@@ -20,12 +21,20 @@ func SendActivityQueueTask(actor Actor, activityType string, object any, recipie
 // recipient: The ActivityStreams profile of the message recipient
 func SendActivity(actor Actor, activityType string, object any, recipient streams.Document) error {
 
-	document := mapof.Any{
-		"@context": vocab.ContextTypeActivityStreams,
-		"type":     activityType,
-		"actor":    actor.ActorID,
-		"object":   object,
+	if objectMap, ok := object.(map[string]any); ok {
+		delete(objectMap, vocab.AtContext)
 	}
 
-	return Send(actor, document, recipient)
+	message := mapof.Any{
+		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:   activityType,
+		vocab.PropertyActor:  actor.ActorID,
+		vocab.PropertyObject: object,
+	}
+
+	if err := Send(actor, message, recipient); err != nil {
+		return derp.Wrap(err, "hannibal.pub.SendActivity", "Error sending Activity", message)
+	}
+
+	return nil
 }

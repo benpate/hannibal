@@ -5,25 +5,25 @@ import (
 )
 
 func (document Document) Inbox() Document {
-	return document.Get(vocab.PropertyInbox).Collection()
+	return document.Get(vocab.PropertyInbox)
 }
 
 func (document Document) Outbox() Document {
-	return document.Get(vocab.PropertyOutbox).Collection()
+	return document.Get(vocab.PropertyOutbox)
 }
 
 func (document Document) Following() Document {
-	return document.Get(vocab.PropertyFollowing).Collection()
+	return document.Get(vocab.PropertyFollowing)
 }
 
 func (document Document) Followers() Document {
-	return document.Get(vocab.PropertyFollowers).Collection()
+	return document.Get(vocab.PropertyFollowers)
 }
 
 func (document Document) Liked() Document {
-	return document.Get(vocab.PropertyLiked).Collection()
+	return document.Get(vocab.PropertyLiked)
 }
 
 func (document Document) Blocked() Document {
-	return document.Get(vocab.PropertyBlocked).Collection()
+	return document.Get(vocab.PropertyBlocked)
 }

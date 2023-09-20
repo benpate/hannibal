@@ -19,15 +19,18 @@ func SendAcceptQueueTask(actor Actor, activity streams.Document) QueueTask {
 // activity: The activity that has been accepted (likely a "Follow" request)
 func SendAccept(actor Actor, activity streams.Document) error {
 
+	object := activity.Map()
+	delete(object, vocab.AtContext)
+
 	message := mapof.Any{
-		"@context": vocab.ContextTypeActivityStreams,
-		"type":     vocab.ActivityTypeAccept,
-		"actor":    actor.ActorID,
-		"object":   activity.Value(),
+		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:   vocab.ActivityTypeAccept,
+		vocab.PropertyActor:  actor.ActorID,
+		vocab.PropertyObject: object,
 	}
 
 	if err := Send(actor, message, activity.Actor()); err != nil {
-		return derp.Wrap(err, "activitypub.PostAcceptActivity", "Error sending Accept request")
+		return derp.Wrap(err, "hannibal.pub.PostAcceptActivity", "Error sending Accept request", message)
 	}
 
 	return nil

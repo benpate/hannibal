@@ -85,5 +85,5 @@ func (router *Router) Handle(activity streams.Document) error {
 		return routeHandler(activity)
 	}
 
-	return derp.NewBadRequestError("pub.Router.Handle", "No route found for activity", activity.Value())
+	return derp.NewBadRequestError("hannibal.pub.Router.Handle", "No route found for activity", activity.Value())
 }

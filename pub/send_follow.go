@@ -21,17 +21,17 @@ func SendFollowQueueTask(actor Actor, followID string, recipient streams.Documen
 func SendFollow(actor Actor, followID string, recipient streams.Document) error {
 
 	// Build the ActivityStream "Follow" request
-	activity := mapof.Any{
-		"@context": vocab.ContentTypeActivityPub,
-		"id":       followID,
-		"type":     vocab.ActivityTypeFollow,
-		"actor":    actor.ActorID,
-		"object":   recipient.ID(),
+	message := mapof.Any{
+		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.PropertyID:     followID,
+		vocab.PropertyType:   vocab.ActivityTypeFollow,
+		vocab.PropertyActor:  actor.ActorID,
+		vocab.PropertyObject: recipient.ID(),
 	}
 
 	// Send the request
-	if err := Send(actor, activity, recipient); err != nil {
-		return derp.Wrap(err, "activitypub.Follow", "Error sending Follow request")
+	if err := Send(actor, message, recipient); err != nil {
+		return derp.Wrap(err, "hannibal.pub.Follow", "Error sending Follow request", message)
 	}
 
 	return nil

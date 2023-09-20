@@ -58,6 +58,8 @@ func (document Document) Cc() Document {
 	return document.Get(vocab.PropertyCC)
 }
 
+// IMPORTANT: THIS IS NOT THE @context PROPERTY REQUIRED FOR EVERY
+// JSON-LD DOCUMENT
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 func (document Document) Context() Document {
 	return document.Get(vocab.PropertyContext)

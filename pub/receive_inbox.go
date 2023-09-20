@@ -15,7 +15,7 @@ import (
 // ReceiveInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
 func ReceiveInboxRequest(request *http.Request, client streams.Client) (document streams.Document, err error) {
 
-	const location = "activitypub.ReceiveInboxRequest"
+	const location = "hannibal.pub.ReceiveInboxRequest"
 
 	// Try to read the body from the request
 	body, err := re.ReadRequestBody(request)
