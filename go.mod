@@ -8,7 +8,7 @@ require (
 	github.com/benpate/remote v0.11.1
 	github.com/benpate/rosetta v0.18.1
 	github.com/davecgh/go-spew v1.1.1
-	github.com/rs/zerolog v1.30.0
+	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
 )
 
