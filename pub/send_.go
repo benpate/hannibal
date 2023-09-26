@@ -8,7 +8,7 @@ import (
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
-	"github.com/benpate/remote/middleware"
+	"github.com/benpate/remote/options"
 	"github.com/benpate/rosetta/mapof"
 )
 
@@ -58,7 +58,7 @@ func Send(actor Actor, message mapof.Any, recipient streams.Document) error {
 		JSON(message)
 
 	if packageDebugLevel >= DebugLevelVerbose {
-		transaction.Use(middleware.Debug())
+		transaction.Use(options.Debug())
 	}
 
 	if err := transaction.Send(); err != nil {

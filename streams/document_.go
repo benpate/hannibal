@@ -1,6 +1,7 @@
 package streams
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/benpate/derp"
@@ -16,18 +17,18 @@ import (
 // `map[string]any`, `[]any`, or a primitive type, like a
 // `string`, `float`, `int` or `bool`.
 type Document struct {
-	value    any
-	client   Client
-	metadata mapof.Any
+	value      any
+	httpHeader http.Header
+	client     Client
 }
 
 // NewDocument creates a new Document object from a JSON-LD map[string]any
-func NewDocument(value any, options ...Option) Document {
+func NewDocument(value any, options ...DocumentOption) Document {
 
 	result := Document{
-		value:    normalize(value),
-		client:   NewDefaultClient(),
-		metadata: make(mapof.Any),
+		value:      normalize(value),
+		httpHeader: make(http.Header),
+		client:     NewDefaultClient(),
 	}
 
 	result.WithOptions(options...)
@@ -35,14 +36,8 @@ func NewDocument(value any, options ...Option) Document {
 }
 
 // NilDocument returns a new, empty Document.
-func NilDocument(options ...Option) Document {
-	result := Document{
-		value:    nil,
-		client:   NewDefaultClient(),
-		metadata: make(mapof.Any),
-	}
-	result.WithOptions(options...)
-	return result
+func NilDocument(options ...DocumentOption) Document {
+	return NewDocument(nil, options...)
 }
 
 /******************************************
@@ -139,14 +134,17 @@ func (document Document) get(key string) Document {
 	case map[string]any:
 		return document.sub(typed[key])
 
+	case mapof.Any:
+		return document.sub(typed[key])
+
 	case []any:
 		if len(typed) > 0 {
-			return document.sub(typed[0])
+			return document.sub(typed[0]).Get(key)
 		}
 
 	case sliceof.Any:
 		if len(typed) > 0 {
-			return document.sub(typed[0])
+			return document.sub(typed[0]).Get(key)
 		}
 	}
 
@@ -224,15 +222,14 @@ func (document Document) Int() int {
 	}
 }
 
-// ForceLoad retrieves a JSON-LD document from a remote server, regardless of whether
-// we already have an ID or a full value.
-func (document Document) ForceLoad() (Document, error) {
-	return document.getClient().LoadDocument(document.ID(), mapof.NewAny())
-}
-
 // Document retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
 func (document Document) Document() Document {
-	result, _ := document.Load()
+	result, err := document.Load()
+
+	if err != nil {
+		derp.Report(derp.Wrap(err, "hannibal.streams.Document.Document", "Error loading document", document.Value()))
+	}
+
 	return result
 }
 
@@ -254,7 +251,7 @@ func (document Document) Load() (Document, error) {
 		return document.Head().Load()
 
 	case string:
-		return document.getClient().LoadDocument(typed, mapof.NewAny())
+		return document.getClient().Load(typed)
 	}
 
 	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
@@ -435,12 +432,10 @@ func (document *Document) SetValue(value any) {
 	document.value = value
 }
 
-func (document *Document) WithOptions(options ...Option) *Document {
+func (document *Document) WithOptions(options ...DocumentOption) {
 	for _, option := range options {
 		option(document)
 	}
-
-	return document
 }
 
 func (document *Document) getClient() Client {
@@ -455,9 +450,9 @@ func (document *Document) getClient() Client {
 // sub returns a new Document with a new VALUE, all of the same OPTIONS as this original
 func (document *Document) sub(value any) Document {
 	return Document{
-		value:    normalize(value),
-		client:   document.client,
-		metadata: document.metadata,
+		value:      normalize(value),
+		client:     document.client,
+		httpHeader: document.httpHeader,
 	}
 }
 

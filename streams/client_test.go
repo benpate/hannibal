@@ -17,17 +17,13 @@ func newTestClient() testClient {
 	}
 }
 
-func (client testClient) LoadDocument(uri string, defaultValue map[string]any) (Document, error) {
+func (client testClient) Load(uri string, options ...any) (Document, error) {
 
 	if value, ok := client.data[uri]; ok {
 		return NewDocument(value, WithClient(client)), nil
 	}
 
 	return NilDocument(), derp.NewInternalError("hannibal.streams.testClient.Load", "Unknown URI", uri)
-}
-
-func (client testClient) LoadActor(uri string) (Document, error) {
-	return NilDocument(), derp.NewInternalError("hannibal.streams.testClient.Load", "Not implemented", uri)
 }
 
 // testStreamData returns a collection of documents for the test client to return

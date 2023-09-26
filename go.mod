@@ -2,6 +2,10 @@ module github.com/benpate/hannibal
 
 go 1.19
 
+replace github.com/benpate/re => ../re
+
+replace github.com/benpate/remote => ../remote
+
 require (
 	github.com/benpate/derp v0.28.1
 	github.com/benpate/re v0.1.0

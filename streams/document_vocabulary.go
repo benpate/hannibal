@@ -6,6 +6,11 @@ import (
 	"github.com/benpate/hannibal/vocab"
 )
 
+/******************************************
+ * ActivityStreams 2.0 Properties
+ * https://www.w3.org/TR/activitystreams-vocabulary
+ ******************************************/
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
 func (document Document) ID() string {
 
@@ -385,4 +390,14 @@ func (document Document) Updated() time.Time {
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-width
 func (document Document) Width() int {
 	return document.Get(vocab.PropertyWidth).Int()
+}
+
+/******************************************
+ * ActivityPub Properties
+ * https://www.w3.org/TR/activitypub
+ ******************************************/
+
+// https://www.w3.org/TR/activitypub/#endpoints
+func (document Document) Endpoints() Document {
+	return document.Get(vocab.PropertyEndpoints)
 }

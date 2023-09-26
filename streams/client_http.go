@@ -2,6 +2,7 @@ package streams
 
 import (
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
 )
 
@@ -11,29 +12,28 @@ func NewDefaultClient() Client {
 	return DefaultClient{}
 }
 
-func (client DefaultClient) LoadActor(uri string) (Document, error) {
-	return client.LoadDocument(uri, map[string]any{})
-}
+// Load implements the hannibal.Client interface, which loads an ActivityStream
+// document from a remote server. For the hannibal default client, this method
+// simply loads the document from a remote server with no other processing.
+func (client DefaultClient) Load(uri string, options ...any) (Document, error) {
 
-func (client DefaultClient) LoadDocument(uri string, defaultValue map[string]any) (Document, error) {
+	const location = "hannibal.streams.Client.Load"
+
+	result := make(map[string]any)
 
 	// Try to load-and-parse the value from the remote server
 	transaction := remote.Get(uri).
-		Accept("application/activity+json").
-		Response(&defaultValue, nil)
+		Accept(vocab.ContentTypeActivityPub).
+		Result(&result)
 
 	if err := transaction.Send(); err != nil {
-		return NilDocument(), derp.Wrap(err, "hannibal.streams.Client.Load", "Error loading JSON-LD document", uri)
+		return NilDocument(), derp.Wrap(err, location, "Error loading JSON-LD document", uri)
 	}
 
-	header := transaction.ResponseObject.Header
-
 	// Return in triumph
-	return NewDocument(defaultValue,
+	return NewDocument(result,
 			WithClient(client),
-			WithMeta("cache-control", header.Get("cache-control")),
-			WithMeta("etag", header.Get("etag")),
-			WithMeta("expires", header.Get("expires")),
+			WithHTTPHeader(transaction.ResponseHeader()),
 		),
 		nil
 }

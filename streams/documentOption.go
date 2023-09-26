@@ -1,9 +1,11 @@
 package streams
 
-type Option func(*Document)
+import "net/http"
+
+type DocumentOption func(*Document)
 
 // WithClient option sets the HTTP client that can load remote documents if necessary
-func WithClient(client Client) Option {
+func WithClient(client Client) DocumentOption {
 	return func(doc *Document) {
 		if client == nil {
 			doc.client = NewDefaultClient()
@@ -13,9 +15,9 @@ func WithClient(client Client) Option {
 	}
 }
 
-// WithMeta option sets metadata in the document
-func WithMeta(name string, value any) Option {
+// WithHTTPHeader attaches an HTTP header to the document
+func WithHTTPHeader(httpHeader http.Header) DocumentOption {
 	return func(doc *Document) {
-		doc.metadata[name] = value
+		doc.httpHeader = httpHeader
 	}
 }
