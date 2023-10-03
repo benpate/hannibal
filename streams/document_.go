@@ -1,6 +1,8 @@
 package streams
 
 import (
+	"bytes"
+	"encoding/gob"
 	"net/http"
 	"time"
 
@@ -105,6 +107,52 @@ func (document Document) IsMap() bool {
 // Value returns the generic data stored in this Document
 func (document Document) Value() any {
 	return document.value
+}
+
+func (document Document) Clone() Document {
+
+	result := Document{
+		client:     document.client,
+		httpHeader: document.httpHeader.Clone(),
+	}
+
+	switch typed := document.value.(type) {
+
+	case string:
+		result.value = typed
+		return result
+
+	case int:
+		result.value = typed
+		return result
+
+	case int64:
+		result.value = typed
+		return result
+
+	case float64:
+		result.value = typed
+		return result
+
+	case map[string]any:
+		result.value = map[string]any{}
+
+	case mapof.Any:
+		result.value = mapof.Any{}
+
+	case []any:
+		result.value = []any{}
+
+	case sliceof.Any:
+		result.value = sliceof.Any{}
+
+	}
+
+	buffer := new(bytes.Buffer)
+	gob.NewEncoder(buffer).Encode(document.value)
+	gob.NewDecoder(buffer).Decode(&result.value)
+
+	return result
 }
 
 // Get returns a sub-property of the current document
