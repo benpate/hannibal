@@ -461,8 +461,6 @@ func (document Document) IsEmptyTail() bool {
  * Helpers
  ******************************************/
 
-func (document Document) Copy() Document {
-	return document
 }
 
 func (document *Document) SetValue(value any) {
