@@ -270,17 +270,6 @@ func (document Document) Int() int {
 	}
 }
 
-// Document retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
-func (document Document) Document() Document {
-	result, err := document.Load()
-
-	if err != nil {
-		derp.Report(derp.Wrap(err, "hannibal.streams.Document.Document", "Error loading document", document.Value()))
-	}
-
-	return result
-}
-
 // Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
 func (document Document) Load() (Document, error) {
 
