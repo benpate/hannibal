@@ -27,6 +27,10 @@ func SendCreate(actor Actor, activity mapof.Any, recipient streams.Document) err
 		vocab.PropertyObject: activity,
 	}
 
+	if activityID, ok := activity[vocab.PropertyID].(string); ok {
+		message[vocab.PropertyID] = activityID
+	}
+
 	if err := Send(actor, message, recipient); err != nil {
 		return derp.Wrap(err, "hannibal.pub.PostAcceptActivity", "Error sending Accept request", message)
 	}
