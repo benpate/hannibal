@@ -458,10 +458,35 @@ func (document Document) IsEmptyTail() bool {
 }
 
 /******************************************
- * Helpers
+ * TypeDetection
  ******************************************/
 
+// IsTypeActor returns TRUE if this document represents any
+// of the predefined actor types
+func (document Document) IsTypeActor() bool {
+	switch document.Type() {
+
+	case
+		vocab.ActorTypeApplication,
+		vocab.ActorTypeGroup,
+		vocab.ActorTypeOrganization,
+		vocab.ActorTypePerson,
+		vocab.ActorTypeService:
+
+		return true
+	}
+	return false
 }
+
+// NotTypeActor returns TRUE if this document does NOT represent any
+// of the predefined actor types
+func (document Document) NotTypeActor() bool {
+	return !document.IsTypeActor()
+}
+
+/******************************************
+ * Helpers
+ ******************************************/
 
 func (document *Document) SetValue(value any) {
 	document.value = value
