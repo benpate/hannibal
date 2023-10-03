@@ -271,7 +271,7 @@ func (document Document) Int() int {
 }
 
 // Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
-func (document Document) Load() (Document, error) {
+func (document Document) Load(options ...any) (Document, error) {
 
 	const location = "hannibal.streams.Document.Map"
 
@@ -285,10 +285,10 @@ func (document Document) Load() (Document, error) {
 		return document, nil
 
 	case []any:
-		return document.Head().Load()
+		return document.Head().Load(options...)
 
 	case string:
-		return document.getClient().Load(typed)
+		return document.getClient().Load(typed, options...)
 	}
 
 	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
