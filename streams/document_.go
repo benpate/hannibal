@@ -492,6 +492,44 @@ func (document *Document) SetValue(value any) {
 	document.value = value
 }
 
+func (document *Document) SetProperty(property string, value any) {
+	document.value = document.setProperty(document.value, property, value)
+}
+
+func (document *Document) setProperty(currentValue any, property string, value any) any {
+
+	switch typed := currentValue.(type) {
+
+	case map[string]any:
+		typed[property] = value
+		return typed
+
+	case []any:
+		if len(typed) == 0 {
+			document.value = map[string]any{
+				property: value,
+			}
+			return typed
+		}
+
+		firstItem := document.setProperty(typed[0], property, value)
+		typed[0] = firstItem
+		return typed
+
+	case string:
+		return map[string]any{
+			vocab.PropertyID: typed,
+			property:         value,
+		}
+
+	default:
+		return map[string]any{
+			vocab.PropertyID: typed,
+			property:         value,
+		}
+	}
+}
+
 func (document *Document) WithOptions(options ...DocumentOption) {
 	for _, option := range options {
 		option(document)
