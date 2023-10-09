@@ -2,7 +2,6 @@ package sigs
 
 import (
 	"bufio"
-	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -122,7 +121,5 @@ func TestSign_Dino(t *testing.T) {
 
 	err = Sign(request, "abcdefg-123", privateKey, SignerFields("x-request-id", "tpp-redirect-uri", "psu-id"))
 	require.Nil(t, err)
-
-	fmt.Println(request.Header.Get("Signature"))
-	require.Equal(t, `keyId="abcdefg-123",algorithm="rsa-sha256",headers="x-request-id tpp-redirect-uri digest psu-id",signature="oYpCW6mE8PxGJiRdpaS4Z6ZgimXPD3QE0fvuZ+9FKM5Bw02BWbDnnoICJFd9TCfkMCnmQW4lHWdyd/RtHf4/6ptxsSI5n0/EmRQ8/XvsDXD6q4XXFA3xDq6G9Bi0ixiZgHgOCFAH/5zIVmfymfkHNFz7MM10ws5ixKi2IfJccnuWaLXkOjIoCxvzruzC9WsfYNutSoXBGw/uMldKNVoamr4m38i2Uvdc99fTLc/CFXbaETu0+EvwnMSNW2VTnCU11hnNhqs2uBvPnTFr18lxp2ttOkO3tWm3B/tJDTF2gII1SV5D6uAP2F7Z1Mz+LP26BeJ/QlOy6DhMWJwOpvKikw=="`, request.Header.Get("Signature"))
+	require.Equal(t, `keyId="abcdefg-123",algorithm="rsa-sha256",headers="x-request-id tpp-redirect-uri psu-id",signature="ik5wHHA4LP23hOw+tg4doz0150JzU3RFfPu7zX6i76wGLEUeh7jP+zbjpQrTHVnrcJEE0qTBmQySgZODxpMmOIZPGjOanTVV2FVypVmEuyoTT+yqHymgqlJt8SUEko+jhbboQ+o184HWP17ZuWH7+vBZoQWKN1nglZa5Bkef4/1JWmTrwTAmp9mWqfVJp1X5fzaM8gqXdO103KW/Znb/sK3fuMnLjZNNw7oaeSRUSFxv9i9hKgHSdUFV0YglxWvOtFhagHQ4gp9nKikjSIPUppdjlHB7/VVXVqAKvLRaomL7pWO4RVH18hLdPHLrzeezMJLOJnxgzB4i1KG01xu3zw=="`, request.Header.Get("Signature"))
 }
