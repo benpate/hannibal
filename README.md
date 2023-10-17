@@ -43,7 +43,6 @@ https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures
 
 The `sigs` package creates and verifies HTTP signatures and Digests.
 
-
 ## Pull Requests Welcome
 
 This library is a work in progress, and will benefit from your experience reports, use cases, and contributions.  If you have an idea for making this library better, send in a pull request.  We're all in this together! 🐘
