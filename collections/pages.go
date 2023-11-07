@@ -14,6 +14,9 @@ func Pages(collection streams.Document, done <-chan struct{}) <-chan streams.Doc
 
 	go func() {
 
+		// emptyPage is used to prevent WriteFreely-style infinite loops
+		var emptyPage bool
+
 		defer close(result)
 
 		// If this is a collection header, then try to load the first page of results
@@ -46,6 +49,19 @@ func Pages(collection streams.Document, done <-chan struct{}) <-chan streams.Doc
 			if err != nil {
 				derp.Report(derp.Wrap(err, "hannibal.collections.Iterator", "Error loading first page", collection))
 				return
+			}
+
+			// If this document is an empty page, then try to prevent
+			// WriteFreely-style infinite loops.
+			if collection.Items().Len() == 0 {
+
+				// If we've already seen ONE empty page, then exit.
+				if emptyPage {
+					return
+				}
+
+				// Otherwise, set the emptyPage flag so we don't loop indefinitely.
+				emptyPage = true
 			}
 		}
 	}()

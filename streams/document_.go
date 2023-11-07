@@ -363,6 +363,10 @@ func (document Document) Time() time.Time {
  * Array-based Methods
  ******************************************/
 
+// Len returns the length of the document.
+// If the document is nil, then this method returns 0
+// If the document is a slice, then this method returns the length of the slice
+// Otherwise, this method returns 1
 func (document Document) Len() int {
 
 	if document.IsNil() {
@@ -380,6 +384,8 @@ func (document Document) Len() int {
 	return 1
 }
 
+// At returns the document at the specified index.
+// If this document is not a slice, then this method returns a nil document.
 func (document Document) At(index int) Document {
 
 	if slice, ok := document.value.([]any); ok {
@@ -488,10 +494,12 @@ func (document Document) NotTypeActor() bool {
  * Helpers
  ******************************************/
 
+// SetValue sets the value of this document to a new value.
 func (document *Document) SetValue(value any) {
 	document.value = value
 }
 
+// SetProperty sets an individual property within this document.
 func (document *Document) SetProperty(property string, value any) {
 	document.value = document.setProperty(document.value, property, value)
 }
