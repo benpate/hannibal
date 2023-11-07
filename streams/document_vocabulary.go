@@ -391,13 +391,3 @@ func (document Document) Updated() time.Time {
 func (document Document) Width() int {
 	return document.Get(vocab.PropertyWidth).Int()
 }
-
-/******************************************
- * ActivityPub Properties
- * https://www.w3.org/TR/activitypub
- ******************************************/
-
-// https://www.w3.org/TR/activitypub/#endpoints
-func (document Document) Endpoints() Document {
-	return document.Get(vocab.PropertyEndpoints)
-}
