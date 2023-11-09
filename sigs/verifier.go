@@ -111,7 +111,7 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 	publicKey, err := DecodePublicPEM(certificate)
 
 	if err != nil {
-		return derp.Wrap(err, location, "Error decoding public key")
+		return derp.Wrap(err, location, "Error decoding public key", certificate)
 	}
 
 	// Recreate the plaintext and digest used to make the Signature
