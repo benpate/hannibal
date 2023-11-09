@@ -63,11 +63,10 @@ func (document Document) Cc() Document {
 	return document.Get(vocab.PropertyCC)
 }
 
-// IMPORTANT: THIS IS NOT THE @context PROPERTY REQUIRED FOR EVERY
-// JSON-LD DOCUMENT
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
-func (document Document) Context() Document {
-	return document.Get(vocab.PropertyContext)
+// IMPORTANT: THIS IS NOT THE @context PROPERTY REQUIRED FOR EVERY JSON-LD DOCUMENT
+func (document Document) Context() string {
+	return document.Get(vocab.PropertyContext).String()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-current
