@@ -11,6 +11,7 @@ import (
 	"github.com/benpate/rosetta/convert"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/sliceof"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // Document represents a single ActivityStream document
@@ -314,16 +315,30 @@ func (document Document) Map() map[string]any {
 	}
 }
 
-// String returns the current object as a string value
+// String returns the current object as a pure string (no HTML).
+// This value is filtered by blueMonday, so it is safe to use in HTML.
 func (document Document) String() string {
+	result := document.rawString()
+	return bluemonday.StrictPolicy().Sanitize(result)
+}
+
+// StringHTML returns the current object as an HTML string.
+// This value is filtered by blueMonday, so it is safe to use in HTML.
+func (document Document) HTMLString() string {
+	result := document.rawString()
+	return bluemonday.UGCPolicy().Sanitize(result)
+}
+
+// String returns the current object as a string value
+func (document Document) rawString() string {
 
 	switch typed := document.value.(type) {
 
 	case map[string]any:
-		return document.Get(vocab.PropertyID).String()
+		return document.Get(vocab.PropertyID).rawString()
 
 	case []any:
-		return document.Get(vocab.PropertyID).String()
+		return document.Get(vocab.PropertyID).rawString()
 
 	default:
 		return convert.String(typed)
