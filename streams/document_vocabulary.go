@@ -267,7 +267,7 @@ func (document Document) Altitude() float64 {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
 func (document Document) Content() string {
-	return document.Get(vocab.PropertyContent).String()
+	return document.Get(vocab.PropertyContent).HTMLString()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
