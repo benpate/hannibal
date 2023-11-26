@@ -21,6 +21,7 @@ import (
 // `string`, `float`, `int` or `bool`.
 type Document struct {
 	value      any
+	statistics Statistics
 	httpHeader http.Header
 	client     Client
 }
@@ -30,6 +31,7 @@ func NewDocument(value any, options ...DocumentOption) Document {
 
 	result := Document{
 		value:      normalize(value),
+		statistics: NewStatistics(),
 		httpHeader: make(http.Header),
 		client:     NewDefaultClient(),
 	}

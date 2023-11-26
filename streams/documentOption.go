@@ -21,3 +21,10 @@ func WithHTTPHeader(httpHeader http.Header) DocumentOption {
 		doc.httpHeader = httpHeader
 	}
 }
+
+// WithStats attaches statistics to the document
+func WithStats(statistics Statistics) DocumentOption {
+	return func(doc *Document) {
+		doc.statistics = statistics
+	}
+}
