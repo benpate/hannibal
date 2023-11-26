@@ -7,16 +7,19 @@ import (
 	"github.com/benpate/rosetta/mapof"
 )
 
+// nolint:unused
 type testClient struct {
 	data mapof.Any
 }
 
+// nolint:unused
 func newTestClient() testClient {
 	return testClient{
 		data: testStreamData(),
 	}
 }
 
+// nolint:unused
 func (client testClient) Load(uri string, options ...any) (Document, error) {
 
 	if value, ok := client.data[uri]; ok {
@@ -27,6 +30,7 @@ func (client testClient) Load(uri string, options ...any) (Document, error) {
 }
 
 // testStreamData returns a collection of documents for the test client to return
+// nolint:unused
 func testStreamData() mapof.Any {
 
 	rawData := mapof.String{

@@ -152,8 +152,8 @@ func (document Document) Clone() Document {
 	}
 
 	buffer := new(bytes.Buffer)
-	gob.NewEncoder(buffer).Encode(document.value)
-	gob.NewDecoder(buffer).Decode(&result.value)
+	gob.NewEncoder(buffer).Encode(document.value) // nolint:errcheck
+	gob.NewDecoder(buffer).Decode(&result.value)  // nolint:errcheck
 
 	return result
 }
