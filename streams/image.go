@@ -129,22 +129,37 @@ func (image Image) Width() int {
 	return 0
 }
 
+// IsNil returns TRUE if this image is nil (having no URL)
 func (image Image) IsNil() bool {
 	return image.URL() == ""
 }
 
+// NotNil returns TRUE if this image has a URL
 func (image Image) NotNil() bool {
 	return !image.IsNil()
 }
 
+// HasHeight returns TRUE if this image has a height defined
 func (image Image) HasHeight() bool {
 	return image.Height() > 0
 }
 
+// HasWidth returns TRUE if this image has a width defined
 func (image Image) HasWidth() bool {
 	return image.Width() > 0
 }
 
+// HasDimensions returns TRUE if this image has both a height and width defined
 func (image Image) HasDimensions() bool {
 	return image.HasHeight() && image.HasWidth()
+}
+
+// AspectRatio calculates the aspect ratio of the image (width / height)
+// If height and width are not available, then 0 is returned
+func (image Image) AspectRatio() float64 {
+	if image.HasDimensions() {
+		return float64(image.Width()) / float64(image.Height())
+	}
+
+	return 0
 }
