@@ -40,6 +40,26 @@ func (document Document) IsActivity() bool {
 	return false
 }
 
+// Statistics returns counts for various interactions: Announces, Replies, Likes, and Dislikes
+func (document Document) Statistics() Statistics {
+	return document.statistics
+}
+
+// HasImage returns TRUE if this document has a valid Image property
+func (document Document) HasImage() bool {
+	return document.Image().NotNil()
+}
+
+// HasContent returns TRUE if this document has a valid Content property
+func (document Document) HasContent() bool {
+	return document.Content() != ""
+}
+
+// HasSummary returns TRUE if this document has a valid Summary property
+func (document Document) HasSummary() bool {
+	return document.Summary() != ""
+}
+
 // If this document is an activity (create, update, delete, etc), then
 // this method returns the activity's Object.  Otherwise, it returns
 // the document itself.
