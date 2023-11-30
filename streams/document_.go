@@ -392,7 +392,7 @@ func (document Document) Time() time.Time {
 }
 
 /******************************************
- * Array-based Methods
+ * Array-based Iterators
  ******************************************/
 
 // Len returns the length of the document.
@@ -437,7 +437,7 @@ func (document Document) At(index int) Document {
 }
 
 /******************************************
- * List-based Methods
+ * List-based Iterators
  ******************************************/
 
 // Head returns the first object in a slice.
