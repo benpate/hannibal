@@ -20,23 +20,9 @@ func TestPoast(t *testing.T) {
 	outbox, err := actor.Outbox().Load()
 	require.Nil(t, err)
 
-	/*
-		pages := Pages(outbox, nil)
-
-		for page := range pages {
-			spew.Dump(page.Value())
-		}
-	*/
-
 	done := make(chan struct{})
 	documents := Documents(outbox, done)           // start reading documents from the outbox
 	documents = channel.Limit(12, documents, done) // Limit to last 12 documents
-
-	/*
-		for document := range documents {
-			spew.Dump(document.Value())
-		}
-	*/
 
 	documentsSlice := channel.Slice(documents) // Convert the channel into a slice
 
