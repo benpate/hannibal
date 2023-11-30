@@ -49,17 +49,17 @@ func (document Document) Audience() Document {
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bcc
-func (document Document) Bcc() Document {
+func (document Document) BCC() Document {
 	return document.Get(vocab.PropertyBCC)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bto
-func (document Document) Bto() Document {
+func (document Document) BTo() Document {
 	return document.Get(vocab.PropertyBTo)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-cc
-func (document Document) Cc() Document {
+func (document Document) CC() Document {
 	return document.Get(vocab.PropertyCC)
 }
 
