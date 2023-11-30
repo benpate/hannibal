@@ -21,11 +21,12 @@ func (actor *Actor) Send(message mapof.Any) {
 
 	const location = "hannibal.outbox.Actor.Send"
 
-	logger := log.With().Str("app", location).Logger()
+	logger := log.With().Str("loc", location).Logger()
 
 	if canLog(zerolog.DebugLevel) {
-		rawJSON, _ := json.MarshalIndent(message, "", "\t")
-		logger.Debug().RawJSON("detail", rawJSON).Msg("Sending Message...")
+		logger.Debug().Msg("Sending message...")
+		rawJSON, _ := json.MarshalIndent(message, "", "  ")
+		logger.Debug().Msg(string(rawJSON))
 	}
 
 	// Create a streams.Document from the message
@@ -37,28 +38,26 @@ func (actor *Actor) Send(message mapof.Any) {
 	queue := actor.getQueue()
 	uniquer := NewUniquer[string]()
 
-	log.Debug().Str("loc", location).Int("recipients", len(recipients)).Send()
-
 	// Send the message to each recipient
 	for recipient := range recipients {
 
-		logger.Debug().Msg(recipient)
+		logger.Trace().Msg("Found Recipient: " + recipient)
 
 		// Don't send to empty recipients
 		if recipient == "" {
-			logger.Debug().Msg("Empty recipient.")
+			logger.Trace().Msg("Empty recipient.")
 			continue
 		}
 
 		// Don't send to the magic public recipient
 		if recipient == vocab.NamespaceActivityStreamsPublic {
-			logger.Debug().Msg("Public recipient. Do not deliver to the public namespace.")
+			logger.Trace().Msg("Public recipient. Do not deliver to the public namespace.")
 			continue
 		}
 
 		// Don't send to duplicate addresses
 		if uniquer.IsDuplicate(recipient) {
-			logger.Debug().Msg("Duplicate recipient.")
+			logger.Trace().Msg("Duplicate recipient.")
 			continue
 		}
 

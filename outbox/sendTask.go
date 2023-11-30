@@ -36,8 +36,8 @@ func (task SendTask) Run() error {
 	log.Info().Str("app", "HANNIBAL.outbox").Str("recipient", task.recipient.ID()).Msg("Sending activity...")
 
 	if canLog(zerolog.DebugLevel) {
-		marshalled, _ := json.MarshalIndent(task.message, "", "  ")
-		log.Debug().Str("app", "HANNIBAL.outbox").Msg(string(marshalled))
+		rawJSON, _ := json.MarshalIndent(task.message, "", "  ")
+		log.Debug().Str("app", "HANNIBAL.outbox").Msg(string(rawJSON))
 	}
 
 	inboxURL := task.recipient.Inbox().ID()
