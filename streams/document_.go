@@ -297,11 +297,26 @@ func (document Document) Load(options ...any) (Document, error) {
 	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
 }
 
-func (document Document) Map() map[string]any {
+func (document Document) Map(options ...string) map[string]any {
 
 	switch typed := document.value.(type) {
 
 	case map[string]any:
+
+		for _, option := range options {
+			switch option {
+
+			case OptionStripContext:
+				delete(typed, vocab.AtContext)
+
+			case OptionStripRecipients:
+				delete(typed, vocab.PropertyTo)
+				delete(typed, vocab.PropertyBTo)
+				delete(typed, vocab.PropertyCC)
+				delete(typed, vocab.PropertyBCC)
+			}
+		}
+
 		return typed
 
 	case []any:
