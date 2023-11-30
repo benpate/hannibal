@@ -123,7 +123,7 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 		}
 
 		// Write Actors from inReplyTo properties
-		calcRecipients_inReplyTo(message, result)
+		calcRecipients_inReplyTo(message, result, 0)
 
 		// Finally, send the message to all of the Actor's Followers
 		if actor.followers != nil {
@@ -139,18 +139,34 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 
 // calcRecipients_inReplyTo is a recursive function that searches for recipients
 // in the "inReplyTo" property of a document, and all of its child `Object` documents.
-func calcRecipients_inReplyTo(document streams.Document, result chan<- string) {
+func calcRecipients_inReplyTo(document streams.Document, result chan<- string, depth int) {
 
 	// End recursion
 	if document.IsNil() {
 		return
 	}
 
-	// If this activity is a reply, then add the original author to the list of recipients
+	// Maximum recursion depth.
+	// TODO: Perhaps this should be a configurable value?
+	if depth > 16 {
+		return
+	}
+
+	// Add the actor of this document to the list of recipients
+	if actor := document.Actor(); actor.NotNil() {
+		result <- actor.ID()
+	}
+
+	// If this activity is "AtrributedTo" an actor, then add that actor to the list of recipients
+	for attributedTo := document.AttributedTo(); attributedTo.NotNil(); attributedTo = attributedTo.Tail() {
+		result <- attributedTo.ID()
+	}
+
+	// Recursive search for "InReplyTo" fields. If this activity is a reply, then add the original author to the list of recipients
 	for inReplyTo := document.InReplyTo(); inReplyTo.NotNil(); inReplyTo = inReplyTo.Tail() {
-		result <- inReplyTo.Actor().ID()
+		calcRecipients_inReplyTo(inReplyTo, result, depth+1)
 	}
 
 	// Recursive search for replies in Object tree
-	calcRecipients_inReplyTo(document.Object(), result)
+	calcRecipients_inReplyTo(document.Object(), result, depth+1)
 }
