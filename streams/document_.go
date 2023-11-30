@@ -496,7 +496,29 @@ func (document Document) IsEmptyTail() bool {
 }
 
 /******************************************
- * TypeDetection
+ * Channel Iterators
+ ******************************************/
+
+// Channel returns a channel that iterates over all of the sub-documents
+// in the current document.
+func (document Document) Channel() <-chan Document {
+
+	result := make(chan Document)
+
+	go func() {
+		defer close(result)
+
+		for document.NotNil() {
+			result <- document.Head()
+			document = document.Tail()
+		}
+	}()
+
+	return result
+}
+
+/******************************************
+ * Type Detection
  ******************************************/
 
 // IsTypeActor returns TRUE if this document represents any
