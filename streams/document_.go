@@ -526,6 +526,11 @@ func (document Document) NotTypeActor() bool {
  * Helpers
  ******************************************/
 
+// Client returns the HTTP client used for this document
+func (document *Document) Client() Client {
+	return document.client
+}
+
 // SetValue sets the value of this document to a new value.
 func (document *Document) SetValue(value any) {
 	document.value = value
