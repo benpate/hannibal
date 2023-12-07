@@ -66,14 +66,20 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 
 	// Verify the request date
 	if verifier.Timeout > 0 {
-		date, err := time.Parse(http.TimeFormat, request.Header.Get(FieldDate))
 
-		if err != nil {
-			return derp.Wrap(err, location, "Invalid Date header.  Must match 'Mon, 02 Jan 2006 15:04:05 GMT'")
-		}
+		// But, allow "empty" date headers while rejecting invalid ones.
+		// This is okay because the sender may not include the (date) in the signature.
+		if dateString := request.Header.Get(FieldDate); dateString != "" {
 
-		if date.Unix() < time.Now().Add(-1*time.Duration(verifier.Timeout)*time.Second).Unix() {
-			return derp.NewForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
+			date, err := time.Parse(http.TimeFormat, request.Header.Get(FieldDate))
+
+			if err != nil {
+				return derp.Wrap(err, location, "Invalid Date header.  Must match 'Mon, 02 Jan 2006 15:04:05 GMT'")
+			}
+
+			if date.Unix() < time.Now().Add(-1*time.Duration(verifier.Timeout)*time.Second).Unix() {
+				return derp.NewForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
+			}
 		}
 	}
 
