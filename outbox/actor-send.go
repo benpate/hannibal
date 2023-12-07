@@ -37,6 +37,7 @@ func (actor *Actor) Send(message mapof.Any) {
 	client := actor.getClient()
 	queue := actor.getQueue()
 	uniquer := NewUniquer[string]()
+	messageMap := document.Map()
 
 	// Send the message to each recipient
 	for recipient := range recipients {
@@ -55,6 +56,12 @@ func (actor *Actor) Send(message mapof.Any) {
 			continue
 		}
 
+		// Don't send messages to myself
+		if recipient == actor.actorID {
+			logger.Trace().Msg("Self-recipient. Do not deliver to self.")
+			continue
+		}
+
 		// Don't send to duplicate addresses
 		if uniquer.IsDuplicate(recipient) {
 			logger.Trace().Msg("Duplicate recipient.")
@@ -63,8 +70,8 @@ func (actor *Actor) Send(message mapof.Any) {
 
 		// Make a copy of the message, individualized for this recipient,
 		// and adding the recipient in the To field.
-		messageMap := document.Map(streams.OptionStripRecipients)
-		messageMap[vocab.PropertyTo] = recipient
+		// messageMap := document.Map(streams.OptionStripRecipients)
+		// messageMap[vocab.PropertyTo] = recipient
 
 		logger.Debug().Str("recipient", recipient).Msg("Queuing SendTask...")
 
@@ -86,13 +93,15 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 		defer close(result)
 
 		// Copy TO: field into recipients
-		for to := message.To(); to.NotNil(); to.Tail() {
-			result <- to.Head().ID()
+		for to := range message.To().Channel() {
+			log.Trace().Msg("getRecipients/To sending: " + to.ID())
+			result <- to.ID()
 		}
 
 		// Copy CC: field into recipients
-		for cc := message.CC(); cc.NotNil(); cc.Tail() {
-			result <- cc.Head().ID()
+		for cc := range message.CC().Channel() {
+			log.Trace().Msg("getRecipients/CC sending: " + cc.ID())
+			result <- cc.ID()
 		}
 
 		// Special rules for certain kinds of messages:
@@ -101,13 +110,22 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 		// Accept activities are sent to the Actor of the original object
 		// Return so that no other recipients are added.
 		case vocab.ActivityTypeAccept:
+			log.Trace().Msg("getRecipients/Accept sending: " + message.Object().Actor().ID())
 			result <- message.Object().Actor().ID()
 			return
 
 		// Follow messages are sent to the person being followed.
 		// Return so that no other recipients are added.
 		case vocab.ActivityTypeFollow:
+			log.Trace().Msg("getRecipients/Follow sending: " + message.Object().ID())
 			result <- message.Object().ID()
+			return
+
+		// Delete and Undo messages are sent to all recipients of the original message
+		case vocab.ActivityTypeDelete, vocab.ActivityTypeUndo:
+			for recipient := range actor.getRecipients(message.Object()) {
+				result <- recipient
+			}
 			return
 
 		// Like and Dislike messages are sent to the author of the original message
@@ -115,6 +133,7 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 			vocab.ActivityTypeLike,
 			vocab.ActivityTypeDislike:
 
+			log.Trace().Msg("getRecipients/Announce/Like/Dislike sending: " + message.Object().Actor().ID())
 			result <- message.Object().Actor().ID()
 
 			// Don't return because we also want to tell
@@ -127,6 +146,7 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 		// Finally, send the message to all of the Actor's Followers
 		if actor.followers != nil {
 			for follower := range actor.followers {
+				log.Trace().Msg("getRecipients/Follower sending: " + message.Object().Actor().ID())
 				result <- follower
 			}
 		}
@@ -153,19 +173,23 @@ func calcRecipients_inReplyTo(document streams.Document, result chan<- string, d
 
 	// Add the actor of this document to the list of recipients
 	if actor := document.Actor(); actor.NotNil() {
+		log.Trace().Msg("calcRecipients_inReplyTo/Actor sending: " + actor.ID())
 		result <- actor.ID()
 	}
 
 	// If this activity is "AtrributedTo" an actor, then add that actor to the list of recipients
 	for attributedTo := document.AttributedTo(); attributedTo.NotNil(); attributedTo = attributedTo.Tail() {
+		log.Trace().Msg("calcRecipients_inReplyTo/attributedTo sending: " + attributedTo.ID())
 		result <- attributedTo.ID()
 	}
 
 	// Recursive search for "InReplyTo" fields. If this activity is a reply, then add the original author to the list of recipients
 	for inReplyTo := document.InReplyTo(); inReplyTo.NotNil(); inReplyTo = inReplyTo.Tail() {
+		log.Trace().Msg("calcRecipients_inReplyTo Recursing InReplyTo")
 		calcRecipients_inReplyTo(inReplyTo, result, depth+1)
 	}
 
 	// Recursive search for replies in Object tree
+	log.Trace().Msg("calcRecipients_inReplyTo Recursing Object")
 	calcRecipients_inReplyTo(document.Object(), result, depth+1)
 }
