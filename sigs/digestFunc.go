@@ -56,6 +56,21 @@ func getDigestFunc(algorithm crypto.Hash) (DigestFunc, error) {
 	return nil, derp.NewBadRequestError("sigs.getDigestFunc", "Unknown algorithm", algorithm)
 }
 
+// getDigestName returns the name of a given crypto.Hash value
+func getDigestName(algorithm crypto.Hash) string {
+
+	switch algorithm {
+
+	case crypto.SHA256:
+		return "SHA-256"
+
+	case crypto.SHA512:
+		return "SHA-512"
+	}
+
+	return "unknown"
+}
+
 // getHashByName converts common hash names into crypto.Hash values.  It works
 // with these values: sha-256, sha256, sha-512, sha512 (case insensitive)
 func getHashByName(name string) crypto.Hash {
@@ -77,13 +92,13 @@ func getHashByName(name string) crypto.Hash {
 // DigestSHA256 calculates the SHA-256 digest of a slice of bytes
 func DigestSHA256(body []byte) string {
 	digest := sha256.Sum256(body)
-	return "SHA-256=" + base64.StdEncoding.EncodeToString(digest[:])
+	return base64.StdEncoding.EncodeToString(digest[:])
 }
 
 // DigestSHA512 calculates the SHA-512 digest of a given slice of bytes
 func DigestSHA512(body []byte) string {
 	digest := sha512.Sum512(body)
-	return "SHA-512=" + base64.StdEncoding.EncodeToString(digest[:])
+	return base64.StdEncoding.EncodeToString(digest[:])
 }
 
 // TODO: Additional algorithms specified by https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest

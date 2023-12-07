@@ -37,12 +37,12 @@ func Test_Emissary(t *testing.T) {
 }
 
 func Test_Emissary_Digest(t *testing.T) {
-	expected := "SHA-256=gH5r8XfomFHwvjZUZAqtbE1MpJkmbgCZ3cQjYGt7ppA="
+	expected := "gH5r8XfomFHwvjZUZAqtbE1MpJkmbgCZ3cQjYGt7ppA="
 	body := `{"@context":"application/activity+json","actor":"https://emdev.ddns.net/@64d68054a4bf39a519f27c67","id":"https://emdev.ddns.net/@64d68054a4bf39a519f27c67/pub/following/64fdf0c1a835dc65840d6ffb","object":"https://activitypub.academy/users/angusius_dukernen","to":"https://activitypub.academy/users/angusius_dukernen/inbox","type":"Follow"}`
 
 	digestBytes := sha256.Sum256([]byte(body))
 	digest := base64.StdEncoding.EncodeToString(digestBytes[:])
 
-	require.Equal(t, expected, "SHA-256="+digest)
+	require.Equal(t, expected, digest)
 	require.Equal(t, expected, DigestSHA256([]byte(body)))
 }

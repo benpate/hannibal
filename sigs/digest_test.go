@@ -17,7 +17,7 @@ func TestApplyDigest(t *testing.T) {
 	request, err := http.NewRequest("GET", "http://example.com/foo", &body)
 	require.Nil(t, err)
 
-	err = ApplyDigest(request, DigestSHA256)
+	err = ApplyDigest(request, "SHA-256", DigestSHA256)
 	require.Nil(t, err)
 	require.Equal(t, "SHA-256=2dZxOmbiuR4yypVcyCfajB3YMhmSg+QNUlnUIrfllPM=", request.Header.Get("Digest"))
 }
@@ -29,7 +29,7 @@ func TestVerifyDigest(t *testing.T) {
 	request, err := http.NewRequest("GET", "http://example.com/foo", bytes.NewReader(body))
 	require.Nil(t, err)
 
-	err = ApplyDigest(request, DigestSHA256)
+	err = ApplyDigest(request, "SHA-256", DigestSHA256)
 	require.Nil(t, err)
 
 	err = VerifyDigest(request, crypto.SHA256)

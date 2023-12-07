@@ -14,7 +14,7 @@ import (
 
 // ApplyDigest calculates the digest of the body from a given
 // http.Request, then adds the digest to the Request's header.
-func ApplyDigest(request *http.Request, fn DigestFunc) error {
+func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc) error {
 
 	// Retrieve the request body (in a replayable manner)
 	body, err := re.ReadRequestBody(request)
@@ -24,7 +24,7 @@ func ApplyDigest(request *http.Request, fn DigestFunc) error {
 	}
 
 	// Try to calculate the digest with the DigestFunc
-	result := fn(body)
+	result := digestName + "=" + digestFunc(body)
 
 	// Apply the digest to the Request
 	request.Header.Set(FieldDigest, result)
@@ -67,8 +67,14 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 			continue
 		}
 
+		// Additional trace values that helped isolate a bug in the digest algorithm
+		// log.Trace().Msg("Validating Digest: " + digestAlgorithm + "=" + digestValue)
+		// log.Trace().Msg(headerValue)
+		// log.Trace().Msg(digestValue)
+		// log.Trace().Msg(fn(body))
+
 		// If the values match, then success!
-		if headerValue == fn(body) {
+		if digestValue == fn(body) {
 			log.Trace().Msg("sigs.VerifyDigest: Valid Digest Found. Algorithm: " + digestAlgorithm)
 
 			// Verify that this algorithm is in the list of allowed hashes
