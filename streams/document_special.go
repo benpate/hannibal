@@ -2,6 +2,7 @@ package streams
 
 import "github.com/benpate/hannibal/vocab"
 
+// IsActivity returns TRUE if this document represents an Activity
 func (document Document) IsActivity() bool {
 
 	switch document.Type() {
@@ -34,6 +35,22 @@ func (document Document) IsActivity() bool {
 		vocab.ActivityTypeUndo,
 		vocab.ActivityTypeUpdate,
 		vocab.ActivityTypeView:
+		return true
+	}
+
+	return false
+}
+
+// IsActor returns TRUE if this document represents an Actor
+func (document Document) IsActor() bool {
+
+	switch document.Type() {
+
+	case vocab.ActorTypeApplication,
+		vocab.ActorTypeGroup,
+		vocab.ActorTypeOrganization,
+		vocab.ActorTypePerson,
+		vocab.ActorTypeService:
 		return true
 	}
 

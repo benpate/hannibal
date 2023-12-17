@@ -12,3 +12,11 @@ type Statistics struct {
 func NewStatistics() Statistics {
 	return Statistics{}
 }
+
+func (stats Statistics) IsEmpty() bool {
+	return stats.Announces+stats.Replies+stats.Likes+stats.Dislikes == 0
+}
+
+func (stats Statistics) NotEmpty() bool {
+	return !stats.IsEmpty()
+}
