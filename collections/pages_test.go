@@ -22,5 +22,9 @@ func TestPages(t *testing.T) {
 		spew.Dump(index)
 		spew.Dump(page.ID())
 		index++
+
+		if index > 16 {
+			break // okay, we get it.. you can load lots of pages.
+		}
 	}
 }

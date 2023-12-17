@@ -22,5 +22,9 @@ func TestDocuments(t *testing.T) {
 		spew.Dump(index)
 		spew.Dump(item.Published())
 		index++
+
+		if index > 100 {
+			break // okay, we get it.. you can load lots of documents...
+		}
 	}
 }
