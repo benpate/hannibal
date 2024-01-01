@@ -39,7 +39,14 @@ func NewImage(value any) Image {
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-href
+// Note: URL is an alias for Href, which is the proper name to use
 func (image Image) URL() string {
+	return image.Href()
+}
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-href
+// Note: This method searches both the "href" and "url" properties in maps.
+func (image Image) Href() string {
 
 	switch typed := image.value.(type) {
 
@@ -48,12 +55,12 @@ func (image Image) URL() string {
 
 	case map[string]any:
 
-		if url := convert.String(typed[vocab.PropertyURL]); url != "" {
-			return url
-		}
-
 		if href := convert.String(typed[vocab.PropertyHref]); href != "" {
 			return href
+		}
+
+		if url := convert.String(typed[vocab.PropertyURL]); url != "" {
+			return url
 		}
 
 	case []any:
