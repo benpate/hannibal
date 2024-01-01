@@ -86,8 +86,38 @@ func (document Document) IsCollection() bool {
 	return false
 }
 
+// NotCollection returns TRUE if the document does NOT represent a Collection or CollectionPage
 func (document Document) NotCollection() bool {
 	return !document.IsCollection()
+}
+
+// IsObject returns TRUE if this document represents an Object type (Article, Note, etc)
+func (document Document) IsObject() bool {
+
+	switch document.Type() {
+
+	case vocab.ObjectTypeArticle,
+		vocab.ObjectTypeAudio,
+		vocab.ObjectTypeDocument,
+		vocab.ObjectTypeEvent,
+		vocab.ObjectTypeImage,
+		vocab.ObjectTypeNote,
+		vocab.ObjectTypePage,
+		vocab.ObjectTypePlace,
+		vocab.ObjectTypeProfile,
+		vocab.ObjectTypeRelationship,
+		vocab.ObjectTypeTombstone,
+		vocab.ObjectTypeVideo:
+
+		return true
+	}
+
+	return false
+}
+
+// NotObject returns TRUE if this document does NOT represent an Object type (Article, Note, etc)
+func (document Document) NotObject() bool {
+	return !document.IsObject()
 }
 
 // Statistics returns counts for various interactions: Announces, Replies, Likes, and Dislikes
