@@ -1,6 +1,7 @@
 package streams
 
 import (
+	"github.com/benpate/hannibal/unit"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/convert"
 )
@@ -16,7 +17,10 @@ func NewImage(value any) Image {
 	switch typed := value.(type) {
 
 	case Document:
-		return NewImage(typed.value)
+		return NewImage(typed.value.Raw())
+
+	case unit.Value:
+		return NewImage(typed.Raw())
 
 	case Image:
 		return typed

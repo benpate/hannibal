@@ -2,6 +2,10 @@ package streams
 
 import "github.com/benpate/hannibal/vocab"
 
+/******************************************
+ * Type Detection
+ ******************************************/
+
 // IsActivity returns TRUE if this document represents an Activity
 func (document Document) IsActivity() bool {
 
@@ -41,6 +45,11 @@ func (document Document) IsActivity() bool {
 	return false
 }
 
+// NotActivity returns TRUE if this document does NOT represent an Activity
+func (document Document) NotActivity() bool {
+	return !document.IsActivity()
+}
+
 // IsActor returns TRUE if this document represents an Actor
 func (document Document) IsActor() bool {
 
@@ -55,6 +64,30 @@ func (document Document) IsActor() bool {
 	}
 
 	return false
+}
+
+// NotActor returns TRUE if this document does NOT represent an Actor
+func (document Document) NotActor() bool {
+	return !document.IsActor()
+}
+
+// IsCollection returns TRUE if this document represents a Collection or CollectionPage
+func (document Document) IsCollection() bool {
+
+	switch document.Type() {
+	case vocab.CoreTypeCollection,
+		vocab.CoreTypeCollectionPage,
+		vocab.CoreTypeOrderedCollection,
+		vocab.CoreTypeOrderedCollectionPage:
+
+		return true
+	}
+
+	return false
+}
+
+func (document Document) NotCollection() bool {
+	return !document.IsCollection()
 }
 
 // Statistics returns counts for various interactions: Announces, Replies, Likes, and Dislikes

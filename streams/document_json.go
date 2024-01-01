@@ -1,6 +1,11 @@
 package streams
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/unit"
+)
 
 /******************************************
  * Custom JSON Marshalling / Unmarshalling
@@ -11,7 +16,7 @@ import "encoding/json"
 // essentially just aiming the marshaller at the
 // Document's value.
 func (document Document) MarshalJSON() ([]byte, error) {
-	return json.Marshal(document.value)
+	return json.Marshal(document.value.Raw())
 }
 
 // UnmarshalJSON implements the json.Unmarshaller interface,
@@ -19,5 +24,11 @@ func (document Document) MarshalJSON() ([]byte, error) {
 // essentially just aiming the unmashaller at the
 // Document's value
 func (document *Document) UnmarshalJSON(bytes []byte) error {
-	return json.Unmarshal(bytes, &document.value)
+	value := document.value.Raw()
+	if err := json.Unmarshal(bytes, &value); err != nil {
+		return derp.Wrap(err, "streams.Document.UnmarshalJSON", "Error unmarshalling JSON into Document")
+	}
+
+	document.value = unit.NewValue(value)
+	return nil
 }

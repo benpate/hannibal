@@ -8,22 +8,15 @@ import (
 // SetString sets a string property on the document
 func (document *Document) SetString(name string, value ...string) bool {
 
-	document.forceValueToMap()
+	head := document.value.Head()
 
-	if asMap, ok := document.value.(map[string]any); ok {
-
-		switch len(value) {
-		case 0:
-			delete(asMap, name)
-		case 1:
-			asMap[name] = value[0]
-		default:
-			asMap[name] = value
-		}
+	if len(value) == 1 {
+		document.value = head.Set(name, value[0])
 		return true
 	}
 
-	return false
+	document.value = head.Set(name, value)
+	return true
 }
 
 // AppendString appends a string to a property on the document
@@ -34,36 +27,11 @@ func (document *Document) AppendString(name string, value string) bool {
 		return false
 	}
 
-	document.forceValueToMap()
+	currentValue := convert.SliceOfAny(document.value.Head().Get(name))
+	newValue := append(currentValue, value)
 
-	if asMap, ok := document.value.(map[string]any); ok {
-		oldValue := convert.SliceOfString(asMap[name])
-		newValue := append(oldValue, value)
-		asMap[name] = newValue
-		return true
-	}
-
-	return false
-}
-
-// forceValueToMap forces the value into a Map format
-func (document *Document) forceValueToMap() {
-
-	switch typed := document.value.(type) {
-	case string:
-		document.value = map[string]any{
-			vocab.PropertyID: typed,
-		}
-
-	case []any:
-		if len(typed) == 0 {
-			document.value = map[string]any{}
-		} else {
-			document.value = map[string]any{
-				vocab.PropertyID: typed[0],
-			}
-		}
-	}
+	document.value.Set(name, newValue)
+	return true
 }
 
 /******************************************

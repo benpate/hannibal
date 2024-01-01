@@ -30,7 +30,7 @@ func (document Document) ID() string {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 func (document Document) Actor() Document {
-	return document.Get(vocab.PropertyActor)
+	return document.Get(vocab.PropertyActor).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
@@ -40,7 +40,7 @@ func (document Document) Attachment() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
 func (document Document) AttributedTo() Document {
-	return document.Get(vocab.PropertyAttributedTo)
+	return document.Get(vocab.PropertyAttributedTo).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-audience
@@ -50,17 +50,17 @@ func (document Document) Audience() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bcc
 func (document Document) BCC() Document {
-	return document.Get(vocab.PropertyBCC)
+	return document.Get(vocab.PropertyBCC).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bto
 func (document Document) BTo() Document {
-	return document.Get(vocab.PropertyBTo)
+	return document.Get(vocab.PropertyBTo).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-cc
 func (document Document) CC() Document {
-	return document.Get(vocab.PropertyCC)
+	return document.Get(vocab.PropertyCC).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
@@ -123,7 +123,7 @@ func (document Document) Image() Image {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
 func (document Document) InReplyTo() Document {
-	return document.Get(vocab.PropertyInReplyTo)
+	return document.Get(vocab.PropertyInReplyTo).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
@@ -187,7 +187,7 @@ func (document Document) Next() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 func (document Document) Object() Document {
-	return document.Get(vocab.PropertyObject)
+	return document.Get(vocab.PropertyObject).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-prev
@@ -225,12 +225,12 @@ func (document Document) Tag() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 func (document Document) Target() Document {
-	return document.Get(vocab.PropertyTarget)
+	return document.Get(vocab.PropertyTarget).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
 func (document Document) To() Document {
-	return document.Get(vocab.PropertyTo)
+	return document.Get(vocab.PropertyTo).MustLoad()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
@@ -374,6 +374,14 @@ func (document Document) TotalItems() int {
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-width
 func (document Document) URL() string {
 	return document.Get(vocab.PropertyURL).String()
+}
+
+// URLOrID returns the URL of the document, if it exists, otherwise it returns the ID.
+func (document Document) URLOrID() string {
+	if url := document.URL(); url != "" {
+		return url
+	}
+	return document.ID()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-units

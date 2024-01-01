@@ -1,15 +1,13 @@
 package streams
 
 import (
-	"bytes"
-	"encoding/gob"
 	"net/http"
 	"time"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/unit"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/convert"
-	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/sliceof"
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -20,7 +18,7 @@ import (
 // `map[string]any`, `[]any`, or a primitive type, like a
 // `string`, `float`, `int` or `bool`.
 type Document struct {
-	value      any
+	value      unit.Value
 	statistics Statistics
 	httpHeader http.Header
 	client     Client
@@ -30,7 +28,7 @@ type Document struct {
 func NewDocument(value any, options ...DocumentOption) Document {
 
 	result := Document{
-		value:      normalize(value),
+		value:      unit.NewValue(value),
 		statistics: NewStatistics(),
 		httpHeader: make(http.Header),
 		client:     NewDefaultClient(),
@@ -49,58 +47,40 @@ func NilDocument(options ...DocumentOption) Document {
  * Introspection Methods
  ******************************************/
 
-func (document Document) IsString() bool {
-	_, ok := document.value.(string)
-	return ok
+func (document Document) IsBool() bool {
+	return unit.IsBool(document.value)
 }
 
 func (document Document) IsInt() bool {
-	_, ok := document.value.(int)
-	return ok
+	return unit.IsInt(document.value)
 }
 
 func (document Document) IsInt64() bool {
-	_, ok := document.value.(int64)
-	return ok
+	return unit.IsInt64(document.value)
 }
 
 func (document Document) IsFloat() bool {
-	_, ok := document.value.(float64)
-	return ok
-}
-
-func (document Document) IsBool() bool {
-	_, ok := document.value.(bool)
-	return ok
+	return unit.IsFloat(document.value)
 }
 
 func (document Document) IsNil() bool {
-	switch typed := document.value.(type) {
-	case string:
-		return typed == ""
-	case map[string]any:
-		return len(typed) == 0
-	case []any:
-		return len(typed) == 0
-	case nil:
-		return true
-	default:
-		return document.value == nil
-	}
+	return document.value.IsNil()
+}
+
+func (document Document) IsMap() bool {
+	return unit.IsMap(document.value)
+}
+
+func (document Document) IsSlice() bool {
+	return unit.IsSlice(document.value)
+}
+
+func (document Document) IsString() bool {
+	return unit.IsString(document.value)
 }
 
 func (document Document) NotNil() bool {
 	return !document.IsNil()
-}
-
-func (document Document) IsArray() bool {
-	_, ok := document.value.([]any)
-	return ok
-}
-
-func (document Document) IsMap() bool {
-	_, ok := document.value.(map[string]any)
-	return ok
 }
 
 /******************************************
@@ -109,96 +89,43 @@ func (document Document) IsMap() bool {
 
 // Value returns the generic data stored in this Document
 func (document Document) Value() any {
-	return document.value
+	return document.value.Raw()
 }
 
 func (document Document) Clone() Document {
 
-	result := Document{
+	return Document{
 		client:     document.client,
 		httpHeader: document.httpHeader.Clone(),
+		value:      document.value.Clone(),
 	}
-
-	switch typed := document.value.(type) {
-
-	case string:
-		result.value = typed
-		return result
-
-	case int:
-		result.value = typed
-		return result
-
-	case int64:
-		result.value = typed
-		return result
-
-	case float64:
-		result.value = typed
-		return result
-
-	case map[string]any:
-		result.value = map[string]any{}
-
-	case mapof.Any:
-		result.value = mapof.Any{}
-
-	case []any:
-		result.value = []any{}
-
-	case sliceof.Any:
-		result.value = sliceof.Any{}
-
-	}
-
-	buffer := new(bytes.Buffer)
-	gob.NewEncoder(buffer).Encode(document.value) // nolint:errcheck
-	gob.NewDecoder(buffer).Decode(&result.value)  // nolint:errcheck
-
-	return result
 }
 
 // Get returns a sub-property of the current document
 func (document Document) Get(key string) Document {
 
-	if result := document.get(key); !result.IsNil() {
-		return result
-	}
+	// Special handling for string values
+	if document.IsString() {
 
-	return NilDocument()
-}
-
-// get does the actual work of looking up a value in
-// the data structure.
-func (document Document) get(key string) Document {
-
-	switch typed := document.value.(type) {
-
-	case string:
+		// Individual values are assumed to be a document ID.
+		// So if te ID property was requested, then just return it
 		if key == vocab.PropertyID {
 			return document
-		} else {
-			object, _ := document.Load()
-			return object.Get(key)
 		}
 
-	case map[string]any:
-		return document.sub(typed[key])
-
-	case mapof.Any:
-		return document.sub(typed[key])
-
-	case []any:
-		if len(typed) > 0 {
-			return document.sub(typed[0]).Get(key)
-		}
-
-	case sliceof.Any:
-		if len(typed) > 0 {
-			return document.sub(typed[0]).Get(key)
+		// All other properties require a Load from the Interweb.
+		// Update this document with the loaded result.
+		if loaded, err := document.Load(); err == nil {
+			document.value = loaded.value
 		}
 	}
 
+	// Retrieve the value from the unit.Value
+	if value := document.value.Get(key); !value.IsNil() {
+		return document.sub(value)
+	}
+
+	// Nil document if the property doesn't exist
 	return NilDocument()
 }
 
@@ -210,7 +137,7 @@ func (document Document) get(key string) Document {
 
 // Array returns the array value of the current object
 func (document Document) Slice() []any {
-	return convert.SliceOfAny(document.value)
+	return convert.SliceOfAny(document.value.Raw())
 }
 
 // SliceOfDocuments transforms the current object into a slice of separate
@@ -219,7 +146,7 @@ func (document Document) SliceOfDocuments() sliceof.Object[Document] {
 	values := document.Slice()
 	result := make([]Document, 0, len(values))
 	for _, value := range values {
-		result = append(result, document.sub(value))
+		result = append(result, document.sub(unit.NewValue(value)))
 	}
 
 	return result
@@ -228,108 +155,84 @@ func (document Document) SliceOfDocuments() sliceof.Object[Document] {
 // Bool returns the current object as a floating-point value
 func (document Document) Bool() bool {
 
-	switch typed := document.value.(type) {
-
-	case map[string]any:
-		return document.Get(vocab.PropertyID).Bool()
-
-	case []any:
-		return document.Get(vocab.PropertyID).Bool()
-
-	default:
-		return convert.Bool(typed)
+	if getter, ok := document.value.(unit.BoolGetter); ok {
+		return getter.Bool()
 	}
+
+	return convert.Bool(document.value.Head().Raw())
 }
 
 // Float returns the current object as an integer value
 func (document Document) Float() float64 {
 
-	switch typed := document.value.(type) {
-
-	case map[string]any:
-		return document.Get(vocab.PropertyID).Float()
-
-	case []any:
-		return document.Get(vocab.PropertyID).Float()
-
-	default:
-		return convert.Float(typed)
+	if getter, ok := document.value.(unit.FloatGetter); ok {
+		return getter.Float()
 	}
+
+	return convert.Float(document.value.Head().Raw())
 }
 
 // Int returns the current object as an integer value
 func (document Document) Int() int {
 
-	switch typed := document.value.(type) {
-
-	case map[string]any:
-		return document.Get(vocab.PropertyID).Int()
-
-	case []any:
-		return document.Get(vocab.PropertyID).Int()
-
-	default:
-		return convert.Int(typed)
+	if getter, ok := document.value.(unit.IntGetter); ok {
+		return getter.Int()
 	}
+
+	return convert.Int(document.value.Head().Raw())
 }
 
-// Map retrieves a JSON-LD document from a remote server, parses is, and returns a Document object.
+// Load retrieves a JSON-LD document from its remote server
 func (document Document) Load(options ...any) (Document, error) {
 
-	const location = "hannibal.streams.Document.Map"
-
-	if document.IsNil() {
-		return NilDocument(), nil
+	if documentID := document.ID(); documentID != "" {
+		return document.getClient().Load(documentID, options...)
 	}
 
-	switch typed := document.value.(type) {
+	return NilDocument(), nil
+}
 
-	case map[string]any:
-		return document, nil
-
-	case []any:
-		return document.Head().Load(options...)
-
-	case string:
-		return document.getClient().Load(typed, options...)
+// MustLoad retrieves a JSON-LD document from its remote server.
+// It silently reports errors, but does not return them.
+func (document Document) MustLoad(options ...any) Document {
+	result, err := document.Load(options...)
+	if err != nil {
+		derp.Report(err)
 	}
-
-	return NilDocument(), derp.NewInternalError(location, "Document type is invalid", document.Value())
+	return result
 }
 
 func (document Document) Map(options ...string) map[string]any {
 
-	switch typed := document.value.(type) {
+	// Create an empty result map
+	result := make(map[string]any)
 
-	case map[string]any:
+	// Traverse slices, if necessary
+	value := document.value.Head()
 
-		for _, option := range options {
-			switch option {
-
-			case OptionStripContext:
-				delete(typed, vocab.AtContext)
-
-			case OptionStripRecipients:
-				delete(typed, vocab.PropertyTo)
-				delete(typed, vocab.PropertyBTo)
-				delete(typed, vocab.PropertyCC)
-				delete(typed, vocab.PropertyBCC)
-			}
-		}
-
-		return typed
-
-	case []any:
-		return document.Head().Map()
-
-	case string:
-		return map[string]any{
-			vocab.PropertyID: typed,
-		}
-
-	default:
-		return map[string]any{}
+	if getter, ok := value.(unit.MapGetter); ok {
+		result = getter.Map()
+	} else if getter, ok := value.(unit.IsStringer); ok {
+		result[vocab.PropertyID] = getter.String()
 	}
+
+	// Apply optional filters
+	for _, option := range options {
+		switch option {
+
+		case OptionStripContext:
+			delete(result, vocab.AtContext)
+
+		case OptionStripRecipients:
+			delete(result, vocab.PropertyTo)
+			delete(result, vocab.PropertyBTo)
+			delete(result, vocab.PropertyCC)
+			delete(result, vocab.PropertyBCC)
+		}
+	}
+
+	return result
+
 }
 
 // String returns the current object as a pure string (no HTML).
@@ -349,46 +252,21 @@ func (document Document) HTMLString() string {
 // String returns the current object as a string value
 func (document Document) rawString() string {
 
-	switch typed := document.value.(type) {
-
-	case map[string]any:
-		return document.Get(vocab.PropertyID).rawString()
-
-	case []any:
-		return document.Get(vocab.PropertyID).rawString()
-
-	default:
-		return convert.String(typed)
+	if getter, ok := document.value.(unit.IsStringer); ok {
+		return getter.String()
 	}
+
+	return convert.String(document.value.Head().Raw())
 }
 
 // Time returns the current object as a time value
 func (document Document) Time() time.Time {
 
-	switch typed := document.value.(type) {
-
-	case string:
-		if result, err := time.Parse(time.RFC3339, typed); err == nil {
-			return result
-		}
-
-	case int:
-		return time.Unix(int64(typed), 0)
-
-	case int64:
-		return time.Unix(typed, 0)
-
-	case float64:
-		return time.Unix(int64(typed), 0)
-
-	case []any:
-		return document.Head().Time()
-
-	case time.Time:
-		return typed
+	if getter, ok := document.value.(unit.TimeGetter); ok {
+		return getter.Time()
 	}
 
-	return time.Time{}
+	return convert.Time(document.value.Head().Raw())
 }
 
 /******************************************
@@ -400,40 +278,7 @@ func (document Document) Time() time.Time {
 // If the document is a slice, then this method returns the length of the slice
 // Otherwise, this method returns 1
 func (document Document) Len() int {
-
-	if document.IsNil() {
-		return 0
-	}
-
-	if slice, ok := document.value.([]any); ok {
-		return len(slice)
-	}
-
-	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
-		return len(slice)
-	}
-
-	return 1
-}
-
-// At returns the document at the specified index.
-// If this document is not a slice, then this method returns a nil document.
-func (document Document) At(index int) Document {
-
-	if slice, ok := document.value.([]any); ok {
-
-		if index < len(slice) {
-			return document.sub(slice[index])
-		}
-	}
-
-	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
-		if index < len(slice) {
-			return document.sub(slice[index])
-		}
-	}
-
-	return NilDocument()
+	return document.value.Len()
 }
 
 /******************************************
@@ -443,35 +288,15 @@ func (document Document) At(index int) Document {
 // Head returns the first object in a slice.
 // For all other document types, it returns the current document.
 func (document Document) Head() Document {
-
-	// Try it the easy way first
-	if slice, ok := document.value.([]any); ok {
-		if len(slice) > 0 {
-			return document.sub(slice[0])
-		}
-	}
-
-	// Try convert in case we have something ugly (like a primitive.A)
-	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
-		if len(slice) > 0 {
-			return document.sub(slice[0])
-		}
-	}
-
-	return document
+	return document.sub(document.value.Head())
 }
 
 // Tail returns all records after the first in a slice.
 // For all other document types, it returns a nil document.
 func (document Document) Tail() Document {
+	return document.sub(document.value.Tail())
 
-	if slice, ok := document.value.([]any); ok {
-		if len(slice) > 1 {
-			return document.sub(slice[1:])
-		}
-	}
-
-	// Try convert in case we have something ugly (like a primitive.A)
+	/* Try convert in case we have something ugly (like a primitive.A)
 	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
 		if len(slice) > 1 {
 			return document.sub(slice[1:])
@@ -479,20 +304,12 @@ func (document Document) Tail() Document {
 	}
 
 	return NilDocument()
+	*/
 }
 
 // IsEmpty return TRUE if the current object is empty
 func (document Document) IsEmptyTail() bool {
-
-	if slice, ok := document.value.([]any); ok {
-		return len(slice) < 2
-	}
-
-	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
-		return len(slice) < 2
-	}
-
-	return true
+	return document.value.Len() < 2
 }
 
 /******************************************
@@ -518,33 +335,6 @@ func (document Document) Channel() <-chan Document {
 }
 
 /******************************************
- * Type Detection
- ******************************************/
-
-// IsTypeActor returns TRUE if this document represents any
-// of the predefined actor types
-func (document Document) IsTypeActor() bool {
-	switch document.Type() {
-
-	case
-		vocab.ActorTypeApplication,
-		vocab.ActorTypeGroup,
-		vocab.ActorTypeOrganization,
-		vocab.ActorTypePerson,
-		vocab.ActorTypeService:
-
-		return true
-	}
-	return false
-}
-
-// NotTypeActor returns TRUE if this document does NOT represent any
-// of the predefined actor types
-func (document Document) NotTypeActor() bool {
-	return !document.IsTypeActor()
-}
-
-/******************************************
  * Helpers
  ******************************************/
 
@@ -554,47 +344,13 @@ func (document *Document) Client() Client {
 }
 
 // SetValue sets the value of this document to a new value.
-func (document *Document) SetValue(value any) {
+func (document *Document) SetValue(value unit.Value) {
 	document.value = value
 }
 
 // SetProperty sets an individual property within this document.
 func (document *Document) SetProperty(property string, value any) {
-	document.value = document.setProperty(document.value, property, value)
-}
-
-func (document *Document) setProperty(currentValue any, property string, value any) any {
-
-	switch typed := currentValue.(type) {
-
-	case map[string]any:
-		typed[property] = value
-		return typed
-
-	case []any:
-		if len(typed) == 0 {
-			document.value = map[string]any{
-				property: value,
-			}
-			return typed
-		}
-
-		firstItem := document.setProperty(typed[0], property, value)
-		typed[0] = firstItem
-		return typed
-
-	case string:
-		return map[string]any{
-			vocab.PropertyID: typed,
-			property:         value,
-		}
-
-	default:
-		return map[string]any{
-			vocab.PropertyID: typed,
-			property:         value,
-		}
-	}
+	document.value = document.value.Set(property, value)
 }
 
 func (document *Document) WithOptions(options ...DocumentOption) {
@@ -613,25 +369,10 @@ func (document *Document) getClient() Client {
 }
 
 // sub returns a new Document with a new VALUE, all of the same OPTIONS as this original
-func (document *Document) sub(value any) Document {
+func (document *Document) sub(value unit.Value) Document {
 	return Document{
-		value:      normalize(value),
+		value:      value,
 		client:     document.client,
 		httpHeader: document.httpHeader,
 	}
-}
-
-func normalize(value any) any {
-
-	switch typed := value.(type) {
-
-	case mapof.Any:
-		return map[string]any(typed)
-
-	case sliceof.Any:
-		return []any(typed)
-
-	}
-
-	return value
 }
