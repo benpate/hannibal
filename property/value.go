@@ -3,6 +3,7 @@ package property
 import (
 	"time"
 
+	"github.com/benpate/rosetta/convert"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/sliceof"
 )
@@ -77,6 +78,16 @@ func NewValue(value any) Value {
 
 	case time.Time:
 		return Time(typed)
+	}
+
+	// More checks for wayward values (like primitive.A)
+
+	if convert.IsMap(value) {
+		return Map(convert.MapOfAny(value))
+	}
+
+	if convert.IsSlice(value) {
+		return Slice(convert.SliceOfAny(value))
 	}
 
 	return Nil{}
