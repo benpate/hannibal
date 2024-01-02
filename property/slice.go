@@ -1,4 +1,4 @@
-package unit
+package property
 
 type Slice []any
 

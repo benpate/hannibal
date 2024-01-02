@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/benpate/derp"
-	"github.com/benpate/hannibal/unit"
+	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/convert"
 	"github.com/benpate/rosetta/sliceof"
@@ -18,7 +18,7 @@ import (
 // `map[string]any`, `[]any`, or a primitive type, like a
 // `string`, `float`, `int` or `bool`.
 type Document struct {
-	value      unit.Value
+	value      property.Value
 	statistics Statistics
 	httpHeader http.Header
 	client     Client
@@ -28,7 +28,7 @@ type Document struct {
 func NewDocument(value any, options ...DocumentOption) Document {
 
 	result := Document{
-		value:      unit.NewValue(value),
+		value:      property.NewValue(value),
 		statistics: NewStatistics(),
 		httpHeader: make(http.Header),
 		client:     NewDefaultClient(),
@@ -48,19 +48,19 @@ func NilDocument(options ...DocumentOption) Document {
  ******************************************/
 
 func (document Document) IsBool() bool {
-	return unit.IsBool(document.value)
+	return property.IsBool(document.value)
 }
 
 func (document Document) IsInt() bool {
-	return unit.IsInt(document.value)
+	return property.IsInt(document.value)
 }
 
 func (document Document) IsInt64() bool {
-	return unit.IsInt64(document.value)
+	return property.IsInt64(document.value)
 }
 
 func (document Document) IsFloat() bool {
-	return unit.IsFloat(document.value)
+	return property.IsFloat(document.value)
 }
 
 func (document Document) IsNil() bool {
@@ -68,15 +68,15 @@ func (document Document) IsNil() bool {
 }
 
 func (document Document) IsMap() bool {
-	return unit.IsMap(document.value)
+	return property.IsMap(document.value)
 }
 
 func (document Document) IsSlice() bool {
-	return unit.IsSlice(document.value)
+	return property.IsSlice(document.value)
 }
 
 func (document Document) IsString() bool {
-	return unit.IsString(document.value)
+	return property.IsString(document.value)
 }
 
 func (document Document) NotNil() bool {
@@ -120,7 +120,7 @@ func (document Document) Get(key string) Document {
 		}
 	}
 
-	// Retrieve the value from the unit.Value
+	// Retrieve the value from the property.Value
 	if value := document.value.Get(key); !value.IsNil() {
 		return document.sub(value)
 	}
@@ -146,7 +146,7 @@ func (document Document) SliceOfDocuments() sliceof.Object[Document] {
 	values := document.Slice()
 	result := make([]Document, 0, len(values))
 	for _, value := range values {
-		result = append(result, document.sub(unit.NewValue(value)))
+		result = append(result, document.sub(property.NewValue(value)))
 	}
 
 	return result
@@ -155,7 +155,7 @@ func (document Document) SliceOfDocuments() sliceof.Object[Document] {
 // Bool returns the current object as a floating-point value
 func (document Document) Bool() bool {
 
-	if getter, ok := document.value.(unit.BoolGetter); ok {
+	if getter, ok := document.value.(property.BoolGetter); ok {
 		return getter.Bool()
 	}
 
@@ -165,7 +165,7 @@ func (document Document) Bool() bool {
 // Float returns the current object as an integer value
 func (document Document) Float() float64 {
 
-	if getter, ok := document.value.(unit.FloatGetter); ok {
+	if getter, ok := document.value.(property.FloatGetter); ok {
 		return getter.Float()
 	}
 
@@ -175,7 +175,7 @@ func (document Document) Float() float64 {
 // Int returns the current object as an integer value
 func (document Document) Int() int {
 
-	if getter, ok := document.value.(unit.IntGetter); ok {
+	if getter, ok := document.value.(property.IntGetter); ok {
 		return getter.Int()
 	}
 
@@ -210,9 +210,9 @@ func (document Document) Map(options ...string) map[string]any {
 	// Traverse slices, if necessary
 	value := document.value.Head()
 
-	if getter, ok := value.(unit.MapGetter); ok {
+	if getter, ok := value.(property.MapGetter); ok {
 		result = getter.Map()
-	} else if getter, ok := value.(unit.IsStringer); ok {
+	} else if getter, ok := value.(property.IsStringer); ok {
 		result[vocab.PropertyID] = getter.String()
 	}
 
@@ -252,7 +252,7 @@ func (document Document) HTMLString() string {
 // String returns the current object as a string value
 func (document Document) rawString() string {
 
-	if getter, ok := document.value.(unit.IsStringer); ok {
+	if getter, ok := document.value.(property.IsStringer); ok {
 		return getter.String()
 	}
 
@@ -262,7 +262,7 @@ func (document Document) rawString() string {
 // Time returns the current object as a time value
 func (document Document) Time() time.Time {
 
-	if getter, ok := document.value.(unit.TimeGetter); ok {
+	if getter, ok := document.value.(property.TimeGetter); ok {
 		return getter.Time()
 	}
 
@@ -344,7 +344,7 @@ func (document *Document) Client() Client {
 }
 
 // SetValue sets the value of this document to a new value.
-func (document *Document) SetValue(value unit.Value) {
+func (document *Document) SetValue(value property.Value) {
 	document.value = value
 }
 
@@ -369,7 +369,7 @@ func (document *Document) getClient() Client {
 }
 
 // sub returns a new Document with a new VALUE, all of the same OPTIONS as this original
-func (document *Document) sub(value unit.Value) Document {
+func (document *Document) sub(value property.Value) Document {
 	return Document{
 		value:      value,
 		client:     document.client,

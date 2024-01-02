@@ -1,4 +1,4 @@
-package unit
+package property
 
 import "github.com/benpate/rosetta/convert"
 

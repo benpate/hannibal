@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/benpate/derp"
-	"github.com/benpate/hannibal/unit"
+	"github.com/benpate/hannibal/property"
 )
 
 /******************************************
@@ -29,6 +29,6 @@ func (document *Document) UnmarshalJSON(bytes []byte) error {
 		return derp.Wrap(err, "streams.Document.UnmarshalJSON", "Error unmarshalling JSON into Document")
 	}
 
-	document.value = unit.NewValue(value)
+	document.value = property.NewValue(value)
 	return nil
 }
