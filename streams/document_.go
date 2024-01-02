@@ -202,6 +202,21 @@ func (document Document) MustLoad(options ...any) Document {
 	return result
 }
 
+// LoadLink loads a new JSON-LD document from a link or ID string.
+// If the current document has already been loaded (because it's a map)
+// then it is returned as-is.
+func (document Document) LoadLink(options ...any) Document {
+
+	// If this document is a string, then assume it's
+	// an ID and load it from the Intertubes.
+	if document.IsString() {
+		return document.MustLoad(options...)
+	}
+
+	// Nothing to load. We already have a map.
+	return document
+}
+
 func (document Document) Map(options ...string) map[string]any {
 
 	// Create an empty result map
@@ -295,16 +310,6 @@ func (document Document) Head() Document {
 // For all other document types, it returns a nil document.
 func (document Document) Tail() Document {
 	return document.sub(document.value.Tail())
-
-	/* Try convert in case we have something ugly (like a primitive.A)
-	if slice, ok := convert.SliceOfAnyOk(document.value); ok {
-		if len(slice) > 1 {
-			return document.sub(slice[1:])
-		}
-	}
-
-	return NilDocument()
-	*/
 }
 
 // IsEmpty return TRUE if the current object is empty
