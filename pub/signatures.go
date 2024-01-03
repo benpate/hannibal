@@ -33,12 +33,7 @@ func validateRequest(request *http.Request, document streams.Document) error {
 	}
 
 	// Get the Actor's Public Key
-	actorPublicKey, err := actor.PublicKey().Load()
-
-	if err != nil {
-		return derp.Wrap(err, location, "Error retrieving Public Key from Actor")
-	}
-
+	actorPublicKey := actor.PublicKey().LoadLink()
 	actorPublicPEM := actorPublicKey.PublicKeyPEM()
 
 	if packageDebugLevel >= DebugLevelVerbose {
