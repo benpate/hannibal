@@ -123,7 +123,7 @@ func (document Document) Image() Image {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
 func (document Document) InReplyTo() Document {
-	return document.Get(vocab.PropertyInReplyTo).MustLoad()
+	return document.Get(vocab.PropertyInReplyTo)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
