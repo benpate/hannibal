@@ -43,9 +43,11 @@ func NewValue(value any) Value {
 
 	switch typed := value.(type) {
 
+	// We already have a value, so return it
 	case Value:
 		return typed
 
+	// Raw values
 	case bool:
 		return Bool(typed)
 
@@ -78,6 +80,31 @@ func NewValue(value any) Value {
 
 	case time.Time:
 		return Time(typed)
+
+	// Conversion Interfaces
+	case BoolGetter:
+		return Bool(typed.Bool())
+
+	case FloatGetter:
+		return Float(typed.Float())
+
+	case IntGetter:
+		return Int(typed.Int())
+
+	case Int64Getter:
+		return Int64(typed.Int64())
+
+	case MapGetter:
+		return Map(typed.Map())
+
+	case SliceGetter:
+		return Slice(typed.Slice())
+
+	case StringGetter:
+		return String(typed.String())
+
+	case TimeGetter:
+		return Time(typed.Time())
 	}
 
 	// More checks for wayward values (like primitive.A)
