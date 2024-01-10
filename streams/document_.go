@@ -1,6 +1,7 @@
 package streams
 
 import (
+	"html"
 	"net/http"
 	"time"
 
@@ -254,7 +255,9 @@ func (document Document) Map(options ...string) map[string]any {
 // This value is filtered by blueMonday, so it is safe to use in HTML.
 func (document Document) String() string {
 	result := document.rawString()
-	return bluemonday.StrictPolicy().Sanitize(result)
+	result = bluemonday.StrictPolicy().Sanitize(result)
+	result = html.UnescapeString(result)
+	return result
 }
 
 // StringHTML returns the current object as an HTML string.
