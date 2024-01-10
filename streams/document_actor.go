@@ -46,6 +46,17 @@ func (document Document) PreferredUsername() string {
 	return document.Get(vocab.PropertyPreferredUsername).String()
 }
 
+func (document Document) Username() string {
+	return document.PreferredUsername()
+}
+
+func (document Document) UsernameOrID() string {
+	if username := document.PreferredUsername(); username != "" {
+		return "@" + username
+	}
+	return document.ID()
+}
+
 func (document Document) Endpoints() Document {
 	return document.Get(vocab.PropertyEndpoints)
 }
