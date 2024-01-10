@@ -48,7 +48,7 @@ func (value Int) Len() int {
 }
 
 func (value Int) IsNil() bool {
-	return false
+	return value == 0
 }
 
 func (value Int) String() string {

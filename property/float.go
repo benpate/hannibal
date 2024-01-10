@@ -40,7 +40,7 @@ func (value Float) Len() int {
 }
 
 func (value Float) IsNil() bool {
-	return false
+	return value == 0
 }
 
 func (value Float) String() string {
