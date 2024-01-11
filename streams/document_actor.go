@@ -1,6 +1,9 @@
 package streams
 
-import "github.com/benpate/hannibal/vocab"
+import (
+	"github.com/benpate/domain"
+	"github.com/benpate/hannibal/vocab"
+)
 
 // https://www.w3.org/TR/activitypub/#x4-1-actor-objects
 
@@ -52,7 +55,7 @@ func (document Document) Username() string {
 
 func (document Document) UsernameOrID() string {
 	if username := document.PreferredUsername(); username != "" {
-		return "@" + username
+		return "@" + username + "@" + domain.NameOnly(document.ID())
 	}
 	return document.ID()
 }
