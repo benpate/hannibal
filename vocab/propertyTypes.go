@@ -31,6 +31,9 @@ const PropertyBTo = "bto"
 const PropertyCC = "cc"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
+// IMPORTANT: This is a distinct property that identifies the
+// discussion or conversation context in which a post is made, and
+// is NOT the same as the JSON-LD @context property.
 const PropertyContext = "context"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-current
