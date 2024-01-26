@@ -146,9 +146,9 @@ func (document Document) HasSummary() bool {
 func (document Document) UnwrapActivity() Document {
 
 	// If this is an "Activity" type, the dig deeper into the object
-	// to find the actual document.  This is recursive because it's
-	// possible to have a deep tree such as Announce > Create > Document
-	// Looking at you, Lemmy...
+	// to find the actual document.
+	// This is recursive because it's possible to have a deep tree
+	// such as Announce > Create > Document. Looking at you, Lemmy...
 	if document.IsActivity() {
 		return document.Object().UnwrapActivity()
 	}
