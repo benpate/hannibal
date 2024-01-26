@@ -187,7 +187,7 @@ func (document Document) Next() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
 func (document Document) Object() Document {
-	return document.Get(vocab.PropertyObject).MustLoad()
+	return document.Get(vocab.PropertyObject)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-prev
