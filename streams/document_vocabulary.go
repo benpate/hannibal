@@ -15,12 +15,12 @@ import (
 func (document Document) ID() string {
 
 	// Try the ActivityPub standard "id" property first
-	if id := document.Get(vocab.PropertyID); !id.IsNil() {
+	if id := document.Get(vocab.PropertyID); id.NotNil() {
 		return id.String()
 	}
 
 	// Try the JSON-LD standard "@id" property second
-	if id := document.Get(vocab.PropertyID_Alternate); !id.IsNil() {
+	if id := document.Get(vocab.PropertyID_Alternate); id.NotNil() {
 		return document.Get(vocab.PropertyID).String()
 	}
 
@@ -30,7 +30,7 @@ func (document Document) ID() string {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
 func (document Document) Actor() Document {
-	return document.Get(vocab.PropertyActor).MustLoad()
+	return document.Get(vocab.PropertyActor).LoadLink()
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
@@ -40,7 +40,7 @@ func (document Document) Attachment() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attributedto
 func (document Document) AttributedTo() Document {
-	return document.Get(vocab.PropertyAttributedTo).MustLoad()
+	return document.Get(vocab.PropertyAttributedTo)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-audience
@@ -50,17 +50,17 @@ func (document Document) Audience() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bcc
 func (document Document) BCC() Document {
-	return document.Get(vocab.PropertyBCC).MustLoad()
+	return document.Get(vocab.PropertyBCC)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bto
 func (document Document) BTo() Document {
-	return document.Get(vocab.PropertyBTo).MustLoad()
+	return document.Get(vocab.PropertyBTo)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-cc
 func (document Document) CC() Document {
-	return document.Get(vocab.PropertyCC).MustLoad()
+	return document.Get(vocab.PropertyCC)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
@@ -225,12 +225,12 @@ func (document Document) Tag() Document {
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
 func (document Document) Target() Document {
-	return document.Get(vocab.PropertyTarget).MustLoad()
+	return document.Get(vocab.PropertyTarget)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
 func (document Document) To() Document {
-	return document.Get(vocab.PropertyTo).MustLoad()
+	return document.Get(vocab.PropertyTo)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
