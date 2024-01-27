@@ -29,6 +29,7 @@ type IsFloater interface {
 type IsMapper interface {
 	IsMap() bool
 	Map() map[string]any
+	MapKeys() []string
 }
 
 type IsSlicer interface {

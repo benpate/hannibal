@@ -251,6 +251,15 @@ func (document Document) Map(options ...string) map[string]any {
 
 }
 
+func (document Document) MapKeys() []string {
+
+	if mapper, ok := document.value.(property.IsMapper); ok {
+		return mapper.MapKeys()
+	}
+
+	return []string{}
+}
+
 // String returns the current object as a pure string (no HTML).
 // This value is filtered by blueMonday, so it is safe to use in HTML.
 func (document Document) String() string {

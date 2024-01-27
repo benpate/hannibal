@@ -7,10 +7,6 @@ import (
 
 type Map map[string]any
 
-func (value Map) IsMap() bool {
-	return true
-}
-
 // Get returns a value of the given property
 func (value Map) Get(name string) Value {
 
@@ -50,10 +46,6 @@ func (value Map) String() string {
 	return convert.String(value[vocab.PropertyID])
 }
 
-func (value Map) Map() map[string]any {
-	return value
-}
-
 func (value Map) Raw() any {
 	return map[string]any(value)
 }
@@ -66,4 +58,24 @@ func (value Map) Clone() Value {
 	}
 
 	return Map(value)
+}
+
+/******************************************
+ * IsMapper Interface
+ ******************************************/
+
+func (value Map) IsMap() bool {
+	return true
+}
+
+func (value Map) Map() map[string]any {
+	return value
+}
+
+func (value Map) MapKeys() []string {
+	result := make([]string, 0, len(value))
+	for key := range value {
+		result = append(result, key)
+	}
+	return result
 }
