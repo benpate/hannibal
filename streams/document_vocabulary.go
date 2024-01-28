@@ -11,6 +11,11 @@ import (
  * https://www.w3.org/TR/activitystreams-vocabulary
  ******************************************/
 
+// https://www.w3.org/TR/activitystreams-core/#h-jsonld
+func (document Document) AtContext() Document {
+	return document.Get(vocab.AtContext)
+}
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-id
 func (document Document) ID() string {
 

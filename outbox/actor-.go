@@ -51,6 +51,10 @@ func (actor *Actor) With(options ...ActorOption) {
 	}
 }
 
+func (actor *Actor) ActorID() string {
+	return actor.actorID
+}
+
 /******************************************
  * Internal / Helper Methods
  ******************************************/
