@@ -11,16 +11,17 @@ import (
 // activity: The activity that has been undone
 // recipient: The ActivityStreams profile of the message recipient
 func (actor *Actor) SendUndo(activity streams.Document) {
-	actor.Send(MakeUndo(actor.actorID, activity.Map(streams.OptionStripContext)))
+	actor.Send(MakeUndo(actor.actorID, activity.Map()))
 }
 
 func MakeUndo(actorID string, activity mapof.Any) mapof.Any {
 
-	delete(activity, vocab.PropertyContext)
+	context := activity[vocab.AtContext]
+	delete(activity, vocab.AtContext)
 
 	// Build the ActivityPub Message
 	return mapof.Any{
-		vocab.AtContext:      vocab.ContextTypeActivityStreams,
+		vocab.AtContext:      context,
 		vocab.PropertyType:   vocab.ActivityTypeUndo,
 		vocab.PropertyActor:  actorID,
 		vocab.PropertyObject: activity,
