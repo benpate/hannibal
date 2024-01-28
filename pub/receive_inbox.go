@@ -52,7 +52,7 @@ func ReceiveInboxRequest(request *http.Request, client streams.Client) (document
 
 	// Validate the Actor and Public Key
 	if err := validateRequest(request, document); err != nil {
-		return streams.NilDocument(), derp.Wrap(err, location, "Request is invalid")
+		return streams.NilDocument(), derp.Wrap(err, location, "Request is invalid", document.Value())
 	}
 
 	documentType := document.Type()

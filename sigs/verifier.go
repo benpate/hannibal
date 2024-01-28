@@ -57,7 +57,7 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 	const location = "hannibal.sigs.Verify"
 
 	if request == nil {
-		return derp.NewInternalError("hannibal.sigs.Verify", "Request cannot be nil")
+		return derp.NewInternalError(location, "Request cannot be nil")
 	}
 
 	log.Debug().
@@ -194,5 +194,5 @@ func verifySignature(publicKey crypto.PublicKey, hash crypto.Hash, digest []byte
 		return nil
 	}
 
-	return derp.NewBadRequestError("hannibal.sigs.verifySignature", "Unrecognized public key type")
+	return derp.NewBadRequestError(location, "Unrecognized public key type")
 }
