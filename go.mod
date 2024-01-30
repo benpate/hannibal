@@ -7,7 +7,7 @@ require (
 	github.com/benpate/domain v0.2.0
 	github.com/benpate/re v0.2.2
 	github.com/benpate/remote v0.13.1
-	github.com/benpate/rosetta v0.19.2
+	github.com/benpate/rosetta v0.19.4
 	github.com/davecgh/go-spew v1.1.1
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/rs/zerolog v1.31.0
