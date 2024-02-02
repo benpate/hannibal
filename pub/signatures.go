@@ -27,7 +27,7 @@ func validateRequest(request *http.Request, document streams.Document) error {
 	actor, err := document.Actor().Load()
 
 	if err != nil {
-		err = derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document")
+		err = derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document", document.Value())
 		derp.Report(err)
 		return err
 	}
@@ -46,7 +46,7 @@ func validateRequest(request *http.Request, document streams.Document) error {
 	// Verify the request using the Actor's public key
 	if err := sigs.Verify(request, actorPublicPEM); err != nil {
 		derp.SetErrorCode(err, derp.CodeForbiddenError)
-		return derp.Wrap(err, location, "Unable to verify HTTP signature")
+		return derp.Wrap(err, location, "Unable to verify HTTP signature", document.Value())
 	}
 
 	return nil
