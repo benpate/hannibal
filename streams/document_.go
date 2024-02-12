@@ -186,11 +186,23 @@ func (document Document) Int() int {
 // Load retrieves a JSON-LD document from its remote server
 func (document Document) Load(options ...any) (Document, error) {
 
-	if documentID := document.ID(); documentID != "" {
-		return document.getClient().Load(documentID, options...)
+	// Get the document ID
+	documentID := document.ID()
+
+	// Guarantee that we have an actual value
+	if documentID == "" {
+		return NilDocument(), nil
 	}
 
-	return NilDocument(), nil
+	// Try to load the document from the Interwebs
+	result, err := document.getClient().Load(documentID, options...)
+
+	if err != nil {
+		return result, derp.Wrap(err, "hannibal.streams.document.Load", "Error loading document by ID", document.Value())
+	}
+
+	// Success??
+	return result, nil
 }
 
 // MustLoad retrieves a JSON-LD document from its remote server.
@@ -198,7 +210,7 @@ func (document Document) Load(options ...any) (Document, error) {
 func (document Document) MustLoad(options ...any) Document {
 	result, err := document.Load(options...)
 	if err != nil {
-		derp.Report(err)
+		derp.Report(derp.Wrap(err, "hannibal.streams.document.MustLoad", "Error loading document"))
 	}
 	return result
 }

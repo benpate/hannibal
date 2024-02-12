@@ -33,17 +33,19 @@ func (task SendTask) Run() error {
 
 	const location = "hannibal.outbox.SendTask.Run"
 
-	log.Info().Str("app", "HANNIBAL.outbox").Str("recipient", task.recipient.ID()).Msg("Sending activity...")
+	logger := log.With().Str("loc", location).Logger()
+
+	logger.Info().Str("recipient", task.recipient.ID()).Msg("Sending activity...")
 
 	if canLog(zerolog.DebugLevel) {
 		rawJSON, _ := json.MarshalIndent(task.message, "", "  ")
-		log.Debug().Str("app", "HANNIBAL.outbox").Msg(string(rawJSON))
+		logger.Debug().Msg(string(rawJSON))
 	}
 
 	inboxURL := task.recipient.Inbox().ID()
 
 	if inboxURL == "" {
-		log.Error().Str("app", "HANNIBAL.outbox").Msg("Recipient does not have an inbox")
+		logger.Error().Msg("Recipient does not have an inbox")
 		return nil // returning nil error because we have failed so bacly that we don't even want to retry.
 	}
 
@@ -59,10 +61,10 @@ func (task SendTask) Run() error {
 	}
 
 	if err := transaction.Send(); err != nil {
-		return derp.Wrap(err, location, "Error sending Follow request", inboxURL)
+		return derp.ReportAndReturn(derp.Wrap(err, location, "Error sending ActivityPub request", inboxURL))
 	}
 
-	log.Debug().Str("app", "HANNIBAL.outbox").Msg("Activity sent successfully")
+	logger.Debug().Msg("Activity sent successfully")
 
 	// Done!
 	return nil

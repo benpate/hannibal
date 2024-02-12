@@ -50,7 +50,9 @@ func (q *SimpleQueue) worker() {
 
 		case task := <-q.tasks:
 			if err := task.Run(); err != nil {
-				go Retry(task.Run, q.options...)
+				if IsServerError(err) {
+					go Retry(task.Run, q.options...)
+				}
 			}
 		}
 	}
