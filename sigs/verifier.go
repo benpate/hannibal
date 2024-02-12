@@ -60,6 +60,10 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.NewInternalError(location, "Request cannot be nil")
 	}
 
+	if certificate == "" {
+		return derp.NewInternalError(location, "Certificate cannot be empty")
+	}
+
 	log.Debug().
 		Str("loc", location).
 		Msg("Verifying Signature")
