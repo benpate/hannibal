@@ -1,6 +1,10 @@
 package streams
 
-import "github.com/benpate/hannibal/vocab"
+import (
+	"strconv"
+
+	"github.com/benpate/hannibal/vocab"
+)
 
 /******************************************
  * Type Detection
@@ -138,6 +142,23 @@ func (document Document) HasContent() bool {
 // HasSummary returns TRUE if this document has a valid Summary property
 func (document Document) HasSummary() bool {
 	return document.Summary() != ""
+}
+
+func (document Document) HasDimensions() bool {
+	return document.Width() > 0 && document.Height() > 0
+}
+
+func (document Document) AspectRatio() string {
+
+	width := document.Width()
+	height := document.Height()
+
+	if width == 0 || height == 0 {
+		return "auto"
+	}
+
+	ratio := float64(width) / float64(height)
+	return strconv.FormatFloat(ratio, 'f', -1, 64)
 }
 
 // If this document is an activity (create, update, delete, etc), then

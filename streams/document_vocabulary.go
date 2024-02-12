@@ -126,6 +126,18 @@ func (document Document) Image() Image {
 	return NewImage(document.Get(vocab.PropertyImage))
 }
 
+// ImageOrIcon is a hybrid accessor that returns the "image" property (if not nil),
+// otherwise it returns the "icon" property.  This is useful for working with different
+// ActivityPub objects, which may use either property.
+func (document Document) ImageOrIcon() Image {
+
+	if image := document.Image(); image.NotNil() {
+		return image
+	}
+
+	return document.Icon()
+}
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
 func (document Document) InReplyTo() Document {
 	return document.Get(vocab.PropertyInReplyTo)
