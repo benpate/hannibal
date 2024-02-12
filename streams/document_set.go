@@ -19,6 +19,21 @@ func (document *Document) SetString(name string, value ...string) bool {
 	return true
 }
 
+// Append appends a value to a property on the document
+func (document *Document) Append(name string, value any) bool {
+
+	// RULE: If the value is empty, then NOOP
+	if value == "" {
+		return false
+	}
+
+	currentValue := convert.SliceOfAny(document.value.Head().Get(name))
+	newValue := append(currentValue, value)
+
+	document.value.Set(name, newValue)
+	return true
+}
+
 // AppendString appends a string to a property on the document
 func (document *Document) AppendString(name string, value string) bool {
 
