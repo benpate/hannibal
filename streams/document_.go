@@ -208,10 +208,7 @@ func (document Document) Load(options ...any) (Document, error) {
 // MustLoad retrieves a JSON-LD document from its remote server.
 // It silently reports errors, but does not return them.
 func (document Document) MustLoad(options ...any) Document {
-	result, err := document.Load(options...)
-	if err != nil {
-		derp.Report(derp.Wrap(err, "hannibal.streams.document.MustLoad", "Error loading document"))
-	}
+	result, _ := document.Load(options...)
 	return result
 }
 
