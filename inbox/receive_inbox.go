@@ -12,10 +12,10 @@ import (
 	"github.com/benpate/re"
 )
 
-// ReceiveInboxRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
-func ReceiveInboxRequest(request *http.Request, client streams.Client) (document streams.Document, err error) {
+// ReceiveRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
+func ReceiveRequest(request *http.Request, client streams.Client) (document streams.Document, err error) {
 
-	const location = "hannibal.pub.ReceiveInboxRequest"
+	const location = "hannibal.pub.ReceiveRequest"
 
 	// Try to read the body from the request
 	body, err := re.ReadRequestBody(request)
