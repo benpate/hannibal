@@ -1,4 +1,4 @@
-package pub
+package inbox
 
 import "github.com/benpate/hannibal/vocab"
 

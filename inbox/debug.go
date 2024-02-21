@@ -1,4 +1,4 @@
-package pub
+package inbox
 
 import "strings"
 
