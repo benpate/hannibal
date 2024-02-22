@@ -4,14 +4,12 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
-	"encoding/base64"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/slice"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -64,7 +62,7 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.NewInternalError(location, "Certificate cannot be empty")
 	}
 
-	log.Debug().
+	log.Trace().
 		Str("loc", location).
 		Msg("Verifying Signature")
 
@@ -101,11 +99,11 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.Wrap(err, location, "Error parsing signature")
 	}
 
-	log.Trace().
-		Str("loc", location).
-		Str("certificate", certificate).
-		Interface("signature", signature).
-		Msg("Parsed Signature")
+	// log.Trace().
+	//	Str("loc", location).
+	//	Str("certificate", certificate).
+	//	Interface("signature", signature).
+	//	Msg("Parsed Signature")
 
 	// RULE: If the signature has expired, then reject it.
 	if signature.IsExpired(verifier.Timeout) {
@@ -130,7 +128,7 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 	// Try each hash in order
 	for _, hash := range verifier.SignatureHashes {
 		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
-			log.Debug().Str("loc", location).Msg("Signature is VALID")
+			log.Trace().Str("loc", location).Msg("Signature is VALID")
 			return nil
 		}
 	}
@@ -156,7 +154,7 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 		return derp.Wrap(err, location, "Error creating digest")
 	}
 
-	// Logging here.. wrapping it in an "if" because the base64 encoding is expensive
+	/* Logging here.. wrapping it in an "if" because the base64 encoding is expensive
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
 		log.Trace().
 			Str("plaintext", plaintext).
@@ -165,11 +163,12 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 			Str("digest", base64.StdEncoding.EncodeToString(digest)).
 			Msg("VerifyHashAndSignature")
 	}
+	*/
 
 	// Verify the signature matches the message digest
 	if err := verifySignature(publicKey, hash, digest, signature); err != nil {
 		err = derp.Wrap(err, location, "Invalid signature")
-		log.Debug().Err(err).Msg("Signature is Invalid")
+		log.Trace().Err(err).Msg("Signature is Invalid")
 		return err
 	}
 

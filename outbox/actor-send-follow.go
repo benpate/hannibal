@@ -3,6 +3,7 @@ package outbox
 import (
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/rs/zerolog/log"
 )
 
 // SendFollow sends a "Follow" request to the recipient
@@ -10,6 +11,8 @@ import (
 // followID: The unique ID of this request
 // recipient: The ActivityStreams profile of the Actor that is being followed
 func (actor *Actor) SendFollow(followID string, remoteActorID string) {
+
+	log.Debug().Msg("outbox.Actor.SendFollow: " + followID)
 
 	// Build the ActivityStream "Follow" request
 	message := mapof.Any{

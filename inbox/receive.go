@@ -2,9 +2,7 @@ package inbox
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
@@ -24,8 +22,8 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
 	}
 
-	// Debug if necessary
-	if packageDebugLevel >= DebugLevelVerbose {
+	/*/ Debug if necessary
+	if router.debug >= DebugLevelVerbose {
 		fmt.Println("------------------------------------------")
 		fmt.Println("HANNIBAL: Receiving Activity: " + request.URL.String())
 		fmt.Println("Headers:")
@@ -37,6 +35,7 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 		fmt.Println(string(body))
 		fmt.Println("")
 	}
+	*/
 
 	/* RULE: Content-Type MUST be "application/activity+json" or "application/ld+json"
 	if !IsActivityPubContentType(request.Header.Get(vocab.ContentType)) {

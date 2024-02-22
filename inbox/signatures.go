@@ -1,13 +1,11 @@
 package inbox
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/sigs"
 	"github.com/benpate/hannibal/streams"
-	"github.com/davecgh/go-spew/spew"
 )
 
 /******************************************
@@ -36,12 +34,14 @@ func validateRequest(request *http.Request, document streams.Document) error {
 	actorPublicKey := actor.PublicKey().LoadLink()
 	actorPublicPEM := actorPublicKey.PublicKeyPEM()
 
-	if packageDebugLevel >= DebugLevelVerbose {
-		fmt.Println("------------------------------------------")
-		fmt.Println(location)
-		spew.Dump(actor.Value())
-		fmt.Println("PEM: " + actorPublicPEM)
-	}
+	/*
+		if packageDebugLevel >= DebugLevelVerbose {
+			fmt.Println("------------------------------------------")
+			fmt.Println(location)
+			spew.Dump(actor.Value())
+			fmt.Println("PEM: " + actorPublicPEM)
+		}
+	*/
 
 	// Verify the request using the Actor's public key
 	if err := sigs.Verify(request, actorPublicPEM); err != nil {

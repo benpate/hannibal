@@ -4,6 +4,7 @@ import (
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/rs/zerolog/log"
 )
 
 // SendUndo sends an "Undo" message to the recipient
@@ -11,6 +12,8 @@ import (
 // activity: The activity that has been undone
 // recipient: The ActivityStreams profile of the message recipient
 func (actor *Actor) SendUndo(activity streams.Document) {
+	log.Debug().Msg("outbox.Actor.SendUndo: " + activity.ID())
+
 	actor.Send(MakeUndo(actor.actorID, activity.Map()))
 }
 

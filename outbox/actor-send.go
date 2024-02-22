@@ -19,14 +19,15 @@ import (
 // https://www.w3.org/TR/activitypub/#delivery
 func (actor *Actor) Send(message mapof.Any) {
 
-	const location = "hannibal.outbox.Actor.Send"
-
-	logger := log.With().Str("loc", location).Logger()
-
 	if canLog(zerolog.DebugLevel) {
-		logger.Debug().Msg("Sending message...")
-		rawJSON, _ := json.MarshalIndent(message, "", "  ")
-		logger.Debug().Msg(string(rawJSON))
+
+		messageID := message.GetString(vocab.PropertyID)
+		log.Debug().Msg("Sending Message: " + messageID)
+
+		if canLog(zerolog.TraceLevel) {
+			rawJSON, _ := json.MarshalIndent(message, "", "  ")
+			log.Trace().Msg(string(rawJSON))
+		}
 	}
 
 	// Create a streams.Document from the message
@@ -42,38 +43,25 @@ func (actor *Actor) Send(message mapof.Any) {
 	// Send the message to each recipient
 	for recipient := range recipients {
 
-		logger.Trace().Msg("Found Recipient: " + recipient)
-
 		// Don't send to empty recipients
 		if recipient == "" {
-			logger.Trace().Msg("Empty recipient.")
 			continue
 		}
 
 		// Don't send to the magic public recipient
 		if recipient == vocab.NamespaceActivityStreamsPublic {
-			logger.Trace().Msg("Public recipient. Do not deliver to the public namespace.")
 			continue
 		}
 
 		// Don't send messages to myself
 		if recipient == actor.actorID {
-			logger.Trace().Msg("Self-recipient. Do not deliver to self.")
 			continue
 		}
 
 		// Don't send to duplicate addresses
 		if uniquer.IsDuplicate(recipient) {
-			logger.Trace().Msg("Duplicate recipient.")
 			continue
 		}
-
-		// Make a copy of the message, individualized for this recipient,
-		// and adding the recipient in the To field.
-		// messageMap := document.Map(streams.OptionStripRecipients)
-		// messageMap[vocab.PropertyTo] = recipient
-
-		logger.Debug().Str("recipient", recipient).Msg("Queuing SendTask...")
 
 		// Send the message to the recipient
 		recipientDocument := streams.NewDocument(recipient, streams.WithClient(client))
@@ -94,14 +82,27 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 
 		// Copy TO: field into recipients
 		for to := range message.To().Channel() {
-			log.Trace().Msg("getRecipients/To sending: " + to.ID())
+			log.Debug().Msg("getRecipients/To sending to: " + to.ID())
 			result <- to.ID()
 		}
 
 		// Copy CC: field into recipients
 		for cc := range message.CC().Channel() {
-			log.Trace().Msg("getRecipients/CC sending: " + cc.ID())
+			log.Debug().Msg("getRecipients/CC sending to: " + cc.ID())
 			result <- cc.ID()
+		}
+
+		// Copy Tag: field into recipients (Mentions only)
+		for tag := range message.Object().Tag().Channel() {
+
+			if tag.Type() != vocab.LinkTypeMention {
+				continue
+			}
+
+			if href := tag.Href(); href != "" {
+				log.Debug().Msg("getRecipients/Tag sending to: " + href)
+				result <- href
+			}
 		}
 
 		// Special rules for certain kinds of messages:
@@ -110,21 +111,24 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 		// Accept activities are sent to the Actor of the original object
 		// Return so that no other recipients are added.
 		case vocab.ActivityTypeAccept:
-			log.Trace().Msg("getRecipients/Accept sending: " + message.Object().Actor().ID())
+			log.Debug().Msg("getRecipients/Accept sending to: " + message.Object().Actor().ID())
 			result <- message.Object().Actor().ID()
 			return
 
 		// Follow messages are sent to the person being followed.
 		// Return so that no other recipients are added.
 		case vocab.ActivityTypeFollow:
-			log.Trace().Msg("getRecipients/Follow sending: " + message.Object().ID())
+			log.Debug().Msg("getRecipients/Follow sending to: " + message.Object().ID())
 			result <- message.Object().ID()
 			return
 
 		// Delete and Undo messages are sent to all recipients of the original message
 		case vocab.ActivityTypeDelete, vocab.ActivityTypeUndo:
-			for recipient := range actor.getRecipients(message.Object()) {
-				result <- recipient
+			if object := message.Object(); object.NotNil() {
+				for recipient := range actor.getRecipients(object) {
+					log.Debug().Msg("getRecipients/Delete sending to: " + recipient)
+					result <- recipient
+				}
 			}
 			return
 
@@ -133,23 +137,32 @@ func (actor *Actor) getRecipients(message streams.Document) <-chan string {
 			vocab.ActivityTypeLike,
 			vocab.ActivityTypeDislike:
 
-			log.Trace().Msg("getRecipients/Announce/Like/Dislike sending: " + message.Object().Actor().ID())
-			result <- message.Object().Actor().ID()
+			recipient := message.Object().Actor().ID()
+
+			log.Trace().Msg("getRecipients/Announce/Like/Dislike sending to: " + recipient)
+			result <- recipient
 
 			// Don't return because we also want to tell
 			// the world that we announce/like/dislike this thing
 		}
 
 		// Write Actors from inReplyTo properties
-		calcRecipients_inReplyTo(message, result, 0)
+		if inReplyTo := message.InReplyTo(); inReplyTo.NotNil() {
+			calcRecipients_inReplyTo(inReplyTo, result, 0)
+		}
 
 		// Finally, send the message to all of the Actor's Followers
 		if actor.followers != nil {
+			log.Debug().Msg("getRecipients/Follower: Scanning Followers...")
 			for follower := range actor.followers {
-				log.Trace().Msg("getRecipients/Follower sending: " + message.Object().Actor().ID())
+				log.Debug().Msg("getRecipients/Follower sending to: " + message.Object().Actor().ID())
 				result <- follower
 			}
+		} else {
+			log.Debug().Msg("getRecipients/Follower: Followers channel is nil")
 		}
+
+		log.Debug().Msg("getRecipients/Done")
 	}()
 
 	// Return the channel

@@ -33,19 +33,20 @@ func (task SendTask) Run() error {
 
 	const location = "hannibal.outbox.SendTask.Run"
 
-	logger := log.With().Str("loc", location).Logger()
-
-	logger.Info().Str("recipient", task.recipient.ID()).Msg("Sending activity...")
-
-	if canLog(zerolog.DebugLevel) {
-		rawJSON, _ := json.MarshalIndent(task.message, "", "  ")
-		logger.Debug().Msg(string(rawJSON))
-	}
-
 	inboxURL := task.recipient.Inbox().ID()
 
+	if canLog(zerolog.DebugLevel) {
+		messageID := task.message.GetString(vocab.PropertyID)
+		log.Debug().Str("loc", location).Str("id", messageID).Str("to", inboxURL).Msg("Sending:")
+
+		if canLog(zerolog.TraceLevel) {
+			rawJSON, _ := json.MarshalIndent(task.message, "", "  ")
+			log.Trace().Msg(string(rawJSON))
+		}
+	}
+
 	if inboxURL == "" {
-		logger.Error().Msg("Recipient does not have an inbox")
+		log.Error().Msg("Recipient does not have an inbox")
 		return nil // returning nil error because we have failed so bacly that we don't even want to retry.
 	}
 
@@ -64,7 +65,7 @@ func (task SendTask) Run() error {
 		return derp.ReportAndReturn(derp.Wrap(err, location, "Error sending ActivityPub request", inboxURL))
 	}
 
-	logger.Debug().Msg("Activity sent successfully")
+	log.Debug().Msg("Activity sent successfully")
 
 	// Done!
 	return nil
