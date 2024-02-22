@@ -5,12 +5,16 @@ import (
 	"fmt"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/streams"
+	"github.com/benpate/hannibal/vocab"
+	"github.com/rs/zerolog/log"
 )
 
 // Router is a simple object that routes incoming ActivityPub activities to the appropriate handler
 type Router[T any] struct {
 	routes map[string]RouteHandler[T]
+	config Config
 }
 
 // RouteHandler is a function that handles a specific type of ActivityPub activity.
@@ -19,10 +23,17 @@ type Router[T any] struct {
 type RouteHandler[T any] func(context T, activity streams.Document) error
 
 // NewRouter creates a new Router object
-func NewRouter[T any]() Router[T] {
-	return Router[T]{
+func NewRouter[T any](options ...Option) Router[T] {
+	result := Router[T]{
 		routes: make(map[string]RouteHandler[T]),
+		config: NewConfig(),
 	}
+
+	for _, option := range options {
+		option(&result.config)
+	}
+
+	return result
 }
 
 // Add puts a new route to the router.  You can use "*" as a wildcard for
@@ -43,45 +54,53 @@ func (router *Router[T]) Add(activityType string, objectType string, routeHandle
 // Handle takes an ActivityPub activity and routes it to the appropriate handler
 func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
+	const location = "hannibal.router.Handle"
+
 	activityType := activity.Type()
+
+	// If this is a Document (not an Activity) then wrap it in
+	// an implicit "Create" activity before routing.
+	if vocab.ValidateActivityType(activityType) == vocab.Unknown {
+
+		newValue := property.Map{
+			vocab.AtContext:      activity.AtContext(),
+			vocab.PropertyID:     activity.ID(),
+			vocab.PropertyActor:  activity.Actor(),
+			vocab.PropertyType:   vocab.ActivityTypeCreate,
+			vocab.PropertyObject: activity.Value(),
+		}
+
+		activity.SetValue(newValue)
+	}
+
 	objectType := activity.Object().Type()
 
-	if packageDebugLevel >= DebugLevelTerse {
-		if packageDebugLevel >= DebugLevelVerbose {
-			fmt.Println("------------------------------------------")
-		}
-		fmt.Println("HANNIBAL: Received Message: " + activityType + "/" + objectType)
-		if packageDebugLevel >= DebugLevelVerbose {
+	if router.config.DebugTerse() {
+		log.Debug().Str("loc", location).Msg("Received Message: " + activityType + "/" + objectType)
+
+		if router.config.DebugVerbose() {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
 			fmt.Println(string(marshalled))
 		}
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/"+objectType]; ok {
-		if packageDebugLevel >= DebugLevelVerbose {
-			fmt.Println("HANNIBAL: Found Route: " + activityType + "/" + objectType)
-		}
+		log.Trace().Str("loc", location).Msg("Found Route: " + activityType + "/" + objectType)
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/*"]; ok {
-		if packageDebugLevel >= DebugLevelVerbose {
-			fmt.Println("HANNIBAL: Found Route: " + activityType + "/*")
-		}
+		log.Trace().Str("loc", location).Msg("Found Route: " + activityType + "/*")
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes["*/"+objectType]; ok {
-		if packageDebugLevel >= DebugLevelVerbose {
-			fmt.Println("HANNIBAL: Found Route: " + "*/" + objectType)
-		}
+		log.Trace().Str("loc", location).Msg("Found Route: */" + objectType)
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes["*/*"]; ok {
-		if packageDebugLevel >= DebugLevelVerbose {
-			fmt.Println("HANNIBAL: Found Route: */*")
-		}
+		log.Trace().Str("loc", location).Msg("Found Route: */*")
 		return routeHandler(context, activity)
 	}
 
