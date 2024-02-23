@@ -3,11 +3,13 @@ package inbox
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
-	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/re"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // ReceiveRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
@@ -20,6 +22,16 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 
 	if err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
+	}
+
+	// Logging
+	log.Trace().Msg("------------------------------------")
+	log.Debug().Str("url", request.Host+request.URL.String()).Msg("Inbox: Activity Received")
+	if canLog(zerolog.TraceLevel) {
+		for key, value := range request.Header {
+			log.Trace().Str(key, strings.Join(value, ", ")).Msg("Header")
+		}
+		log.Trace().Bytes("body", body).Msg("Body")
 	}
 
 	/*/ Debug if necessary
@@ -54,20 +66,13 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 		return streams.NilDocument(), derp.Wrap(err, location, "Request is invalid", document.Value())
 	}
 
-	documentType := document.Type()
-
-	// First, assume that we have a fully defined activity
-	if activityType := vocab.ValidateActivityType(documentType); activityType != vocab.Unknown {
-		return document, nil
+	// Logging
+	log.Debug().Str("id", document.ID()).Msg("Inbox: Activity Parsed")
+	if canLog(zerolog.TraceLevel) {
+		rawJSON, _ := json.MarshalIndent(document.Value(), "", "  ")
+		log.Trace().RawJSON("document", rawJSON).Send()
 	}
 
-	// Otherwise, assume that we have an implicit "Create" activity
-	if objectType := vocab.ValidateObjectType(documentType); objectType != vocab.Unknown {
-		// TODO: MEDIUM: Wrap original activity in a "Create" activity
-		// TODO: MEDIUM: Can we get the Actor from the signed HTTP Request?
-		return document, derp.NewInternalError(location, "Implicit 'Create' activities are not yet implemented")
-	}
-
-	// Return the activity to the caller.
-	return streams.NilDocument(), derp.NewInternalError(location, "Unknown ActivityPub message type", document.Value())
+	// Return the parsed document to the caller (vöïlä!)
+	return document, nil
 }

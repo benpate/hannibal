@@ -8,6 +8,7 @@ import (
 	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -76,32 +77,32 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	objectType := activity.Object().Type()
 
-	if router.config.DebugTerse() {
-		log.Debug().Str("loc", location).Msg("Received Message: " + activityType + "/" + objectType)
+	if canLog(zerolog.DebugLevel) {
+		log.Debug().Str("type", activityType+"/"+objectType).Msg("Router: Received Message")
 
-		if router.config.DebugVerbose() {
+		if canLog(zerolog.TraceLevel) {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
 			fmt.Println(string(marshalled))
 		}
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/"+objectType]; ok {
-		log.Trace().Str("loc", location).Msg("Found Route: " + activityType + "/" + objectType)
+		log.Trace().Msg("Router: Found: " + activityType + "/" + objectType)
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/"+vocab.Any]; ok {
-		log.Trace().Str("loc", location).Msg("Found Route: " + activityType + "/*")
+		log.Trace().Msg("Router: Found: " + activityType + "/*")
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes[vocab.Any+"/"+objectType]; ok {
-		log.Trace().Str("loc", location).Msg("Found Route: */" + objectType)
+		log.Trace().Msg("Router: Found: */" + objectType)
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes[vocab.Any+"/"+vocab.Any]; ok {
-		log.Trace().Str("loc", location).Msg("Found Route: */*")
+		log.Trace().Msg("Router: Found: */*")
 		return routeHandler(context, activity)
 	}
 

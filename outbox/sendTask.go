@@ -65,7 +65,7 @@ func (task SendTask) Run() error {
 		return derp.ReportAndReturn(derp.Wrap(err, location, "Error sending ActivityPub request", inboxURL))
 	}
 
-	log.Debug().Msg("Activity sent successfully")
+	log.Debug().Msg("Outbox: sendTask: Activity sent successfully")
 
 	// Done!
 	return nil
