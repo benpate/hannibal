@@ -71,6 +71,7 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		}
 
 		activity.SetValue(newValue)
+		activityType = vocab.ActivityTypeCreate
 	}
 
 	objectType := activity.Object().Type()
@@ -89,20 +90,20 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		return routeHandler(context, activity)
 	}
 
-	if routeHandler, ok := router.routes[activityType+"/*"]; ok {
+	if routeHandler, ok := router.routes[activityType+"/"+vocab.Any]; ok {
 		log.Trace().Str("loc", location).Msg("Found Route: " + activityType + "/*")
 		return routeHandler(context, activity)
 	}
 
-	if routeHandler, ok := router.routes["*/"+objectType]; ok {
+	if routeHandler, ok := router.routes[vocab.Any+"/"+objectType]; ok {
 		log.Trace().Str("loc", location).Msg("Found Route: */" + objectType)
 		return routeHandler(context, activity)
 	}
 
-	if routeHandler, ok := router.routes["*/*"]; ok {
+	if routeHandler, ok := router.routes[vocab.Any+"/"+vocab.Any]; ok {
 		log.Trace().Str("loc", location).Msg("Found Route: */*")
 		return routeHandler(context, activity)
 	}
 
-	return derp.NewBadRequestError("hannibal.pub.Router.Handle", "No route found for activity", activity.Value())
+	return derp.NewBadRequestError("hannibal.pub.Router.Handle", "No route found for activity", activityType, objectType, activity.Value())
 }
