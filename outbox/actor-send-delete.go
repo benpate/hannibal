@@ -8,7 +8,7 @@ import (
 // SendDelete sends an "Delete" message to the recipient
 // actor: The Actor that is sending the request
 // activity: The activity that has been deleted
-// recipient: The ActivityStreams profile of the message recipient
+// recipient: The ActivityStream profile of the message recipient
 func (actor *Actor) SendDelete(activity streams.Document) {
 	actor.SendActivity(vocab.ActivityTypeDelete, activity)
 }

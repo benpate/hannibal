@@ -1,8 +1,9 @@
 package property
 
 import (
-	"net/http"
 	"time"
+
+	"github.com/benpate/hannibal"
 )
 
 type Time time.Time
@@ -49,7 +50,7 @@ func (value Time) IsNil() bool {
 
 // String returs the string representation of the value
 func (value Time) String() string {
-	return time.Time(value).UTC().Format(http.TimeFormat)
+	return hannibal.TimeFormat(time.Time(value))
 }
 
 // Map returns the value as a map[string]any

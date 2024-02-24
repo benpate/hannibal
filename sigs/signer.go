@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal"
 	"github.com/benpate/rosetta/slice"
 )
 
@@ -104,7 +105,7 @@ func (signer *Signer) MakeSignature(request *http.Request) (Signature, error) {
 	if slice.Contains(signer.Fields, FieldDate) {
 		date := request.Header.Get(FieldDate)
 		if _, err := time.Parse(http.TimeFormat, date); err != nil {
-			request.Header.Set(FieldDate, time.Now().In(time.UTC).Format(http.TimeFormat))
+			request.Header.Set(FieldDate, hannibal.TimeFormat(time.Now()))
 		}
 	}
 

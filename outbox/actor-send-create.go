@@ -1,6 +1,9 @@
 package outbox
 
 import (
+	"time"
+
+	"github.com/benpate/hannibal"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/rs/zerolog/log"
@@ -9,7 +12,7 @@ import (
 // SendCreate sends an "Create" message to the recipient
 // actor: The Actor that is sending the request
 // activity: The activity that has been created (such as a "Note" or "Article")
-// recipient: The ActivityStreams profile of the message recipient
+// recipient: The  profile of the message recipient
 func (actor *Actor) SendCreate(activity mapof.Any) {
 
 	activityID := activity.GetString(vocab.PropertyID)
@@ -17,11 +20,12 @@ func (actor *Actor) SendCreate(activity mapof.Any) {
 	log.Debug().Msg("outbox.Actor.SendCreate: " + activityID)
 
 	message := mapof.Any{
-		vocab.AtContext:      vocab.ContextTypeActivityStreams,
-		vocab.PropertyID:     activityID,
-		vocab.PropertyType:   vocab.ActivityTypeCreate,
-		vocab.PropertyActor:  actor.actorID,
-		vocab.PropertyObject: activity,
+		vocab.AtContext:         vocab.ContextTypeActivityStreams,
+		vocab.PropertyID:        activityID,
+		vocab.PropertyType:      vocab.ActivityTypeCreate,
+		vocab.PropertyActor:     actor.actorID,
+		vocab.PropertyObject:    activity,
+		vocab.PropertyPublished: hannibal.TimeFormat(time.Now()),
 	}
 
 	actor.Send(message)
