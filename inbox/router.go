@@ -55,7 +55,7 @@ func (router *Router[T]) Add(activityType string, objectType string, routeHandle
 // Handle takes an ActivityPub activity and routes it to the appropriate handler
 func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
-	const location = "hannibal.router.Handle"
+	const location = "hannibal.inbox.Router.Handle"
 
 	activityType := activity.Type()
 
@@ -106,5 +106,5 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		return routeHandler(context, activity)
 	}
 
-	return derp.NewBadRequestError("hannibal.pub.Router.Handle", "No route found for activity", activityType, objectType, activity.Value())
+	return derp.NewBadRequestError(location, "No route found for activity", activityType, objectType, activity.Value())
 }
