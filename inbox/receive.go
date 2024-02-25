@@ -26,7 +26,7 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 
 	// Logging
 	log.Trace().Msg("------------------------------------")
-	log.Debug().Str("url", request.Host+request.URL.String()).Msg("Inbox: Activity Received")
+	log.Debug().Str("inbox", request.Host+request.URL.String()).Msg("Hannibal Inbox: Activity Received")
 	if canLog(zerolog.TraceLevel) {
 		for key, value := range request.Header {
 			log.Trace().Str(key, strings.Join(value, ", ")).Msg("Header")
@@ -58,16 +58,18 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 	document = streams.NilDocument(streams.WithClient(client))
 
 	if err := json.Unmarshal(body, &document); err != nil {
+		log.Err(err).Msg("Hannibal Inbox: Error Unmarshalling JSON")
 		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub document")
 	}
 
 	// Validate the Actor and Public Key
 	if err := validateRequest(request, document); err != nil {
-		return streams.NilDocument(), derp.Wrap(err, location, "Request is invalid", document.Value())
+		log.Err(err).Msg("Hannibal Inbox: Invalid Actor or Public Key")
+		return streams.NilDocument(), derp.Wrap(err, location, "Invalid Actor or Public Key", document.Value())
 	}
 
 	// Logging
-	log.Debug().Str("id", document.ID()).Msg("Inbox: Activity Parsed")
+	log.Debug().Str("id", document.ID()).Msg("Hannibal Inbox: Activity Parsed")
 	if canLog(zerolog.TraceLevel) {
 		rawJSON, _ := json.MarshalIndent(document.Value(), "", "  ")
 		log.Trace().RawJSON("document", rawJSON).Send()

@@ -78,7 +78,7 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 	objectType := activity.Object().Type()
 
 	if canLog(zerolog.DebugLevel) {
-		log.Debug().Str("type", activityType+"/"+objectType).Msg("Router: Received Message")
+		log.Debug().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: Received Message")
 
 		if canLog(zerolog.TraceLevel) {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
@@ -87,22 +87,22 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/"+objectType]; ok {
-		log.Trace().Msg("Router: Found: " + activityType + "/" + objectType)
+		log.Trace().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: route matched.")
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/"+vocab.Any]; ok {
-		log.Trace().Msg("Router: Found: " + activityType + "/*")
+		log.Trace().Str("type", activityType+"/*").Msg("Hannibal Router: route matched.")
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes[vocab.Any+"/"+objectType]; ok {
-		log.Trace().Msg("Router: Found: */" + objectType)
+		log.Trace().Str("type", "*/"+objectType).Msg("Hannibal Router: route matched.")
 		return routeHandler(context, activity)
 	}
 
 	if routeHandler, ok := router.routes[vocab.Any+"/"+vocab.Any]; ok {
-		log.Trace().Msg("Router: Found: */*")
+		log.Trace().Str("type", "*/*").Msg("Hannibal Router: route matched.")
 		return routeHandler(context, activity)
 	}
 
