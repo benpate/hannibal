@@ -23,8 +23,9 @@ func Test_PixelFed(t *testing.T) {
 	
 	{"@context":"https:\/\/www.w3.org\/ns\/activitystreams","id":"https:\/\/pixelfed.social\/users\/benpate#follow\/595731146082391369\/undo","type":"Undo","actor":"https:\/\/pixelfed.social\/users\/benpate","object":{"id":"https:\/\/pixelfed.social\/users\/benpate#follows\/595731146082391369","actor":"https:\/\/pixelfed.social\/users\/benpate","object":"https:\/\/emdev.ddns.net\/@64d68054a4bf39a519f27c67","type":"Follow"}}`)
 
-	publicPEM := removeTabs(
-		`-----BEGIN PUBLIC KEY-----
+	keyFinder := func(keyID string) (string, error) {
+		return removeTabs(
+			`-----BEGIN PUBLIC KEY-----
 		MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsuI80UzaF1gQinBAZnz7
 		CtqH4Rr6Booyii2ik+6Dw6nyuu//1VJVgWkck9xzGP1e0h2pqHNlqvsPxwjxw22o
 		J31+hdU9mSOrK3C0k6nBT+RPEgfyj1UCXGk1lzfpKmgriftMGQ2kOQokRLqyKfXJ
@@ -32,11 +33,12 @@ func Test_PixelFed(t *testing.T) {
 		TaYiZWkxSjZw0fsnoDXiDHX7cljq67Yrzu0WmeAR7fYAJgCxlC++557w95xY58Z9
 		kIbcWXx0AExo/ed1GFNqFwg9Rdx58PzmA8dT9UpBOo9z6lu4KlbuWFYHz7b8HHGs
 		rwIDAQAB
-		-----END PUBLIC KEY-----`)
+		-----END PUBLIC KEY-----`), nil
+	}
 
 	requestReader := bufio.NewReader(bytes.NewReader([]byte(raw)))
 	request := must(http.ReadRequest(requestReader))
 
-	err := Verify(request, publicPEM, VerifierIgnoreTimeout())
+	err := Verify(request, keyFinder, VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }

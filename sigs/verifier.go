@@ -4,12 +4,14 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
+	"encoding/base64"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/slice"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -37,9 +39,9 @@ func NewVerifier(options ...VerifierOption) Verifier {
 
 // Verify verifies the given http.Request. This is
 // syntactic sugar for NewVerifier(options...).Verify(request)
-func Verify(request *http.Request, certificate string, options ...VerifierOption) error {
+func Verify(request *http.Request, keyFinder PublicKeyFinder, options ...VerifierOption) error {
 	verifier := NewVerifier(options...)
-	return verifier.Verify(request, certificate)
+	return verifier.Verify(request, keyFinder)
 }
 
 // Use applies the given options to the Verifier
@@ -50,16 +52,12 @@ func (verifier *Verifier) Use(options ...VerifierOption) {
 }
 
 // Verify verifies the given http.Request
-func (verifier *Verifier) Verify(request *http.Request, certificate string) error {
+func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinder) error {
 
 	const location = "hannibal.sigs.Verify"
 
 	if request == nil {
 		return derp.NewInternalError(location, "Request cannot be nil")
-	}
-
-	if certificate == "" {
-		return derp.NewInternalError(location, "Certificate cannot be empty")
 	}
 
 	log.Trace().
@@ -99,12 +97,6 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.Wrap(err, location, "Error parsing signature")
 	}
 
-	// log.Trace().
-	//	Str("loc", location).
-	//	Str("certificate", certificate).
-	//	Interface("signature", signature).
-	//	Msg("Parsed Signature")
-
 	// RULE: If the signature has expired, then reject it.
 	if signature.IsExpired(verifier.Timeout) {
 		return derp.NewForbiddenError(location, "Signature has expired")
@@ -115,6 +107,19 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.NewForbiddenError(location, "Signature must include ALL of these fields", verifier.Fields)
 	}
 
+	// Retrieve the public key used for this Signature
+	certificate, err := keyFinder(signature.KeyID)
+
+	if err != nil {
+		return derp.Wrap(err, location, "Error retrieving public signing key", signature.KeyID)
+	}
+
+	log.Trace().
+		Str("loc", location).
+		Str("certificate", certificate).
+		Interface("signature", signature).
+		Msg("Hannibal sigs: Parsed Signature")
+
 	// Decode the PEM certificate into a public key
 	publicKey, err := DecodePublicPEM(certificate)
 
@@ -122,18 +127,27 @@ func (verifier *Verifier) Verify(request *http.Request, certificate string) erro
 		return derp.Wrap(err, location, "Error decoding public key", certificate)
 	}
 
+	log.Trace().
+		Str("loc", location).
+		Str("pem", certificate).
+		Msg("Hannibal sigs: Decoded Public Key")
+
 	// Recreate the plaintext and digest used to make the Signature
 	plaintext := makePlaintext(request, signature, signature.Headers...)
 
 	// Try each hash in order
 	for _, hash := range verifier.SignatureHashes {
 		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
-			log.Trace().Str("loc", location).Msg("Signature is VALID")
+			log.Trace().Str("loc", location).Msg("Hannibal.sigs: Found valid signature")
 			return nil
+		} else {
+			log.Trace().Msg(".......")
+			log.Trace().Str("loc", location).Str("hash", hash.String()).Err(err).Msg("Hannibal.sigs: Error validating signature")
+			derp.Report(derp.Wrap(err, location, "Error validating signature", plaintext, hash, certificate, signature))
 		}
 	}
 
-	return derp.NewForbiddenError(location, "Signature is INVALID")
+	return derp.NewForbiddenError(location, "No valid signatures found")
 }
 
 /******************************************
@@ -154,21 +168,24 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 		return derp.Wrap(err, location, "Error creating digest")
 	}
 
-	/* Logging here.. wrapping it in an "if" because the base64 encoding is expensive
+	//* Logging here.. wrapping it in an "if" because the base64 encoding is "expensive"
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
 		log.Trace().
 			Str("plaintext", plaintext).
 			Int("hash", int(hash)).
 			Str("signature", base64.StdEncoding.EncodeToString(signature)).
 			Str("digest", base64.StdEncoding.EncodeToString(digest)).
-			Msg("VerifyHashAndSignature")
+			Msg("Hannibal sigs: Digest Created")
 	}
-	*/
 
 	// Verify the signature matches the message digest
 	if err := verifySignature(publicKey, hash, digest, signature); err != nil {
-		err = derp.Wrap(err, location, "Invalid signature")
-		log.Trace().Err(err).Msg("Signature is Invalid")
+		err = derp.Wrap(err, location, "Signature is invalid")
+
+		if log.Logger.GetLevel() == zerolog.TraceLevel {
+			derp.Report(err)
+		}
+
 		return err
 	}
 

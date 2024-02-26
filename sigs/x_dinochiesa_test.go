@@ -27,17 +27,19 @@ func TestVerify_Dino1(t *testing.T) {
 	request, err := http.ReadRequest(requestReader)
 	require.Nil(t, err)
 
-	publicPEM := removeTabs(`-----BEGIN PUBLIC KEY-----
-	MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtHiuMUfXZ+H7ruDYDfNZ
-	OYD1PChkSZJoHgoS/3qrue/O3QM7UEos9sWR2yQ3xH5VdLMx0jR9yaPQfe6bS0C5
-	ZziR4FA3VQ2nVCSYZNbaZGEms81yXS6qMhE/kbIjbYBm5DFWKYIPllH2IXMSiaGA
-	Wd9LQHI5or7m/tfzgYBIAgErztb9oz456GHPsiAJnkSbLYP+cRMobUn+NY/stYSK
-	Nq/Q+Ld9Q5ewj5qg7ps1f9LQ5kEDRaZY5pXvMjk9qfGI02hvxprRtXmC/zSiOUI6
-	yO5EHO6Yg4b8+/9sELdIuGqDRg7uINfgddMAF9EXif4MkFCgiJnvT0xro6M7mgLx
-	lwIDAQAB
-	-----END PUBLIC KEY-----`)
+	keyFinder := func(keyID string) (string, error) {
+		return removeTabs(`-----BEGIN PUBLIC KEY-----
+		MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtHiuMUfXZ+H7ruDYDfNZ
+		OYD1PChkSZJoHgoS/3qrue/O3QM7UEos9sWR2yQ3xH5VdLMx0jR9yaPQfe6bS0C5
+		ZziR4FA3VQ2nVCSYZNbaZGEms81yXS6qMhE/kbIjbYBm5DFWKYIPllH2IXMSiaGA
+		Wd9LQHI5or7m/tfzgYBIAgErztb9oz456GHPsiAJnkSbLYP+cRMobUn+NY/stYSK
+		Nq/Q+Ld9Q5ewj5qg7ps1f9LQ5kEDRaZY5pXvMjk9qfGI02hvxprRtXmC/zSiOUI6
+		yO5EHO6Yg4b8+/9sELdIuGqDRg7uINfgddMAF9EXif4MkFCgiJnvT0xro6M7mgLx
+		lwIDAQAB
+		-----END PUBLIC KEY-----`), nil
+	}
 
-	err = Verify(request, publicPEM, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
+	err = Verify(request, keyFinder, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
 	require.Nil(t, err)
 }
 
@@ -58,17 +60,20 @@ func TestVerify_Dino2(t *testing.T) {
 	request, err := http.ReadRequest(requestReader)
 	require.Nil(t, err)
 
-	publicPEM := removeTabs(`-----BEGIN PUBLIC KEY-----
-	MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4wCAxz92RHsFI6F6c1nP
-	2HDkRJxo0Ub8QSomgeOdqPWZGQg0n2x7OCH5oJT9bur0mxiWLOiC607BmD8zaamE
-	QTSgaz+VLfBcn5LQ73E+O8UB3tJr4k4JgD0eCmUmJ1nMNp+ArhgOZrYcbezt9BsE
-	vR77YUlSXs6LnCVa5niGTRwmJMOeljP1lEIoUVRnOlWD9ZBCtApnZvHPLV6tQnpf
-	36G7fMXXPINyg9lw/GmQWcI+PHqUDRYgea3u5Q1NLau1GZqP0vn+NyWMI9Ma3nZx
-	Nz51N02SnsUepzH7TjUPPfPlHc1uItaQgCGBaJUAdMmQbaM+Ww69y4TXUZEW22kp
-	hQIDAQAB
-	-----END PUBLIC KEY-----`)
+	keyFinder := func(keyID string) (string, error) {
+		return removeTabs(
+			`-----BEGIN PUBLIC KEY-----
+			MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4wCAxz92RHsFI6F6c1nP
+			2HDkRJxo0Ub8QSomgeOdqPWZGQg0n2x7OCH5oJT9bur0mxiWLOiC607BmD8zaamE
+			QTSgaz+VLfBcn5LQ73E+O8UB3tJr4k4JgD0eCmUmJ1nMNp+ArhgOZrYcbezt9BsE
+			vR77YUlSXs6LnCVa5niGTRwmJMOeljP1lEIoUVRnOlWD9ZBCtApnZvHPLV6tQnpf
+			36G7fMXXPINyg9lw/GmQWcI+PHqUDRYgea3u5Q1NLau1GZqP0vn+NyWMI9Ma3nZx
+			Nz51N02SnsUepzH7TjUPPfPlHc1uItaQgCGBaJUAdMmQbaM+Ww69y4TXUZEW22kp
+			hQIDAQAB
+			-----END PUBLIC KEY-----`), nil
+	}
 
-	err = Verify(request, publicPEM, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
+	err = Verify(request, keyFinder, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
 	require.Nil(t, err)
 }
 

@@ -36,9 +36,11 @@ func TestVerify_Manual(t *testing.T) {
 	require.NotEmpty(t, request.Header.Get("Signature"))
 
 	// Verify the Request
-	publicKeyPEM := EncodePublicPEM(privateKey)
+	keyFinder := func(keyID string) (string, error) {
+		return EncodePublicPEM(privateKey), nil
+	}
 
-	err = Verify(request, publicKeyPEM)
+	err = Verify(request, keyFinder)
 	require.Nil(t, err)
 }
 
