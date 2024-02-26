@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/base64"
 	"hash"
 	"net/http"
 	"net/url"
@@ -16,6 +17,7 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal"
 	"github.com/benpate/rosetta/slice"
+	"github.com/rs/zerolog/log"
 )
 
 // Signer contains all of the settings necessary to sign a request
@@ -153,7 +155,7 @@ func makePlaintext(request *http.Request, signature Signature, fields ...string)
 	result := strings.Join(resultSlice, "\n")
 
 	// Return the result (with logging)
-	// log.Trace().Str("plaintext", result).Msg("hannibal.sigs.makePlaintext")
+	log.Trace().Str("plaintext", result).Msg("hannibal.sigs.makePlaintext")
 
 	return result
 }
@@ -181,7 +183,9 @@ func makeSignatureHash(plaintext string, digestAlgorithm crypto.Hash) ([]byte, e
 	h.Write([]byte(plaintext))
 	result = h.Sum(nil)
 
-	// log.Trace().Str("loc", "hannibal.sigs.makeSignatureHash").Str("result", base64.StdEncoding.EncodeToString(result)).Send()
+	if canTrace() {
+		log.Trace().Str("loc", "hannibal.sigs.makeSignatureHash").Str("result", base64.StdEncoding.EncodeToString(result)).Send()
+	}
 
 	return result, nil
 }

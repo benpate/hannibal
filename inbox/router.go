@@ -8,7 +8,6 @@ import (
 	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -77,10 +76,10 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	objectType := activity.Object().Type()
 
-	if canLog(zerolog.DebugLevel) {
+	if canDebug() {
 		log.Debug().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: Received Message")
 
-		if canLog(zerolog.TraceLevel) {
+		if canTrace() {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
 			fmt.Println(string(marshalled))
 		}

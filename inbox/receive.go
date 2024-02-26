@@ -2,6 +2,7 @@ package inbox
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -24,35 +25,23 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
 	}
 
-	// Logging
-	log.Trace().Msg("------------------------------------")
-	log.Debug().Str("inbox", request.Host+request.URL.String()).Msg("Hannibal Inbox: Activity Received")
-	if canLog(zerolog.TraceLevel) {
-		for key, value := range request.Header {
-			log.Trace().Str(key, strings.Join(value, ", ")).Msg("Header")
-		}
-		log.Trace().Bytes("body", body).Msg("Body")
-	}
-
-	/*/ Debug if necessary
-	if router.debug >= DebugLevelVerbose {
+	// Debug if necessary
+	if canTrace() {
+		fmt.Println("")
 		fmt.Println("------------------------------------------")
-		fmt.Println("HANNIBAL: Receiving Activity: " + request.URL.String())
-		fmt.Println("Headers:")
+		fmt.Println("HANNIBAL: Received Request:")
+		fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
+		fmt.Println("Host: " + request.Host)
 		for key, value := range request.Header {
 			fmt.Println(key + ": " + strings.Join(value, ", "))
 		}
 		fmt.Println("")
-		fmt.Println("Body:")
 		fmt.Println(string(body))
+		fmt.Println("------------------------------------------")
 		fmt.Println("")
+	} else {
+		log.Debug().Str("url", request.URL.String()).Msg("Hannibal Inbox: Received Request")
 	}
-	*/
-
-	/* RULE: Content-Type MUST be "application/activity+json" or "application/ld+json"
-	if !IsActivityPubContentType(request.Header.Get(vocab.ContentType)) {
-		return streams.NilDocument(), derp.NewBadRequestError(location, "Content-Type MUST be 'application/activity+json'")
-	} */
 
 	// Try to retrieve the object from the buffer
 	document = streams.NilDocument(streams.WithClient(client))

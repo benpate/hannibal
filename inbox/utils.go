@@ -27,3 +27,18 @@ func IsActivityPubContentType(contentType string) bool {
 func canLog(level zerolog.Level) bool {
 	return zerolog.GlobalLevel() <= level
 }
+
+// canTrace returns TRUE if zerolog is configured to allow Trace logs
+func canTrace() bool {
+	return canLog(zerolog.TraceLevel)
+}
+
+// canDebug returns TRUE if zerolog is configured to allow Debug logs
+func canDebug() bool {
+	return canLog(zerolog.DebugLevel)
+}
+
+// canInfo returns TRUE if zerolog is configured to allow Info logs
+func canInfo() bool {
+	return canLog(zerolog.InfoLevel)
+}

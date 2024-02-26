@@ -63,19 +63,19 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 		fn, err := getDigestFuncByName(digestAlgorithm)
 
 		if err != nil {
-			log.Trace().Msg("sigs.VerifyDigest: Unknown digest algorithm: " + digestAlgorithm)
+			log.Trace().Msg("Hannibal sigs: VerifyDigest: Unknown digest algorithm: " + digestAlgorithm)
 			continue
 		}
 
 		// Additional trace values that helped isolate a bug in the digest algorithm
-		// log.Trace().Msg("Validating Digest: " + digestAlgorithm + "=" + digestValue)
-		// log.Trace().Msg(headerValue)
-		// log.Trace().Msg(digestValue)
-		// log.Trace().Msg(fn(body))
+		log.Trace().Msg("Validating Digest: " + digestAlgorithm + "=" + digestValue)
+		log.Trace().Msg(headerValue)
+		log.Trace().Msg(digestValue)
+		log.Trace().Msg(fn(body))
 
 		// If the values match, then success!
 		if digestValue == fn(body) {
-			log.Trace().Msg("sigs.VerifyDigest: Valid Digest Found. Algorithm: " + digestAlgorithm)
+			log.Trace().Msg("Hannibal sigs: VerifyDigest: Valid Digest Found. Algorithm: " + digestAlgorithm)
 
 			// Verify that this algorithm is in the list of allowed hashes
 			hash := getHashByName(digestAlgorithm)
@@ -92,6 +92,7 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 
 	// If we have found at least one digest that matches, then success!
 	if atLeastOneAlgorithmMatches {
+		log.Trace().Msg("Digest verified.")
 		return nil
 	}
 
