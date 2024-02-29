@@ -9,7 +9,6 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/re"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -26,21 +25,23 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 	}
 
 	// Debug if necessary
-	if canTrace() {
-		fmt.Println("")
-		fmt.Println("------------------------------------------")
-		fmt.Println("HANNIBAL: Received Request:")
-		fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
-		fmt.Println("Host: " + request.Host)
-		for key, value := range request.Header {
-			fmt.Println(key + ": " + strings.Join(value, ", "))
+	if canDebug() {
+		if canTrace() {
+			fmt.Println("")
+			fmt.Println("------------------------------------------")
+			fmt.Println("HANNIBAL: Received Request:")
+			fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
+			fmt.Println("Host: " + request.Host)
+			for key, value := range request.Header {
+				fmt.Println(key + ": " + strings.Join(value, ", "))
+			}
+			fmt.Println("")
+			fmt.Println(string(body))
+			fmt.Println("------------------------------------------")
+			fmt.Println("")
+		} else {
+			log.Debug().Str("url", request.URL.String()).Msg("Hannibal Inbox: Received Request")
 		}
-		fmt.Println("")
-		fmt.Println(string(body))
-		fmt.Println("------------------------------------------")
-		fmt.Println("")
-	} else {
-		log.Debug().Str("url", request.URL.String()).Msg("Hannibal Inbox: Received Request")
 	}
 
 	// Try to retrieve the object from the buffer
@@ -58,10 +59,12 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 	}
 
 	// Logging
-	log.Debug().Str("id", document.ID()).Msg("Hannibal Inbox: Activity Parsed")
-	if canLog(zerolog.TraceLevel) {
-		rawJSON, _ := json.MarshalIndent(document.Value(), "", "  ")
-		log.Trace().RawJSON("document", rawJSON).Send()
+	if canDebug() {
+		log.Debug().Str("id", document.ID()).Msg("Hannibal Inbox: Activity Parsed")
+		if canTrace() {
+			rawJSON, _ := json.MarshalIndent(document.Value(), "", "  ")
+			log.Trace().RawJSON("document", rawJSON).Send()
+		}
 	}
 
 	// Return the parsed document to the caller (vöïlä!)
