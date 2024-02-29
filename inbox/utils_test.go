@@ -22,14 +22,3 @@ func TestCanDebug(t *testing.T) {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	require.False(t, canDebug())
 }
-
-func TestCanInfo(t *testing.T) {
-	zerolog.SetGlobalLevel(zerolog.TraceLevel)
-	require.True(t, canDebug())
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	require.True(t, canDebug())
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	require.True(t, canInfo())
-	zerolog.SetGlobalLevel(zerolog.WarnLevel)
-	require.False(t, canInfo())
-}

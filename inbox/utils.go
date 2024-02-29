@@ -41,10 +41,3 @@ func canTrace() bool {
 func canDebug() bool {
 	return canLog(zerolog.DebugLevel)
 }
-
-// canInfo returns TRUE if zerolog is configured to allow Info logs
-// This function is here for completeness.  It may or may not be used
-// nolint: unused
-func canInfo() bool {
-	return canLog(zerolog.InfoLevel)
-}
