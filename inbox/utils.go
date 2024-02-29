@@ -29,16 +29,22 @@ func canLog(level zerolog.Level) bool {
 }
 
 // canTrace returns TRUE if zerolog is configured to allow Trace logs
+// This function is here for completeness.  It may or may not be used
+// nolint: unused
 func canTrace() bool {
 	return canLog(zerolog.TraceLevel)
 }
 
 // canDebug returns TRUE if zerolog is configured to allow Debug logs
+// This function is here for completeness.  It may or may not be used
+// nolint: unused
 func canDebug() bool {
 	return canLog(zerolog.DebugLevel)
 }
 
 // canInfo returns TRUE if zerolog is configured to allow Info logs
+// This function is here for completeness.  It may or may not be used
+// nolint: unused
 func canInfo() bool {
 	return canLog(zerolog.InfoLevel)
 }

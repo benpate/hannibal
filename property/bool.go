@@ -40,7 +40,7 @@ func (value Bool) Len() int {
 }
 
 func (value Bool) IsNil() bool {
-	return value == false
+	return value == false // nolint:gosimple // This form is just nicer, srry.
 }
 
 func (value Bool) String() string {
