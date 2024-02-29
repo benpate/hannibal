@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/benpate/derp v0.31.0
-	github.com/benpate/domain v0.2.0
+	github.com/benpate/domain v0.2.1
 	github.com/benpate/re v0.2.3
 	github.com/benpate/remote v0.15.0
 	github.com/benpate/rosetta v0.20.0
