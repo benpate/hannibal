@@ -6,7 +6,7 @@ require (
 	github.com/benpate/derp v0.31.0
 	github.com/benpate/domain v0.2.0
 	github.com/benpate/re v0.2.3
-	github.com/benpate/remote v0.14.0
+	github.com/benpate/remote v0.15.0
 	github.com/benpate/rosetta v0.20.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/microcosm-cc/bluemonday v1.0.26
