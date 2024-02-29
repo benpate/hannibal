@@ -14,7 +14,6 @@ import (
 // Router is a simple object that routes incoming ActivityPub activities to the appropriate handler
 type Router[T any] struct {
 	routes map[string]RouteHandler[T]
-	config Config
 }
 
 // RouteHandler is a function that handles a specific type of ActivityPub activity.
@@ -23,14 +22,9 @@ type Router[T any] struct {
 type RouteHandler[T any] func(context T, activity streams.Document) error
 
 // NewRouter creates a new Router object
-func NewRouter[T any](options ...Option) Router[T] {
+func NewRouter[T any]() Router[T] {
 	result := Router[T]{
 		routes: make(map[string]RouteHandler[T]),
-		config: NewConfig(),
-	}
-
-	for _, option := range options {
-		option(&result.config)
 	}
 
 	return result
