@@ -13,6 +13,11 @@ const ContentTypeActivityPub = "application/activity+json"
 // https://en.wikipedia.org/wiki/JSON-LD
 const ContentTypeJSONLD = "application/ld+json"
 
+// ContentTypeJSONLDWithProfile is the standard MIME Type for JSON-LD content, with profile
+// to designate ActivityPub content.
+// https://www.w3.org/TR/activitystreams-core/#media-type
+const ContentTypeJSONLDWithProfile = `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`
+
 // ContentTypeHTML is the standard MIME type for HTML content
 const ContentTypeHTML = "text/html"
 
