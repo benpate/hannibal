@@ -54,11 +54,11 @@ func (task SendTask) Run() error {
 	transaction := remote.Post(inboxURL).
 		Accept(vocab.ContentTypeActivityPub).
 		ContentType(vocab.ContentTypeActivityPub).
-		Use(SignRequest(task.actor)).
+		With(SignRequest(task.actor)).
 		JSON(task.message)
 
 	if canLog(zerolog.TraceLevel) {
-		transaction.Use(options.Debug())
+		transaction.With(options.Debug())
 	}
 
 	if err := transaction.Send(); err != nil {
