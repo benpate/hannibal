@@ -16,11 +16,19 @@ import (
 // http.Request, then adds the digest to the Request's header.
 func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc) error {
 
+	if request == nil {
+		return derp.New(500, "sigs.ApplyDigest", "Request cannot be nil")
+	}
+
 	// Retrieve the request body (in a replayable manner)
 	body, err := re.ReadRequestBody(request)
 
 	if err != nil {
 		return derp.Wrap(err, "sigs.ApplyDigest", "Error reading request body")
+	}
+
+	if len(body) == 0 {
+		return nil
 	}
 
 	// Try to calculate the digest with the DigestFunc
