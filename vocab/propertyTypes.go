@@ -1,5 +1,9 @@
 package vocab
 
+/******************************************
+ * Standard Property Types
+ ******************************************/
+
 // JSON-LD context descriptor used by ActivityStreams/ActivityPub
 const AtContext = "@context"
 
@@ -11,6 +15,9 @@ const PropertyActor = "actor"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-altitude
 const PropertyAltitude = "altitude"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-anyof
+const PropertyAnyOf = "anyOf"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
 const PropertyAttachment = "attachment"
@@ -30,6 +37,12 @@ const PropertyBTo = "bto"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-cc
 const PropertyCC = "cc"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-closed
+const PropertyClosed = "closed"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
+const PropertyContent = "content"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-context
 // IMPORTANT: This is a distinct property that identifies the
 // discussion or conversation context in which a post is made, and
@@ -45,6 +58,12 @@ const PropertyDeleted = "deleted"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-describes
 const PropertyDescribes = "describes"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-duration
+const PropertyDuration = "duration"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-endtime
+const PropertyEndTime = "endTime"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-first
 const PropertyFirst = "first"
 
@@ -53,6 +72,15 @@ const PropertyFormerType = "formerType"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-generator
 const PropertyGenerator = "generator"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-height
+const PropertyHeight = "height"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-href
+const PropertyHref = "href"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-hreflang
+const PropertyHrefLang = "hreflang"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-icon
 const PropertyIcon = "icon"
@@ -72,92 +100,17 @@ const PropertyInReplyTo = "inReplyTo"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
 const PropertyInstrument = "instrument"
 
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-last
-const PropertyLast = "last"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-location
-const PropertyLocation = "location"
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 const PropertyItems = "items"
 
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
-const PropertyOrderedItems = "orderedItems"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-oneof
-const PropertyOneOf = "oneOf"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-anyof
-const PropertyAnyOf = "anyOf"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-closed
-const PropertyClosed = "closed"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-origin
-const PropertyOrigin = "origin"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-next
-const PropertyNext = "next"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
-const PropertyObject = "object"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-prev
-const PropertyPrev = "prev"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-preview
-const PropertyPreview = "preview"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
-const PropertyResult = "result"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
-const PropertyReplies = "replies"
-
-// https://www.w3.org/TR/activitypub/#shares
-const PropertyShares = "shares"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tag
-const PropertyTag = "tag"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
-const PropertyTarget = "target"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
-const PropertyTo = "to"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
-const PropertyType = "type"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
-const PropertyType_Alternate = "@type"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
-const PropertyURL = "url"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-content
-const PropertyContent = "content"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
-const PropertyName = "name"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-duration
-const PropertyDuration = "duration"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-height
-const PropertyHeight = "height"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-href
-const PropertyHref = "href"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-hreflang
-const PropertyHrefLang = "hreflang"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-partof
-const PropertyPartOf = "partOf"
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-last
+const PropertyLast = "last"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-latitude
 const PropertyLatitude = "latitude"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-location
+const PropertyLocation = "location"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-longitude
 const PropertyLongitude = "longitude"
@@ -165,14 +118,38 @@ const PropertyLongitude = "longitude"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 const PropertyMediaType = "mediaType"
 
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-endtime
-const PropertyEndTime = "endTime"
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
+const PropertyName = "name"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-next
+const PropertyNext = "next"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-object
+const PropertyObject = "object"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
+const PropertyOrderedItems = "orderedItems"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-origin
+const PropertyOrigin = "origin"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-oneof
+const PropertyOneOf = "oneOf"
+
+// https://w3c-ccg.github.io/security-vocab/#owner
+const PropertyOwner = "owner"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-partof
+const PropertyPartOf = "partOf"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-prev
+const PropertyPrev = "prev"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-preview
+const PropertyPreview = "preview"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-published
 const PropertyPublished = "published"
-
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-starttime
-const PropertyStartTime = "startTime"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-radius
 const PropertyRadius = "radius"
@@ -183,8 +160,20 @@ const PropertyRel = "rel"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-relationship
 const PropertyRelationship = "relationship"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
+const PropertyResult = "result"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-replies
+const PropertyReplies = "replies"
+
+// https://www.w3.org/TR/activitypub/#shares
+const PropertyShares = "shares"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-startindex
 const PropertyStartIndex = "startIndex"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-starttime
+const PropertyStartTime = "startTime"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-subject
 const PropertySubject = "subject"
@@ -192,8 +181,23 @@ const PropertySubject = "subject"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 const PropertySummary = "summary"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tag
+const PropertyTag = "tag"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-target
+const PropertyTarget = "target"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-to
+const PropertyTo = "to"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-totalitems
 const PropertyTotalItems = "totalItems"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
+const PropertyType = "type"
+
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
+const PropertyType_Alternate = "@type"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-units
 const PropertyUnits = "units"
@@ -201,5 +205,18 @@ const PropertyUnits = "units"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-updated
 const PropertyUpdated = "updated"
 
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
+const PropertyURL = "url"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-width
 const PropertyWidth = "width"
+
+/******************************************
+ * Toot Property Types
+ ******************************************/
+
+// http://joinmastodon.org/ns#discoverable
+const PropertyTootDiscoverable = "discoverable"
+
+// http://joinmastodon.org/ns#indexable
+const PropertyTootIndexable = "indexable"

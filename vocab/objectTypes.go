@@ -15,6 +15,9 @@ const ObjectTypeEvent = "Event"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-image
 const ObjectTypeImage = "Image"
 
+// https://w3c-ccg.github.io/security-vocab/#publicKey
+const ObjectTypeKey = "Key"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 const ObjectTypeNote = "Note"
 
