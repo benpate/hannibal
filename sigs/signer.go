@@ -89,17 +89,21 @@ func (signer *Signer) MakeSignature(request *http.Request) (Signature, error) {
 
 	signature := NewSignature()
 
-	// Select a Digest Function
-	digestName := getDigestName(signer.BodyDigest)
-	digestFunc, err := getDigestFunc(signer.BodyDigest)
+	// Only apply the digest if the "digest" field is in use
+	if slice.Contains(signer.Fields, FieldDigest) {
 
-	if err != nil {
-		return Signature{}, derp.Wrap(err, location, "Error creating digest function")
-	}
+		// Select a Digest Function
+		digestName := getDigestName(signer.BodyDigest)
+		digestFunc, err := getDigestFunc(signer.BodyDigest)
 
-	// Apply the Digest function to the body
-	if err := ApplyDigest(request, digestName, digestFunc); err != nil {
-		return Signature{}, derp.Wrap(err, location, "Error applying digest")
+		if err != nil {
+			return Signature{}, derp.Wrap(err, location, "Error creating digest function")
+		}
+
+		// Apply the Digest function to the body
+		if err := ApplyDigest(request, digestName, digestFunc); err != nil {
+			return Signature{}, derp.Wrap(err, location, "Error applying digest")
+		}
 	}
 
 	// If "date" field is in use, then verify that it's present in the header.
