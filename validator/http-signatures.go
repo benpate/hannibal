@@ -1,4 +1,4 @@
-package inbox
+package validator
 
 import (
 	"net/http"
@@ -9,34 +9,39 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-/******************************************
- * HTTP Signatures
- *
- * https://docs.joinmastodon.org/spec/security/
- *
- ******************************************/
+// HTTPSig is a Validator that checks incoming HTTP requests
+// using the HTTP signatures algorithm.
+// https://docs.joinmastodon.org/spec/security/
+type HTTPSig struct{}
 
-// validateRequest uses the hannibal/sigs library to verify that the HTTP
+func NewHTTPSig() HTTPSig {
+	return HTTPSig{}
+}
+
+// Validate uses the hannibal/sigs library to verify that the HTTP
 // request is signed with a valid key.
-func validateRequest(request *http.Request, document streams.Document) error {
+func (validator HTTPSig) Validate(request *http.Request, document *streams.Document) Result {
 
-	const location = "hannibal.pub.validateRequest"
+	if !sigs.HasSignature(request) {
+		return ResultUnknown
+	}
 
 	// Find the public key for the Actor who signed this request
-	keyFinder := keyFinder(document)
+	keyFinder := validator.keyFinder(document)
 
 	// Verify the request using the Actor's public key
 	if err := sigs.Verify(request, keyFinder); err != nil {
-		return derp.Wrap(err, location, "Unable to verify HTTP signature", document.Value(), derp.WithCode(derp.CodeForbiddenError))
+		log.Trace().Err(err).Msg("Hannibal Inbox: Error verifying HTTP Signature")
+		return ResultInvalid
 	}
 
-	return nil
+	return ResultValid
 }
 
 // keyFinder looks up the public Key for the provided document/Actor
-func keyFinder(document streams.Document) sigs.PublicKeyFinder {
+func (validator HTTPSig) keyFinder(document *streams.Document) sigs.PublicKeyFinder {
 
-	const location = "hannibal.pub.keyFinder"
+	const location = "hannibal.validator.HTTPSig.keyFinder"
 
 	return func(keyID string) (string, error) {
 

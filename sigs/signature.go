@@ -2,6 +2,7 @@ package sigs
 
 import (
 	"encoding/base64"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -63,6 +64,16 @@ func (signature Signature) IsExpired(duration int) bool {
 
 	// Otherwise, the signature is not expired
 	return false
+}
+
+// GetSignature returns the HTTP Signature from the request
+func GetSignature(request *http.Request) string {
+	return request.Header.Get("Signature")
+}
+
+// HasSignature returns TRUE if the request has a Signature header
+func HasSignature(request *http.Request) bool {
+	return GetSignature(request) != ""
 }
 
 // ParseSignature parses a string into an HTTP Signature

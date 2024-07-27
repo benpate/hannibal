@@ -8,14 +8,17 @@ import (
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
+	"github.com/benpate/hannibal/validator"
 	"github.com/benpate/re"
 	"github.com/rs/zerolog/log"
 )
 
 // ReceiveRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
-func ReceiveRequest(request *http.Request, client streams.Client) (document streams.Document, err error) {
+func ReceiveRequest(request *http.Request, client streams.Client, options ...Option) (document streams.Document, err error) {
 
 	const location = "hannibal.pub.ReceiveRequest"
+
+	config := NewReceiveConfig(options...)
 
 	// Try to read the body from the request
 	body, err := re.ReadRequestBody(request)
@@ -52,10 +55,10 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub document")
 	}
 
-	// Validate the Actor and Public Key
-	if err := validateRequest(request, document); err != nil {
-		log.Err(err).Msg("Hannibal Inbox: Invalid Actor or Public Key")
-		return streams.NilDocument(), derp.Wrap(err, location, "Invalid Actor or Public Key", document.Value())
+	// Validate the document using injected Validators
+	if !validateRequest(request, &document, config.Validators) {
+		log.Err(err).Msg("Hannibal Inbox: Cannot validate received document")
+		return streams.NilDocument(), derp.NewUnauthorizedError(location, "Cannot validate received document", document.Value())
 	}
 
 	// Logging
@@ -69,4 +72,27 @@ func ReceiveRequest(request *http.Request, client streams.Client) (document stre
 
 	// Return the parsed document to the caller (vöïlä!)
 	return document, nil
+}
+
+func validateRequest(request *http.Request, document *streams.Document, validators []Validator) bool {
+
+	// Run each validator
+	for _, v := range validators {
+
+		switch v.Validate(request, document) {
+
+		case validator.ResultInvalid:
+			return false
+
+		case validator.ResultValid:
+			return true
+
+		}
+
+		// Fall through "ResultUnknown"
+		// means continue the loop.
+	}
+
+	// If no validators can actually validate the document, then validation fails
+	return false
 }

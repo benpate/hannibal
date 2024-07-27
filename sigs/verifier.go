@@ -91,7 +91,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	}
 
 	// Retrieve and parse the Signature from the HTTP Request
-	signature, err := ParseSignature(request.Header.Get("Signature"))
+	signature, err := ParseSignature(GetSignature(request))
 
 	if err != nil {
 		return derp.Wrap(err, location, "Error parsing signature")
