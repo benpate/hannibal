@@ -1,12 +1,15 @@
 package validator
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/rs/zerolog/log"
 )
 
 // DeletedObject validates "delete" activities by trying to retrieve the original object.
@@ -34,11 +37,15 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 		return ResultInvalid
 	}
 
+	log.Trace().Str("objectID", objectID).Str("location", location).Msg("Validating DeletedObject")
+
 	// Try to retrieve the original document
 	txn := remote.Get(objectID).
 		Header("Accept", "application/activity+json")
 
 	if err := txn.Send(); err != nil {
+
+		log.Trace().Err(err).Int("code", derp.ErrorCode(err)).Str("location", location).Msg("Received error code")
 
 		// If the document is marked "gone" or "not found",
 		// then this "delete" transaction is valid.
@@ -51,6 +58,10 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 		derp.Report(derp.Wrap(err, location, "Error retrieving document, but it is not 'gone' or 'not found'"))
 		return ResultUnknown
 	}
+
+	log.Trace().Str("location", location).Msg("Delete is invalid / document still exists")
+	body, err := io.ReadAll(txn.Response().Body)
+	spew.Dump(string(body), err)
 
 	// Fall through means that the document still exists, so the "delete" transaction is invalid.
 	return ResultInvalid
