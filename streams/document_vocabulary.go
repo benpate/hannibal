@@ -267,11 +267,6 @@ func (document Document) Type() string {
 	return vocab.Unknown
 }
 
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
-func (document Document) Url() Document {
-	return document.Get(vocab.PropertyURL)
-}
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accuracy
 func (document Document) Accuracy() float64 {
 	return document.Get(vocab.PropertyAccuracy).Float()
@@ -388,7 +383,7 @@ func (document Document) TotalItems() int {
 	return document.Get(vocab.PropertyTotalItems).Int()
 }
 
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-width
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-url
 func (document Document) URL() string {
 	return document.Get(vocab.PropertyURL).String()
 }
