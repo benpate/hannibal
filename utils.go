@@ -19,6 +19,8 @@ func IsActivityPubContentType(contentType string) bool {
 
 	switch contentType {
 	case vocab.ContentTypeActivityPub,
+		vocab.ContentTypeJSON,
+		vocab.ContentTypeJSONLD,
 		vocab.ContentTypeJSONLDWithProfile:
 		return true
 
