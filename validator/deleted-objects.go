@@ -8,7 +8,6 @@ import (
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/rs/zerolog/log"
 )
 
@@ -61,7 +60,7 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 
 	log.Trace().Str("location", location).Msg("Delete is invalid / document still exists")
 	body, err := io.ReadAll(txn.Response().Body)
-	spew.Dump(string(body), err)
+	log.Trace().Err(err).Msg(string(body))
 
 	// Fall through means that the document still exists, so the "delete" transaction is invalid.
 	return ResultInvalid
