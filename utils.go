@@ -2,6 +2,7 @@ package hannibal
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/benpate/hannibal/vocab"
@@ -18,9 +19,16 @@ func TimeFormat(value time.Time) string {
 // https://www.w3.org/TR/activitystreams-core/#media-type
 func IsActivityPubContentType(contentType string) bool {
 
+	// If multiple content types are provided, then only check the first one.
+	contentType = list.First(contentType, ',')
+
 	// Strip off any parameters from the content type (like charsets and json-ld profiles)
 	contentType = list.First(contentType, ';')
 
+	// Remove whitespace around the actual value
+	contentType = strings.TrimSpace(contentType)
+
+	// If what remains matches any of these values, then Success!
 	switch contentType {
 	case vocab.ContentTypeActivityPub,
 		vocab.ContentTypeJSON,
@@ -28,5 +36,6 @@ func IsActivityPubContentType(contentType string) bool {
 		return true
 	}
 
+	// Failure.
 	return false
 }
