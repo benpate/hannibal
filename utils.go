@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/rosetta/list"
 )
 
 // TimeFormat returns a string representation of the provided time value,
@@ -17,13 +18,14 @@ func TimeFormat(value time.Time) string {
 // https://www.w3.org/TR/activitystreams-core/#media-type
 func IsActivityPubContentType(contentType string) bool {
 
+	// Strip off any parameters from the content type (like charsets and json-ld profiles)
+	contentType = list.First(contentType, ';')
+
 	switch contentType {
 	case vocab.ContentTypeActivityPub,
 		vocab.ContentTypeJSON,
-		vocab.ContentTypeJSONLD,
-		vocab.ContentTypeJSONLDWithProfile:
+		vocab.ContentTypeJSONLD:
 		return true
-
 	}
 
 	return false
