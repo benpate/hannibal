@@ -36,7 +36,9 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub document")
 	}
 
-	// Debug if necessary
+	// Validate the document using injected Validators
+	isValid := validateRequest(request, &document, config.Validators)
+
 	if canDebug() {
 		if canTrace() {
 			if document.Type() != vocab.ActivityTypeDelete {
@@ -60,19 +62,10 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 		}
 	}
 
-	// Validate the document using injected Validators
-	if !validateRequest(request, &document, config.Validators) {
-		log.Err(err).Msg("Hannibal Inbox: Cannot validate received document")
+	// Log the request
+	if !isValid {
+		log.Err(err).Msg("Hannibal Inbox: Received document is not valid")
 		return streams.NilDocument(), derp.NewUnauthorizedError(location, "Cannot validate received document", document.Value())
-	}
-
-	// Logging
-	if canDebug() {
-		log.Debug().Str("id", document.ID()).Msg("Hannibal Inbox: Activity Parsed")
-		if canTrace() {
-			rawJSON, _ := json.MarshalIndent(document.Value(), "", "  ")
-			log.Trace().RawJSON("document", rawJSON).Send()
-		}
 	}
 
 	// Return the parsed document to the caller (vöïlä!)

@@ -13,10 +13,14 @@ func NewReceiveConfig(options ...Option) ReceiveConfig {
 
 	result := ReceiveConfig{
 		Validators: []Validator{
-			validator.NewDeletedObject(), // checks if objects have been deleted
-			// check Object Integrity Proofs
-			validator.NewHTTPSig(), // checks HTTP signatures
-			// check original object existence
+
+			// TODO: check Object Integrity Proofs?
+
+			// checks HTTP signatures
+			validator.NewHTTPSig(),
+
+			// checks if objects have been deleted
+			validator.NewDeletedObject(),
 		},
 	}
 
