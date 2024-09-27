@@ -40,25 +40,19 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 	isValid := validateRequest(request, &document, config.Validators)
 
 	if canDebug() {
-		if canTrace() {
-			if document.Type() != vocab.ActivityTypeDelete {
-				fmt.Println("")
-				fmt.Println("------------------------------------------")
-				fmt.Println("HANNIBAL: Received Request:")
-				fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
-				fmt.Println("Host: " + request.Host)
-				for key, value := range request.Header {
-					fmt.Println(key + ": " + strings.Join(value, ", "))
-				}
-				fmt.Println("")
-				fmt.Println(string(body))
-				fmt.Println("------------------------------------------")
-				fmt.Println("")
-				// } else {
-				// log.Debug().Str("object", document.Object().String()).Msg("Hannibal Inbox: Received Delete Activity")
+		if document.Type() != vocab.ActivityTypeDelete {
+			fmt.Println("")
+			fmt.Println("------------------------------------------")
+			fmt.Println("HANNIBAL: Received Request:")
+			fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
+			fmt.Println("Host: " + request.Host)
+			for key, value := range request.Header {
+				fmt.Println(key + ": " + strings.Join(value, ", "))
 			}
-		} else {
-			log.Debug().Str("url", request.URL.String()).Msg("Hannibal Inbox: Received Request")
+			fmt.Println("")
+			fmt.Println(string(body))
+			fmt.Println("------------------------------------------")
+			fmt.Println("")
 		}
 	}
 
