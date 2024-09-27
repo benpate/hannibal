@@ -3,6 +3,7 @@ package validator
 import (
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
@@ -29,6 +30,10 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 		return ResultUnknown
 	}
 
+	// Wait for ten minutes before checking.
+	// TODO: This job should be queued (or something) in the future.
+	time.Sleep(10 * time.Minute)
+
 	// Retrieve the objectID from the document
 	objectID := document.Object().ID()
 
@@ -51,6 +56,9 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 		switch derp.ErrorCode(err) {
 		case http.StatusNotFound, http.StatusGone:
 			return ResultValid
+		case http.StatusMovedPermanently:
+			log.Trace().Msg("DeletedObject Validator not correctly following redirect.")
+			return ResultUnknown
 		}
 
 		// We're not expecting this error, so perhaps there's something else going on here.
