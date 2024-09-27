@@ -2,7 +2,6 @@ package validator
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
@@ -30,7 +29,7 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 
 	// Wait for ten minutes before checking.
 	// TODO: This job should be queued (or something) in the future.
-	time.Sleep(10 * time.Minute)
+	// time.Sleep(10 * time.Minute)
 
 	// Retrieve the objectID from the document
 	objectID := document.Object().ID()

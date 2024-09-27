@@ -6,6 +6,7 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/sigs"
 	"github.com/benpate/hannibal/streams"
+	"github.com/rs/zerolog/log"
 )
 
 // HTTPSig is a Validator that checks incoming HTTP requests
@@ -30,10 +31,11 @@ func (validator HTTPSig) Validate(request *http.Request, document *streams.Docum
 
 	// Verify the request using the Actor's public key
 	if err := sigs.Verify(request, keyFinder); err != nil {
-		// log.Trace().Err(err).Msg("Hannibal Inbox: Error verifying HTTP Signature")
+		log.Trace().Err(err).Msg("Hannibal Inbox: Error verifying HTTP Signature")
 		return ResultInvalid
 	}
 
+	log.Trace().Msg("Hannibal Inbox: HTTP Signature Verified")
 	return ResultValid
 }
 
@@ -55,12 +57,12 @@ func (validator HTTPSig) keyFinder(document *streams.Document) sigs.PublicKeyFin
 		for key := actor.PublicKey(); key.NotNil(); key = key.Tail() {
 
 			if key.ID() == keyID {
-				// log.Trace().Str("keyId", keyID).Msg("Hannibal Inbox: Found Public Key")
 				return key.PublicKeyPEM(), nil
 			}
 		}
 
 		// If none match, then return a (hopefully informative) error.
+		log.Trace().Str("keyId", keyID).Msg("Hannibal Inbox: Could not find remote actor's public key")
 		return "", derp.NewBadRequestError(location, "Actor must publish the key used to sign this request", actor.ID(), keyID)
 	}
 }

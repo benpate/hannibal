@@ -24,10 +24,8 @@ func (actor *Actor) Send(message mapof.Any) {
 		messageID := message.GetString(vocab.PropertyID)
 		log.Debug().Msg("Sending Message: " + messageID)
 
-		if canLog(zerolog.TraceLevel) {
-			rawJSON, _ := json.MarshalIndent(message, "", "  ")
-			log.Trace().Msg(string(rawJSON))
-		}
+		rawJSON, _ := json.MarshalIndent(message, "", "  ")
+		log.Trace().Msg(string(rawJSON))
 	}
 
 	// Create a streams.Document from the message
