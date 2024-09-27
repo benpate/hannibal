@@ -55,7 +55,7 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 				fmt.Println("------------------------------------------")
 				fmt.Println("")
 			} else {
-				log.Debug().Str("object", document.Object().String()).Msg("Hannibal Inbox: Received Delete Activity")
+				// log.Debug().Str("object", document.Object().String()).Msg("Hannibal Inbox: Received Delete Activity")
 			}
 		} else {
 			log.Debug().Str("url", request.URL.String()).Msg("Hannibal Inbox: Received Request")

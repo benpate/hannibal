@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"io"
 	"net/http"
 	"time"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
-	"github.com/rs/zerolog/log"
 )
 
 // DeletedObject validates "delete" activities by trying to retrieve the original object.
@@ -41,7 +39,7 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 		return ResultInvalid
 	}
 
-	log.Trace().Str("objectID", objectID).Str("location", location).Msg("Validating DeletedObject")
+	// log.Trace().Str("objectID", objectID).Str("location", location).Msg("Validating DeletedObject")
 
 	// Try to retrieve the original document
 	txn := remote.Get(objectID).
@@ -49,16 +47,13 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 
 	if err := txn.Send(); err != nil {
 
-		log.Trace().Err(err).Int("code", derp.ErrorCode(err)).Str("location", location).Msg("Received error code")
+		// log.Trace().Err(err).Int("code", derp.ErrorCode(err)).Str("location", location).Msg("Received error code")
 
 		// If the document is marked "gone" or "not found",
 		// then this "delete" transaction is valid.
 		switch derp.ErrorCode(err) {
 		case http.StatusNotFound, http.StatusGone:
 			return ResultValid
-		case http.StatusMovedPermanently:
-			log.Trace().Msg("DeletedObject Validator not correctly following redirect.")
-			return ResultUnknown
 		}
 
 		// We're not expecting this error, so perhaps there's something else going on here.
@@ -66,9 +61,10 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 		return ResultUnknown
 	}
 
-	log.Trace().Str("location", location).Msg("Delete is invalid / document still exists")
-	body, err := io.ReadAll(txn.Response().Body)
-	log.Trace().Err(err).Msg(string(body))
+	// Log the server response
+	// log.Trace().Str("location", location).Msg("Delete is invalid / document still exists")
+	// body, err := io.ReadAll(txn.Response().Body)
+	// log.Trace().Err(err).Msg(string(body))
 
 	// Fall through means that the document still exists, so the "delete" transaction is invalid.
 	return ResultInvalid

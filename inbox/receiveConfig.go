@@ -21,6 +21,9 @@ func NewReceiveConfig(options ...Option) ReceiveConfig {
 
 			// checks if objects have been deleted
 			validator.NewDeletedObject(),
+
+			// HTTP Lookup to confirm that the object exists
+			// validator.NewHTTPLookup(),
 		},
 	}
 

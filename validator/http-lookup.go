@@ -12,6 +12,10 @@ import (
 // HTTPLookup is a Validator that tries to retrieve the original document from the source server
 type HTTPLookup struct{}
 
+func NewHTTPLookup() HTTPLookup {
+	return HTTPLookup{}
+}
+
 func (v HTTPLookup) Validate(request *http.Request, document *streams.Document) Result {
 
 	// 	return ResultUnknown
