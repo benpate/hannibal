@@ -9,6 +9,7 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/validator"
+	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/re"
 	"github.com/rs/zerolog/log"
 )
@@ -27,32 +28,37 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
 	}
 
-	// Debug if necessary
-	if canDebug() {
-		if canTrace() {
-			fmt.Println("")
-			fmt.Println("------------------------------------------")
-			fmt.Println("HANNIBAL: Received Request:")
-			fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
-			fmt.Println("Host: " + request.Host)
-			for key, value := range request.Header {
-				fmt.Println(key + ": " + strings.Join(value, ", "))
-			}
-			fmt.Println("")
-			fmt.Println(string(body))
-			fmt.Println("------------------------------------------")
-			fmt.Println("")
-		} else {
-			log.Debug().Str("url", request.URL.String()).Msg("Hannibal Inbox: Received Request")
-		}
-	}
-
 	// Try to retrieve the object from the buffer
 	document = streams.NilDocument(streams.WithClient(client))
 
 	if err := json.Unmarshal(body, &document); err != nil {
 		log.Err(err).Msg("Hannibal Inbox: Error Unmarshalling JSON")
 		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub document")
+	}
+
+	// Debug if necessary
+	if canDebug() {
+		if canTrace() {
+			if document.Type() != vocab.ActivityTypeDelete {
+				fmt.Println("")
+				fmt.Println("------------------------------------------")
+				fmt.Println("HANNIBAL: Received Request:")
+				fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
+				fmt.Println("Host: " + request.Host)
+				for key, value := range request.Header {
+					fmt.Println(key + ": " + strings.Join(value, ", "))
+				}
+				fmt.Println("")
+				fmt.Println(string(body))
+				fmt.Println("------------------------------------------")
+				fmt.Println("")
+			}  else {
+				log.Debug().Str("object", document.Object().String()).Msg("Hannibal Inbox: Received Delete Activity")
+			}
+		} else {
+				log.Debug().Str("url", request.URL.String()).Msg("Hannibal Inbox: Received Request")
+			}
+		}
 	}
 
 	// Validate the document using injected Validators
