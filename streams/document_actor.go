@@ -65,14 +65,6 @@ func (document Document) UsernameOrID() string {
 	return document.ID()
 }
 
-// URLOrID returns the URL of the document, if it exists, or the ID of the document if it does not.
-func (document Document) URLOrID() string {
-	if url := document.URL(); url != "" {
-		return url
-	}
-	return document.ID()
-}
-
 // https://www.w3.org/TR/activitypub/#endpoints
 func (document Document) Endpoints() Document {
 	return document.Get(vocab.PropertyEndpoints)
