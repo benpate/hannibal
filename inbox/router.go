@@ -70,7 +70,7 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	objectType := activity.Object().Type()
 
-	if canDebug() {
+	if canDebug() && (activityType != vocab.ActivityTypeDelete) {
 		log.Debug().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: Received Message")
 
 		if canTrace() {
