@@ -1,15 +1,12 @@
 package outbox
 
 import (
-	"encoding/json"
-
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
 	"github.com/benpate/remote/options"
 	"github.com/benpate/rosetta/mapof"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -35,19 +32,9 @@ func (task SendTask) Run() error {
 
 	inboxURL := task.recipient.Inbox().ID()
 
-	if canLog(zerolog.DebugLevel) {
-		messageID := task.message.GetString(vocab.PropertyID)
-		log.Debug().Str("loc", location).Str("id", messageID).Str("to", inboxURL).Msg("Sending:")
-
-		if canLog(zerolog.TraceLevel) {
-			rawJSON, _ := json.MarshalIndent(task.message, "", "  ")
-			log.Trace().Msg(string(rawJSON))
-		}
-	}
-
 	if inboxURL == "" {
 		log.Error().Msg("Recipient does not have an inbox")
-		return nil // returning nil error because we have failed so bacly that we don't even want to retry.
+		return nil // returning nil error because we have failed so badly that we don't even want to retry.
 	}
 
 	// Send the request to the target Actor's inbox
@@ -57,15 +44,13 @@ func (task SendTask) Run() error {
 		With(SignRequest(task.actor)).
 		JSON(task.message)
 
-	if canLog(zerolog.TraceLevel) {
+	if canDebug() {
 		transaction.With(options.Debug())
 	}
 
 	if err := transaction.Send(); err != nil {
 		return derp.ReportAndReturn(derp.Wrap(err, location, "Error sending ActivityPub request", inboxURL))
 	}
-
-	log.Debug().Msg("Outbox: sendTask: Activity sent successfully")
 
 	// Done!
 	return nil

@@ -1,12 +1,9 @@
 package outbox
 
 import (
-	"encoding/json"
-
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -18,15 +15,6 @@ import (
 // This currently uses the To and CC fields, but not BTo and BCC.
 // https://www.w3.org/TR/activitypub/#delivery
 func (actor *Actor) Send(message mapof.Any) {
-
-	if canLog(zerolog.DebugLevel) {
-
-		messageID := message.GetString(vocab.PropertyID)
-		log.Debug().Msg("Sending Message: " + messageID)
-
-		rawJSON, _ := json.MarshalIndent(message, "", "  ")
-		log.Trace().Msg(string(rawJSON))
-	}
 
 	// Create a streams.Document from the message
 	document := streams.NewDocument(message, streams.WithClient(actor.getClient()))
