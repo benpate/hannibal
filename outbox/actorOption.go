@@ -1,8 +1,8 @@
 package outbox
 
 import (
-	"github.com/benpate/hannibal/queue"
 	"github.com/benpate/hannibal/streams"
+	"github.com/benpate/turbine/queue"
 )
 
 // ActorOption is a function signature that modifies optional settings for an Actor
@@ -23,12 +23,13 @@ func WithClient(client streams.Client) ActorOption {
 }
 
 // WithQueue is an ActorOption that sets the outbound Queue for an Actor
-func WithQueue(queue queue.Queue) ActorOption {
+func WithQueue(queue *queue.Queue) ActorOption {
 	return func(a *Actor) {
 		a.queue = queue
 	}
 }
 
+// WithFollowers is an ActorOption that provides a channel of followers for an Actor
 func WithFollowers(followers <-chan string) ActorOption {
 	return func(a *Actor) {
 		a.followers = followers

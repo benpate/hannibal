@@ -3,8 +3,8 @@ package outbox
 import (
 	"crypto"
 
-	"github.com/benpate/hannibal/queue"
 	"github.com/benpate/hannibal/streams"
+	"github.com/benpate/turbine/queue"
 )
 
 // package-level variable is a singleton queue that is used by default
@@ -22,7 +22,7 @@ type Actor struct {
 	publicKeyID string
 	followers   <-chan string
 	client      streams.Client
-	queue       queue.Queue
+	queue       *queue.Queue
 }
 
 /******************************************
@@ -30,13 +30,14 @@ type Actor struct {
  ******************************************/
 
 // NewActor returns a fully initialized Actor object, and applies optional settings as provided
-func NewActor(actorID string, privateKey crypto.PrivateKey, options ...ActorOption) Actor {
+func NewActor(actorID string, privateKey crypto.PrivateKey, queue *queue.Queue, options ...ActorOption) Actor {
 
 	// Set Default Values
 	result := Actor{
 		actorID:     actorID,
 		publicKeyID: actorID + "#main-key",
 		privateKey:  privateKey,
+		queue:       queue,
 	}
 
 	// Apply additional options
@@ -58,22 +59,6 @@ func (actor *Actor) ActorID() string {
 /******************************************
  * Internal / Helper Methods
  ******************************************/
-
-// getQueue returns the queue to use when sending messages
-// If the Actor does not include a custom queue, then a default, package-level
-// queue is used instead.
-func (actor *Actor) getQueue() queue.Queue {
-
-	if actor.queue != nil {
-		return actor.queue
-	}
-
-	if defaultQueue == nil {
-		defaultQueue = queue.NewSimpleQueue(16, 1024)
-	}
-
-	return defaultQueue
-}
 
 // getClient returns the hannibal Client to use when retrieving
 // JSON-LD data.  If the Actor does not include a custom client,

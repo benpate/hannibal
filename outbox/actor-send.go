@@ -1,8 +1,11 @@
 package outbox
 
 import (
+	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/remote"
+	"github.com/benpate/remote/options"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/rs/zerolog/log"
 )
@@ -22,37 +25,55 @@ func (actor *Actor) Send(message mapof.Any) {
 	// Collect the list of recipients and other values required to send the message
 	recipients := actor.getRecipients(document)
 	client := actor.getClient()
-	queue := actor.getQueue()
 	uniquer := NewUniquer[string]()
-	messageMap := document.Map()
 
 	// Send the message to each recipient
-	for recipient := range recipients {
+	for recipientID := range recipients {
 
 		// Don't send to empty recipients
-		if recipient == "" {
+		if recipientID == "" {
 			continue
 		}
 
 		// Don't send to the magic public recipient
-		if recipient == vocab.NamespaceActivityStreamsPublic {
+		if recipientID == vocab.NamespaceActivityStreamsPublic {
 			continue
 		}
 
 		// Don't send messages to myself
-		if recipient == actor.actorID {
+		if recipientID == actor.actorID {
 			continue
 		}
 
 		// Don't send to duplicate addresses
-		if uniquer.IsDuplicate(recipient) {
+		if uniquer.IsDuplicate(recipientID) {
 			continue
 		}
 
-		// Send the message to the recipient
-		recipientDocument := streams.NewDocument(recipient, streams.WithClient(client))
-		task := NewSendTask(*actor, messageMap, recipientDocument)
-		queue.Push(task)
+		// Use the recipientID to look up their inbox URL
+		recipient := streams.NewDocument(recipientID, streams.WithClient(client))
+		inboxURL := recipient.Inbox().ID()
+
+		if inboxURL == "" {
+			log.Error().Msg("Recipient does not have an inbox")
+			continue
+		}
+
+		// Send the request to the target Actor's inbox
+		transaction := remote.Post(inboxURL).
+			Accept(vocab.ContentTypeActivityPub).
+			ContentType(vocab.ContentTypeActivityPub).
+			With(SignRequest(*actor)).
+			JSON(message).
+			Queue(actor.queue)
+
+		if canDebug() {
+			transaction.With(options.Debug())
+		}
+
+		if err := transaction.Send(); err != nil {
+			derp.Report(derp.Wrap(err, "hannibal.outbox.actor.Send", "Error sending ActivityPub request", inboxURL))
+		}
 	}
 }
 
