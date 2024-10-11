@@ -39,7 +39,8 @@ func (validator HTTPSig) Validate(request *http.Request, document *streams.Docum
 	return ResultValid
 }
 
-// keyFinder looks up the public Key for the provided document/Actor
+// keyFinder looks up the public Key for the provided document/Actor using the
+// HTTP client in the document.
 func (validator HTTPSig) keyFinder(document *streams.Document) sigs.PublicKeyFinder {
 
 	const location = "hannibal.validator.HTTPSig.keyFinder"
