@@ -43,19 +43,8 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 		requestBytes, _ := httputil.DumpRequest(request, true)
 
 		fmt.Println("")
-		fmt.Println("------------------------------------------")
-		fmt.Println("HANNIBAL: Received Request:")
+		fmt.Println("Begin: Hannibal ReceiveRequest -----------")
 		fmt.Println(string(requestBytes))
-
-		/*
-			fmt.Println(request.Method + " " + request.URL.String() + " " + request.Proto)
-			fmt.Println("Host: " + request.Host)
-			for key, value := range request.Header {
-				fmt.Println(key + ": " + strings.Join(value, ", "))
-			}
-			fmt.Println("")
-			fmt.Println(string(body))
-		*/
 		fmt.Println("------------------------------------------")
 		fmt.Println("")
 	}
