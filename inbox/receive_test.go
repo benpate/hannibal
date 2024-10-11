@@ -1,4 +1,4 @@
-// go:test localonly
+//go:build localonly
 
 package inbox
 
