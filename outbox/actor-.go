@@ -7,9 +7,6 @@ import (
 	"github.com/benpate/turbine/queue"
 )
 
-// package-level variable is a singleton queue that is used by default
-var defaultQueue queue.Queue
-
 // Actor represents an ActivityPub actor that can send ActivityPub messages
 // https://www.w3.org/TR/activitypub/#actors
 type Actor struct {
