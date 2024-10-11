@@ -6,9 +6,9 @@ require (
 	github.com/benpate/derp v0.31.0
 	github.com/benpate/domain v0.2.2
 	github.com/benpate/re v0.3.1
-	github.com/benpate/remote v0.16.3
+	github.com/benpate/remote v0.16.4
 	github.com/benpate/rosetta v0.22.1
-	github.com/benpate/turbine v0.0.2
+	github.com/benpate/turbine v0.0.3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/rs/zerolog v1.33.0
