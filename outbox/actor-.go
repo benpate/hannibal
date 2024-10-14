@@ -27,14 +27,13 @@ type Actor struct {
  ******************************************/
 
 // NewActor returns a fully initialized Actor object, and applies optional settings as provided
-func NewActor(actorID string, privateKey crypto.PrivateKey, queue *queue.Queue, options ...ActorOption) Actor {
+func NewActor(actorID string, privateKey crypto.PrivateKey, options ...ActorOption) Actor {
 
 	// Set Default Values
 	result := Actor{
 		actorID:     actorID,
 		publicKeyID: actorID + "#main-key",
 		privateKey:  privateKey,
-		queue:       queue,
 	}
 
 	// Apply additional options
