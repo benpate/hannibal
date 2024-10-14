@@ -20,11 +20,11 @@ import (
 func (actor *Actor) Send(message mapof.Any) {
 
 	// Create a streams.Document from the message
-	document := streams.NewDocument(message, streams.WithClient(actor.getClient()))
+	client := actor.getClient()
+	document := streams.NewDocument(message, streams.WithClient(client))
 
 	// Collect the list of recipients and other values required to send the message
 	recipients := actor.getRecipients(document)
-	client := actor.getClient()
 	uniquer := NewUniquer[string]()
 
 	// Send the message to each recipient
@@ -51,7 +51,13 @@ func (actor *Actor) Send(message mapof.Any) {
 		}
 
 		// Use the recipientID to look up their inbox URL
-		recipient := streams.NewDocument(recipientID, streams.WithClient(client))
+		recipient, err := streams.NewDocument(recipientID, streams.WithClient(client)).Load()
+
+		if err != nil {
+			derp.Report(derp.Wrap(err, "hannibal.outbox.actor.Send", "Error loading recipient", recipientID))
+			continue
+		}
+
 		inboxURL := recipient.Inbox().ID()
 
 		if inboxURL == "" {
