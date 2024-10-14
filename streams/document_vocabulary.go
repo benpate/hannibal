@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/rosetta/convert"
 )
 
 /******************************************
@@ -265,6 +266,24 @@ func (document Document) Type() string {
 
 	// LOL, Fail
 	return vocab.Unknown
+}
+
+// A special case of the Type() function, which returns a slice of types
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-type
+func (document Document) Types() []string {
+
+	// Try the ActivityPub standard "type" property first
+	if value := document.Get(vocab.PropertyType); !value.IsNil() {
+		return convert.SliceOfString(value.Slice())
+	}
+
+	// Try the JSON-LD standard "@type" property second
+	if value := document.Get(vocab.PropertyType_Alternate); !value.IsNil() {
+		return convert.SliceOfString(value.Slice())
+	}
+
+	// LOL, Fail
+	return []string{vocab.Unknown}
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accuracy

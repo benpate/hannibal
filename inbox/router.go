@@ -68,10 +68,9 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		activityType = vocab.ActivityTypeCreate
 	}
 
-	objectType := activity.Object().Type()
-
+	// Log all incoming activity... except delete messages because Mastodon is way too chatty
 	if canDebug() && (activityType != vocab.ActivityTypeDelete) {
-		log.Debug().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: Received Message")
+		log.Debug().Str("activity", activityType).Any("type", activity.Object().Type()).Msg("Hannibal Router: Received Message")
 
 		if canTrace() {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
@@ -79,18 +78,22 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		}
 	}
 
-	if routeHandler, ok := router.routes[activityType+"/"+objectType]; ok {
-		log.Trace().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: route matched.")
-		return routeHandler(context, activity)
+	// Loop through all object Type values (though there's usually just one) to find a matching route
+	for _, objectType := range activity.Object().Types() {
+
+		if routeHandler, ok := router.routes[activityType+"/"+objectType]; ok {
+			log.Trace().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: route matched.")
+			return routeHandler(context, activity)
+		}
+
+		if routeHandler, ok := router.routes[vocab.Any+"/"+objectType]; ok {
+			log.Trace().Str("type", "*/"+objectType).Msg("Hannibal Router: route matched.")
+			return routeHandler(context, activity)
+		}
 	}
 
 	if routeHandler, ok := router.routes[activityType+"/"+vocab.Any]; ok {
 		log.Trace().Str("type", activityType+"/*").Msg("Hannibal Router: route matched.")
-		return routeHandler(context, activity)
-	}
-
-	if routeHandler, ok := router.routes[vocab.Any+"/"+objectType]; ok {
-		log.Trace().Str("type", "*/"+objectType).Msg("Hannibal Router: route matched.")
 		return routeHandler(context, activity)
 	}
 
@@ -99,5 +102,5 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		return routeHandler(context, activity)
 	}
 
-	return derp.NewBadRequestError(location, "No route found for activity", activityType, objectType, activity.Value())
+	return derp.NewBadRequestError(location, "No route found for activity", activityType, activity.Object().Types(), activity.Value())
 }
