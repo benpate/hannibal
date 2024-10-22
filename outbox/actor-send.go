@@ -70,8 +70,8 @@ func (actor *Actor) Send(message mapof.Any) {
 			Accept(vocab.ContentTypeActivityPub).
 			ContentType(vocab.ContentTypeActivityPub).
 			With(SignRequest(*actor)).
-			JSON(message).
-			Queue(actor.queue)
+			JSON(message)
+			// TODO: Restore Queue:: Queue(actor.queue)
 
 		if canDebug() {
 			transaction.With(options.Debug())

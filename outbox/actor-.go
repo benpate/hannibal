@@ -4,7 +4,6 @@ import (
 	"crypto"
 
 	"github.com/benpate/hannibal/streams"
-	"github.com/benpate/turbine/queue"
 )
 
 // Actor represents an ActivityPub actor that can send ActivityPub messages
@@ -19,7 +18,7 @@ type Actor struct {
 	publicKeyID string
 	followers   <-chan string
 	client      streams.Client
-	queue       *queue.Queue
+	// TODO: Restore Queue:: queue       *queue.Queue
 }
 
 /******************************************
