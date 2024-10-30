@@ -67,7 +67,6 @@ func keyFinder() sigs.PublicKeyFinder {
 		}
 
 		publicKeyPEM := document.PublicKeyPEM()
-		spew.Dump("FOUND KEY:", publicKeyPEM)
 
 		return publicKeyPEM, nil
 	}
