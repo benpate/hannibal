@@ -22,10 +22,9 @@ jobs:
       run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
 
     - name: Report Code Coverage
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true 
-        file: ./coverage.txt
         flags: unittests
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
@@ -38,5 +37,3 @@ jobs:
         # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
         version: latest
         skip-cache: true
-        skip-pkg-cache: true
-        skip-build-cache: true
