@@ -1,6 +1,8 @@
 package outbox
 
 import (
+	"net/url"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
@@ -18,6 +20,8 @@ import (
 // This currently uses the To and CC fields, but not BTo and BCC.
 // https://www.w3.org/TR/activitypub/#delivery
 func (actor *Actor) Send(message mapof.Any) {
+
+	const location = "hannibal.outbox.actor.Send"
 
 	// Create a streams.Document from the message
 	client := actor.getClient()
@@ -54,33 +58,45 @@ func (actor *Actor) Send(message mapof.Any) {
 		recipient, err := streams.NewDocument(recipientID, streams.WithClient(client)).Load()
 
 		if err != nil {
-			derp.Report(derp.Wrap(err, "hannibal.outbox.actor.Send", "Error loading recipient", recipientID))
+			derp.Report(derp.Wrap(err, location, "Error loading recipient", recipientID))
 			continue
 		}
 
-		inboxURL := recipient.Inbox().ID()
-
-		if inboxURL == "" {
-			log.Error().Msg("Recipient does not have an inbox")
-			continue
-		}
-
-		// Send the request to the target Actor's inbox
-		transaction := remote.Post(inboxURL).
-			Accept(vocab.ContentTypeActivityPub).
-			ContentType(vocab.ContentTypeActivityPub).
-			With(SignRequest(*actor)).
-			JSON(message)
-			// TODO: Restore Queue:: Queue(actor.queue)
-
-		if canDebug() {
-			transaction.With(options.Debug())
-		}
-
-		if err := transaction.Send(); err != nil {
-			derp.Report(derp.Wrap(err, "hannibal.outbox.actor.Send", "Error sending ActivityPub request", inboxURL))
+		if err := actor.SendOne(recipient.Inbox().ID(), message); err != nil {
+			derp.Report(derp.Wrap(err, location, "Error sending message", recipientID))
 		}
 	}
+}
+
+// SendOne sends a single message to a single recipient
+func (actor *Actor) SendOne(inboxURL string, message mapof.Any) error {
+
+	const location = "hannibal.outbox.actor.SendOne"
+
+	// RULE: InboxURL must be a valid URL
+	inbox, err := url.Parse(inboxURL)
+
+	if err != nil {
+		return derp.Wrap(err, location, "Invalid Inbox URL", inboxURL)
+	}
+
+	// Prepare a transaction to send to target Actor's inbox
+	transaction := remote.Post(inbox.String()).
+		Accept(vocab.ContentTypeActivityPub).
+		ContentType(vocab.ContentTypeActivityPub).
+		With(SignRequest(*actor)).
+		JSON(message)
+
+	if canDebug() {
+		transaction.With(options.Debug())
+	}
+
+	// Send the transaction
+	if err := transaction.Send(); err != nil {
+		return derp.Wrap(err, location, "Error sending ActivityPub request", inboxURL)
+	}
+
+	return nil
 }
 
 // getRecipients calculates the list of recipients for a given message
