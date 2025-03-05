@@ -12,7 +12,8 @@ import (
 // https://www.w3.org/ns/activitystreams#CollectionPage
 type CollectionPage struct {
 	Context    Context `json:"@context,omitempty"    bson:"context,omitempty"`
-	Type       string  `json:"type,omitempty"        bson:"type,omitempty"`
+	Type       string  `json:"type,omitempty"        bson:"type,omitempty"`       // Identifies the Object or Link type. (CollectionPage, OrderedCollectionPage)
+	ID         string  `json:"id,omitempty"          bson:"id,omitempty"`         // Provides the globally unique identifier for an Object or Link.
 	Summary    string  `json:"summary,omitempty"     bson:"summary,omitempty"`    // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
 	TotalItems int     `json:"totalItems,omitempty"  bson:"totalItems,omitempty"` // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
 	Current    string  `json:"current,omitempty"     bson:"current,omitempty"`    // In a paged Collection, indicates the page that contains the most recently updated member items.
@@ -24,9 +25,10 @@ type CollectionPage struct {
 	Items      []any   `json:"items,omitempty"       bson:"items,omitempty"`      // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
-func NewCollectionPage() CollectionPage {
+func NewCollectionPage(pageID string) CollectionPage {
 	return CollectionPage{
 		Context: DefaultContext(),
+		ID:      pageID,
 		Type:    vocab.CoreTypeCollectionPage,
 	}
 }
@@ -52,6 +54,7 @@ func (c *CollectionPage) UnmarshalMap(data mapof.Any) error {
 	}
 
 	c.Type = vocab.CoreTypeCollectionPage
+	c.ID = data.GetString("id")
 	c.Summary = data.GetString("summary")
 	c.TotalItems = data.GetInt("totalItems")
 	c.Current = data.GetString("current")

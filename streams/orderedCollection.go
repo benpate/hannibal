@@ -22,10 +22,11 @@ type OrderedCollection struct {
 	Last         string  `json:"last,omitempty"         bson:"last,omitempty"`         // In a paged Collection, indicates the furthest proceeding page of the collection.
 }
 
-func NewOrderedCollection() OrderedCollection {
+func NewOrderedCollection(collectionID string) OrderedCollection {
 	return OrderedCollection{
 		Context:      DefaultContext(),
 		Type:         vocab.CoreTypeOrderedCollection,
+		ID:           collectionID,
 		OrderedItems: make([]any, 0),
 	}
 }

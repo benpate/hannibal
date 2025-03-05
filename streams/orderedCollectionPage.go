@@ -13,6 +13,7 @@ import (
 type OrderedCollectionPage struct {
 	Context      Context `json:"@context,omitempty"     bson:"context,omitempty"`
 	Type         string  `json:"type,omitempty"         bson:"type,omitempty"`
+	ID           string  `json:"id,omitempty"           bson:"id,omitempty"`           // Provides the globally unique identifier for an Object or Link.
 	Summary      string  `json:"summary,omitempty"      bson:"summary,omitempty"`      // A natural language summarization of the object encoded as HTML. Multiple language tagged summaries may be provided.
 	TotalItems   int     `json:"totalItems,omitempty"   bson:"totalItems,omitempty"`   // A non-negative integer specifying the total number of objects contained by the logical view of the collection. This number might not reflect the actual number of items serialized within the Collection object instance.
 	Current      string  `json:"current,omitempty"      bson:"current,omitempty"`      // In a paged Collection, indicates the page that contains the most recently updated member items.
@@ -25,10 +26,12 @@ type OrderedCollectionPage struct {
 	OrderedItems []any   `json:"orderedItems,omitempty" bson:"orderedItems,omitempty"` // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
-func NewOrderedCollectionPage() OrderedCollectionPage {
+func NewOrderedCollectionPage(pageID string, partOf string) OrderedCollectionPage {
 	return OrderedCollectionPage{
 		Context:      DefaultContext(),
 		Type:         vocab.CoreTypeOrderedCollectionPage,
+		ID:           pageID,
+		PartOf:       partOf,
 		OrderedItems: make([]any, 0),
 	}
 }
@@ -51,6 +54,7 @@ func (c *OrderedCollectionPage) UnmarshalMap(data mapof.Any) error {
 	}
 
 	c.Type = vocab.CoreTypeOrderedCollectionPage
+	c.ID = data.GetString("id")
 	c.Summary = data.GetString("summary")
 	c.TotalItems = data.GetInt("totalItems")
 	c.Current = data.GetString("current")

@@ -22,10 +22,11 @@ type Collection struct {
 	Items      []any   `json:"items,omitempty"       bson:"items,omitempty"`      // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
-func NewCollection() Collection {
+func NewCollection(collectionID string) Collection {
 	return Collection{
 		Context: DefaultContext(),
 		Type:    vocab.CoreTypeCollection,
+		ID:      collectionID,
 	}
 }
 
