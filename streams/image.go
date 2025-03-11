@@ -4,6 +4,8 @@ import (
 	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/convert"
+	"github.com/benpate/rosetta/mapof"
+	"github.com/benpate/rosetta/sliceof"
 )
 
 // https://www.w3.org/ns/activitystreams#Image
@@ -33,6 +35,12 @@ func NewImage(value any) Image {
 
 	case []any:
 		return Image{value: typed}
+
+	case mapof.Any:
+		return Image{value: map[string]any(typed)}
+
+	case sliceof.Any:
+		return Image{value: []any(typed)}
 	}
 
 	return Image{""}
@@ -60,6 +68,7 @@ func (image Image) Href() string {
 		}
 
 		if url := convert.String(typed[vocab.PropertyURL]); url != "" {
+
 			return url
 		}
 
