@@ -1,6 +1,8 @@
 package streams
 
 import (
+	"mime"
+	"strings"
 	"time"
 
 	"github.com/benpate/hannibal/vocab"
@@ -119,7 +121,15 @@ func (document Document) IconOrImage() Image {
 		return icon
 	}
 
-	return document.Image()
+	if image := document.Image(); image.NotNil() {
+		return image
+	}
+
+	if attachment := document.FirstImageAttachment(); attachment.NotNil() {
+		return attachment
+	}
+
+	return NewImage("")
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-image
@@ -136,7 +146,28 @@ func (document Document) ImageOrIcon() Image {
 		return image
 	}
 
-	return document.Icon()
+	if attachment := document.FirstImageAttachment(); attachment.NotNil() {
+		return attachment
+	}
+
+	if icon := document.Icon(); icon.NotNil() {
+		return icon
+	}
+
+	return NewImage("")
+}
+
+func (document Document) FirstImageAttachment() Image {
+
+	for attachment := document.Attachment(); attachment.NotNil(); attachment = attachment.Tail() {
+		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType())
+
+		if strings.HasPrefix(mediaType, "image/") {
+			return NewImage(attachment.Head())
+		}
+	}
+
+	return NewImage("")
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
