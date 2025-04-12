@@ -215,8 +215,14 @@ const PropertyWidth = "width"
  * Toot Property Types
  ******************************************/
 
+// https://docs.joinmastodon.org/spec/activitypub/#discoverable
 // http://joinmastodon.org/ns#discoverable
 const PropertyTootDiscoverable = "discoverable"
 
+// https://docs.joinmastodon.org/spec/activitypub/#indexable
 // http://joinmastodon.org/ns#indexable
 const PropertyTootIndexable = "indexable"
+
+// https://docs.joinmastodon.org/spec/activitypub/#featured
+// http://joinmastodon.org/ns#featured
+const PropertyFeatured = "featured"

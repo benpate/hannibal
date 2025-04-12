@@ -13,4 +13,8 @@ var ContextTypeToot = map[string]any{
 	"toot":         "https://joinmastodon.org/ns#",
 	"discoverable": "toot:discoverable",
 	"indexable":    "toot:indexable",
+	"featured": map[string]any{
+		"@id":   "http://joinmastodon.org/ns#featured",
+		"@type": "@id",
+	},
 }
