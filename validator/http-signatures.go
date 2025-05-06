@@ -64,6 +64,6 @@ func (validator HTTPSig) keyFinder(document *streams.Document) sigs.PublicKeyFin
 
 		// If none match, then return a (hopefully informative) error.
 		log.Trace().Str("keyId", keyID).Msg("Hannibal Inbox: Could not find remote actor's public key")
-		return "", derp.NewBadRequestError(location, "Actor must publish the key used to sign this request", actor.ID(), keyID)
+		return "", derp.BadRequestError(location, "Actor must publish the key used to sign this request", actor.ID(), keyID)
 	}
 }

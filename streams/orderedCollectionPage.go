@@ -50,7 +50,7 @@ func (c *OrderedCollectionPage) UnmarshalJSON(data []byte) error {
 func (c *OrderedCollectionPage) UnmarshalMap(data mapof.Any) error {
 
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeOrderedCollectionPage {
-		return derp.NewInternalError("activitystreams.OrderedCollectionPage.UnmarshalMap", "Invalid type", dataType)
+		return derp.InternalError("activitystreams.OrderedCollectionPage.UnmarshalMap", "Invalid type", dataType)
 	}
 
 	c.Type = vocab.CoreTypeOrderedCollectionPage

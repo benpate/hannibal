@@ -181,7 +181,7 @@ func makeSignatureHash(plaintext string, digestAlgorithm crypto.Hash) ([]byte, e
 		h = sha512.New()
 
 	default:
-		return nil, derp.NewInternalError(location, "Unknown digest algorithm. Only sha-256 and sha-512 are supported", digestAlgorithm.String())
+		return nil, derp.InternalError(location, "Unknown digest algorithm. Only sha-256 and sha-512 are supported", digestAlgorithm.String())
 	}
 
 	h.Write([]byte(plaintext))
@@ -217,7 +217,7 @@ func makeSignedDigest(digest []byte, hash crypto.Hash, privateKey crypto.Private
 		}
 	}
 
-	return nil, derp.NewInternalError(location, "Unrecognized private key type", privateKey)
+	return nil, derp.InternalError(location, "Unrecognized private key type", privateKey)
 }
 
 // getField retrieves the value of a named field from an HTTP request.

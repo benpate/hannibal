@@ -17,7 +17,7 @@ import (
 func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc) error {
 
 	if request == nil {
-		return derp.New(500, "sigs.ApplyDigest", "Request cannot be nil")
+		return derp.InternalError("sigs.ApplyDigest", "Request cannot be nil")
 	}
 
 	// Retrieve the request body (in a replayable manner)
@@ -95,7 +95,7 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 
 		// If the values DON'T MATCH, then fail immediately.
 		// We don't want bad actors "digest shopping"
-		return derp.NewForbiddenError("sigs.VerifyDigest", "Digest verification failed", digestValue)
+		return derp.ForbiddenError("sigs.VerifyDigest", "Digest verification failed", digestValue)
 	}
 
 	// If we have found at least one digest that matches, then success!
@@ -105,5 +105,5 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 	}
 
 	// Otherwise, the digest hash does not meet our minimum requirements.  Fail.
-	return derp.NewForbiddenError("sigs.VerifyDigest", "No matching digest found")
+	return derp.ForbiddenError("sigs.VerifyDigest", "No matching digest found")
 }

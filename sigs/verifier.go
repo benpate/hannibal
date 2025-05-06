@@ -57,7 +57,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	const location = "hannibal.sigs.Verify"
 
 	if request == nil {
-		return derp.NewInternalError(location, "Request cannot be nil")
+		return derp.InternalError(location, "Request cannot be nil")
 	}
 
 	log.Trace().
@@ -78,7 +78,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 			}
 
 			if date.Unix() < time.Now().Add(-1*time.Duration(verifier.Timeout)*time.Second).Unix() {
-				return derp.NewForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
+				return derp.ForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
 			}
 		}
 	}
@@ -99,12 +99,12 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 
 	// RULE: If the signature has expired, then reject it.
 	if signature.IsExpired(verifier.Timeout) {
-		return derp.NewForbiddenError(location, "Signature has expired")
+		return derp.ForbiddenError(location, "Signature has expired")
 	}
 
 	// RULE: Verify that the signature contains all of the fields that we require
 	if !slice.ContainsAll(signature.Headers, verifier.Fields...) {
-		return derp.NewForbiddenError(location, "Signature must include ALL of these fields", verifier.Fields)
+		return derp.ForbiddenError(location, "Signature must include ALL of these fields", verifier.Fields)
 	}
 
 	// Retrieve the public key used for this Signature
@@ -147,7 +147,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 		}
 	}
 
-	return derp.NewForbiddenError(location, "No valid signatures found")
+	return derp.ForbiddenError(location, "No valid signatures found")
 }
 
 /******************************************
@@ -209,10 +209,10 @@ func verifySignature(publicKey crypto.PublicKey, hash crypto.Hash, digest []byte
 
 	case *ecdsa.PublicKey:
 		if !ecdsa.VerifyASN1(typedKey, digest, signature) {
-			return derp.NewForbiddenError(location, "Invalid ECDSA signature")
+			return derp.ForbiddenError(location, "Invalid ECDSA signature")
 		}
 		return nil
 	}
 
-	return derp.NewBadRequestError(location, "Unrecognized public key type")
+	return derp.BadRequestError(location, "Unrecognized public key type")
 }

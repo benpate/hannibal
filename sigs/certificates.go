@@ -55,7 +55,7 @@ func DecodePrivatePEM(pemString string) (crypto.PrivateKey, error) {
 	block, _ := pem.Decode([]byte(pemString))
 
 	if block == nil {
-		return nil, derp.NewInternalError(location, "Block is nil", pemString)
+		return nil, derp.InternalError(location, "Block is nil", pemString)
 	}
 
 	switch block.Type {
@@ -79,7 +79,7 @@ func DecodePrivatePEM(pemString string) (crypto.PrivateKey, error) {
 		return result, nil
 
 	default:
-		return nil, derp.NewInternalError(location, "Invalid block type", block.Type)
+		return nil, derp.InternalError(location, "Invalid block type", block.Type)
 	}
 }
 
@@ -90,7 +90,7 @@ func DecodePublicPEM(pemString string) (crypto.PublicKey, error) {
 	block, _ := pem.Decode([]byte(pemString))
 
 	if block == nil {
-		return nil, derp.NewInternalError(location, "Block is nil", pemString)
+		return nil, derp.InternalError(location, "Block is nil", pemString)
 	}
 
 	switch block.Type {
@@ -102,7 +102,7 @@ func DecodePublicPEM(pemString string) (crypto.PublicKey, error) {
 		return x509.ParsePKIXPublicKey(block.Bytes)
 
 	default:
-		return nil, derp.NewInternalError(location, "Invalid block type", block.Type)
+		return nil, derp.InternalError(location, "Invalid block type", block.Type)
 	}
 
 }

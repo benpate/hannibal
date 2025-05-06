@@ -118,15 +118,15 @@ func ParseSignature(value string) (Signature, error) {
 
 	// RULE: Required Fields
 	if result.KeyID == "" {
-		return Signature{}, derp.NewBadRequestError("sigs.ParseSignature", "Field 'keyId' is required.")
+		return Signature{}, derp.BadRequestError("sigs.ParseSignature", "Field 'keyId' is required.")
 	}
 
 	if len(result.Headers) == 0 {
-		return Signature{}, derp.NewBadRequestError("sigs.ParseSignature", "Field 'headers' is required.")
+		return Signature{}, derp.BadRequestError("sigs.ParseSignature", "Field 'headers' is required.")
 	}
 
 	if len(result.Signature) == 0 {
-		return Signature{}, derp.NewBadRequestError("sigs.ParseSignature", "Field 'signature' is required.")
+		return Signature{}, derp.BadRequestError("sigs.ParseSignature", "Field 'signature' is required.")
 	}
 
 	return result, nil

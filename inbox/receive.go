@@ -52,7 +52,7 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 	// Log the request
 	if !isValid {
 		log.Trace().Err(err).Msg("Hannibal Inbox: Received document is not valid")
-		return streams.NilDocument(), derp.NewUnauthorizedError(location, "Cannot validate received document", document.Value())
+		return streams.NilDocument(), derp.UnauthorizedError(location, "Cannot validate received document", document.Value())
 	}
 
 	// Return the parsed document to the caller (vöïlä!)

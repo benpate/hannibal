@@ -26,7 +26,7 @@ func (client testClient) Load(uri string, options ...any) (Document, error) {
 		return NewDocument(value, WithClient(client)), nil
 	}
 
-	return NilDocument(), derp.NewInternalError("hannibal.streams.testClient.Load", "Unknown URI", uri)
+	return NilDocument(), derp.InternalError("hannibal.streams.testClient.Load", "Unknown URI", uri)
 }
 
 // testStreamData returns a collection of documents for the test client to return
