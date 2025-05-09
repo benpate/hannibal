@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/benpate/derp"
+	domaintools "github.com/benpate/domain"
 	"github.com/benpate/hannibal"
 	"github.com/benpate/rosetta/slice"
 	"github.com/rs/zerolog/log"
@@ -236,7 +237,7 @@ func getField(request *http.Request, signature Signature, field string) string {
 
 	// Special case for "host" which needs to read the request URL
 	case FieldHost:
-		return request.Host
+		return domaintools.Hostname(request)
 
 	case FieldCreated:
 		return signature.CreatedString()

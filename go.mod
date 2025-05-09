@@ -6,7 +6,7 @@ toolchain go1.23.1
 
 require (
 	github.com/benpate/derp v0.32.2
-	github.com/benpate/domain v0.2.5
+	github.com/benpate/domain v0.2.7
 	github.com/benpate/re v0.3.2
 	github.com/benpate/remote v0.17.3
 	github.com/benpate/rosetta v0.25.7
