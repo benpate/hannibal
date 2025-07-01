@@ -39,7 +39,7 @@ func TestVerify_Dino1(t *testing.T) {
 		-----END PUBLIC KEY-----`), nil
 	}
 
-	err = Verify(request, keyFinder, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
+	_, err = Verify(request, keyFinder, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
 	require.Nil(t, err)
 }
 
@@ -73,7 +73,7 @@ func TestVerify_Dino2(t *testing.T) {
 			-----END PUBLIC KEY-----`), nil
 	}
 
-	err = Verify(request, keyFinder, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
+	_, err = Verify(request, keyFinder, VerifierFields("x-request-id", "tpp-redirect-uri", "digest", "psu-id"), VerifierIgnoreTimeout(), VerifierIgnoreBodyDigest())
 	require.Nil(t, err)
 }
 

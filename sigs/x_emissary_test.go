@@ -34,7 +34,7 @@ func Test_Emissary(t *testing.T) {
 	require.Nil(t, err)
 
 	// Verify the request
-	err = Verify(request, keyFinder, VerifierIgnoreTimeout())
+	_, err = Verify(request, keyFinder, VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }
 
@@ -75,7 +75,7 @@ func Test_Emissary_FailedSignature_1(t *testing.T) {
 	require.Nil(t, err)
 
 	// Verify the request
-	err = Verify(request, keyFinder, VerifierIgnoreTimeout())
+	_, err = Verify(request, keyFinder, VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }
 
@@ -104,6 +104,6 @@ func Test_Emissary_FailedSignature_2(t *testing.T) {
 	require.Nil(t, err)
 
 	// Verify the request
-	err = Verify(request, keyFinder, VerifierIgnoreTimeout())
+	_, err = Verify(request, keyFinder, VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }

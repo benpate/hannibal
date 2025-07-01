@@ -10,18 +10,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// SendAccept sends an "Announce" message to the recipient
+// SendDislike sends an "Dislike" message to the recipient
 // activity: The activity that is being announced
-func (actor *Actor) SendAnnounce(announceID string, object streams.Document) {
+func (actor *Actor) SendDislike(dislikeID string, object streams.Document) {
 
 	if canDebug() {
-		log.Debug().Msg("outbox.Actor.SendAnnounce: " + announceID)
+		log.Debug().Msg("outbox.Actor.SendDislike: " + dislikeID)
 	}
 
 	message := mapof.Any{
 		vocab.AtContext:         vocab.ContextTypeActivityStreams,
-		vocab.PropertyType:      vocab.ActivityTypeAnnounce,
-		vocab.PropertyID:        announceID,
+		vocab.PropertyType:      vocab.ActivityTypeDislike,
+		vocab.PropertyID:        dislikeID,
 		vocab.PropertyActor:     actor.actorID,
 		vocab.PropertyObject:    object.Map(),
 		vocab.PropertyPublished: hannibal.TimeFormat(time.Now()),

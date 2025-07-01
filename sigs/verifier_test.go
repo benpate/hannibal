@@ -40,7 +40,7 @@ func TestVerify_Manual(t *testing.T) {
 		return EncodePublicPEM(privateKey), nil
 	}
 
-	err = Verify(request, keyFinder)
+	_, err = Verify(request, keyFinder)
 	require.Nil(t, err)
 }
 

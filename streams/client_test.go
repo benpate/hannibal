@@ -1,8 +1,6 @@
 package streams
 
 import (
-	"encoding/json"
-
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/mapof"
 )
@@ -12,12 +10,12 @@ type testClient struct {
 	data mapof.Any
 }
 
-// nolint:unused
+/* nolint:unused
 func newTestClient() testClient {
 	return testClient{
 		data: testStreamData(),
 	}
-}
+} */
 
 // nolint:unused
 func (client testClient) Load(uri string, options ...any) (Document, error) {
@@ -29,7 +27,7 @@ func (client testClient) Load(uri string, options ...any) (Document, error) {
 	return NilDocument(), derp.InternalError("hannibal.streams.testClient.Load", "Unknown URI", uri)
 }
 
-// testStreamData returns a collection of documents for the test client to return
+/*/ testStreamData returns a collection of documents for the test client to return
 // nolint:unused
 func testStreamData() mapof.Any {
 
@@ -124,4 +122,4 @@ func testStreamData() mapof.Any {
 	}
 
 	return result
-}
+}*/

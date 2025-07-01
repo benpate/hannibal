@@ -159,9 +159,7 @@ func (document Document) ImageOrIcon() Image {
 
 func (document Document) FirstImageAttachment() Image {
 
-	attachments := Range(document.Attachment())
-
-	for attachment := range attachments {
+	for attachment := range document.Attachment().Range() {
 		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType())
 
 		if strings.HasPrefix(mediaType, "image/") {

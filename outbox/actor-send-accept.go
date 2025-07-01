@@ -12,15 +12,19 @@ import (
 // activity: The activity that has been accepted (likely a "Follow" request)
 func (actor *Actor) SendAccept(acceptID string, activity streams.Document) {
 
-	log.Debug().Msg("outbox.Actor.SendAccept: " + acceptID)
+	if canDebug() {
+		log.Debug().Msg("outbox.Actor.SendAccept: " + acceptID)
+	}
 
 	message := mapof.Any{
 		vocab.AtContext:      vocab.ContextTypeActivityStreams,
 		vocab.PropertyID:     acceptID,
 		vocab.PropertyType:   vocab.ActivityTypeAccept,
 		vocab.PropertyActor:  actor.actorID,
-		vocab.PropertyObject: activity.Map(streams.OptionStripContext),
+		vocab.PropertyObject: activity.Map(),
 	}
 
-	actor.Send(message)
+	recipients := activity.Object().Actor().RangeIDs()
+
+	actor.Send(message, recipients)
 }

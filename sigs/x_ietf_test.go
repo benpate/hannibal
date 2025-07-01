@@ -29,7 +29,7 @@ func Test_IETF_Default_Test_C1(t *testing.T) {
 	require.Equal(t, expectedSignature, request.Header.Get("Signature"))
 
 	// Verify the signature
-	err = Verify(request, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
+	_, err = Verify(request, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }
 
@@ -47,7 +47,7 @@ func Test_IETF_Basic_Test_C2(t *testing.T) {
 	require.Equal(t, expectedSignature, request.Header.Get("Signature"))
 
 	// Verify the signature
-	err = Verify(request, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
+	_, err = Verify(request, test_IETF_PublicPEM(), VerifierFields(signedFields...), VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }
 

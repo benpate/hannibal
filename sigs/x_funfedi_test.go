@@ -93,7 +93,7 @@ func TestFunFedi(t *testing.T) {
 	require.Nil(t, err)
 
 	// Verify the request
-	err = Verify(request, keyFinder, VerifierIgnoreTimeout())
+	_, err = Verify(request, keyFinder, VerifierIgnoreTimeout())
 	require.Nil(t, err)
 
 }

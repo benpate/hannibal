@@ -15,7 +15,9 @@ import (
 // recipient: The ActivityStream profile of the Actor that is being followed
 func (actor *Actor) SendFollow(followID string, remoteActorID string) {
 
-	log.Debug().Msg("outbox.Actor.SendFollow: " + followID)
+	if canDebug() {
+		log.Debug().Msg("outbox.Actor.SendFollow: " + followID)
+	}
 
 	// Build the ActivityStream "Follow" request
 	message := mapof.Any{
@@ -28,5 +30,5 @@ func (actor *Actor) SendFollow(followID string, remoteActorID string) {
 	}
 
 	// Send the request
-	actor.Send(message)
+	actor.Send(message, makeIterator(remoteActorID))
 }

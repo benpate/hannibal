@@ -196,3 +196,10 @@ func (signature Signature) ExpiresString() string {
 
 	return strconv.FormatInt(signature.Expires, 10)
 }
+
+// ActorID returns the URL of the Key without a fragment.
+// This *should* be the URL of the Actor who created this signature.
+func (signature Signature) ActorID() string {
+	actorID, _, _ := strings.Cut(signature.KeyID, "#")
+	return actorID
+}

@@ -39,7 +39,7 @@ func NewVerifier(options ...VerifierOption) Verifier {
 
 // Verify verifies the given http.Request. This is
 // syntactic sugar for NewVerifier(options...).Verify(request)
-func Verify(request *http.Request, keyFinder PublicKeyFinder, options ...VerifierOption) error {
+func Verify(request *http.Request, keyFinder PublicKeyFinder, options ...VerifierOption) (Signature, error) {
 	verifier := NewVerifier(options...)
 	return verifier.Verify(request, keyFinder)
 }
@@ -52,12 +52,12 @@ func (verifier *Verifier) Use(options ...VerifierOption) {
 }
 
 // Verify verifies the given http.Request
-func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinder) error {
+func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinder) (Signature, error) {
 
 	const location = "hannibal.sigs.Verify"
 
 	if request == nil {
-		return derp.InternalError(location, "Request cannot be nil")
+		return Signature{}, derp.InternalError(location, "Request cannot be nil")
 	}
 
 	log.Trace().
@@ -74,11 +74,11 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 			date, err := time.Parse(http.TimeFormat, request.Header.Get(FieldDate))
 
 			if err != nil {
-				return derp.Wrap(err, location, "Invalid Date header.  Must match 'Mon, 02 Jan 2006 15:04:05 GMT'")
+				return Signature{}, derp.Wrap(err, location, "Invalid Date header.  Must match 'Mon, 02 Jan 2006 15:04:05 GMT'")
 			}
 
 			if date.Unix() < time.Now().Add(-1*time.Duration(verifier.Timeout)*time.Second).Unix() {
-				return derp.ForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
+				return Signature{}, derp.ForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
 			}
 		}
 	}
@@ -86,7 +86,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	// Verify the body Digest (default behavior)
 	if verifier.CheckDigest {
 		if err := VerifyDigest(request, verifier.BodyDigests...); err != nil {
-			return derp.Wrap(err, location, "Error verifying body digest")
+			return Signature{}, derp.Wrap(err, location, "Error verifying body digest")
 		}
 	}
 
@@ -94,24 +94,24 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	signature, err := ParseSignature(GetSignature(request))
 
 	if err != nil {
-		return derp.Wrap(err, location, "Error parsing signature")
+		return Signature{}, derp.Wrap(err, location, "Error parsing signature")
 	}
 
 	// RULE: If the signature has expired, then reject it.
 	if signature.IsExpired(verifier.Timeout) {
-		return derp.ForbiddenError(location, "Signature has expired")
+		return signature, derp.ForbiddenError(location, "Signature has expired")
 	}
 
 	// RULE: Verify that the signature contains all of the fields that we require
 	if !slice.ContainsAll(signature.Headers, verifier.Fields...) {
-		return derp.ForbiddenError(location, "Signature must include ALL of these fields", verifier.Fields)
+		return signature, derp.ForbiddenError(location, "Signature must include ALL of these fields", verifier.Fields)
 	}
 
 	// Retrieve the public key used for this Signature
 	certificate, err := keyFinder(signature.KeyID)
 
 	if err != nil {
-		return derp.Wrap(err, location, "Error retrieving public signing key", signature.KeyID)
+		return signature, derp.Wrap(err, location, "Error retrieving public signing key", signature.KeyID)
 	}
 
 	log.Trace().
@@ -124,7 +124,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	publicKey, err := DecodePublicPEM(certificate)
 
 	if err != nil {
-		return derp.Wrap(err, location, "Error decoding public key", certificate)
+		return signature, derp.Wrap(err, location, "Error decoding public key", certificate)
 	}
 
 	log.Trace().
@@ -139,15 +139,15 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	for _, hash := range verifier.SignatureHashes {
 		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
 			log.Trace().Str("loc", location).Msg("Hannibal.sigs: Found valid signature")
-			return nil
-		} else {
+			return signature, nil
+		} else if canTrace() {
 			log.Trace().Msg(".......")
 			log.Trace().Str("loc", location).Str("hash", hash.String()).Err(err).Msg("Hannibal.sigs: Error validating signature")
 			derp.Report(derp.Wrap(err, location, "Error validating signature", plaintext, hash, certificate, signature))
 		}
 	}
 
-	return derp.ForbiddenError(location, "No valid signatures found")
+	return signature, derp.ForbiddenError(location, "No valid signatures found")
 }
 
 /******************************************

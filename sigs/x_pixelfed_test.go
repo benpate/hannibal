@@ -39,6 +39,6 @@ func Test_PixelFed(t *testing.T) {
 	requestReader := bufio.NewReader(bytes.NewReader([]byte(raw)))
 	request := must(http.ReadRequest(requestReader))
 
-	err := Verify(request, keyFinder, VerifierIgnoreTimeout())
+	_, err := Verify(request, keyFinder, VerifierIgnoreTimeout())
 	require.Nil(t, err)
 }

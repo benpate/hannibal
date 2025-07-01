@@ -2,6 +2,7 @@ package outbox
 
 import (
 	"crypto"
+	"iter"
 
 	"github.com/benpate/hannibal/streams"
 )
@@ -16,8 +17,8 @@ type Actor struct {
 
 	// Optional values set via With() options
 	publicKeyID string
-	followers   <-chan string
 	client      streams.Client
+	followers   iter.Seq[string]
 	// TODO: Restore Queue:: queue       *queue.Queue
 }
 
@@ -33,6 +34,7 @@ func NewActor(actorID string, privateKey crypto.PrivateKey, options ...ActorOpti
 		actorID:     actorID,
 		publicKeyID: actorID + "#main-key",
 		privateKey:  privateKey,
+		followers:   func(yield func(string) bool) {}, // Default is an empty iterator
 	}
 
 	// Apply additional options

@@ -47,7 +47,7 @@ func main() {
 	fmt.Println("-----------------------")
 
 	verifier := sigs.NewVerifier()
-	if err := verifier.Verify(request, keyFinder()); err != nil {
+	if _, err := verifier.Verify(request, keyFinder()); err != nil {
 		spew.Dump(err)
 	}
 	fmt.Println("")

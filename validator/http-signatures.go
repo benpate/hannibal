@@ -30,7 +30,7 @@ func (validator HTTPSig) Validate(request *http.Request, document *streams.Docum
 	keyFinder := validator.keyFinder(document)
 
 	// Verify the request using the Actor's public key
-	if err := sigs.Verify(request, keyFinder); err != nil {
+	if _, err := sigs.Verify(request, keyFinder); err != nil {
 		log.Trace().Err(err).Msg("Hannibal Inbox: Error verifying HTTP Signature")
 		return ResultInvalid
 	}

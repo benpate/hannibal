@@ -1,6 +1,8 @@
 package outbox
 
 import (
+	"iter"
+
 	"github.com/benpate/hannibal/streams"
 )
 
@@ -21,6 +23,12 @@ func WithClient(client streams.Client) ActorOption {
 	}
 }
 
+func WithFollowers(followers iter.Seq[string]) ActorOption {
+	return func(a *Actor) {
+		a.followers = followers
+	}
+}
+
 // TODO: Restore Queue::
 /*
 // WithQueue is an ActorOption that sets the outbound Queue for an Actor
@@ -30,10 +38,3 @@ func WithQueue(queue *queue.Queue) ActorOption {
 	}
 }
 */
-
-// WithFollowers is an ActorOption that provides a channel of followers for an Actor
-func WithFollowers(followers <-chan string) ActorOption {
-	return func(a *Actor) {
-		a.followers = followers
-	}
-}
