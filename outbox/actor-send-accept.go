@@ -24,7 +24,7 @@ func (actor *Actor) SendAccept(acceptID string, activity streams.Document) {
 		vocab.PropertyObject: activity.Map(),
 	}
 
-	recipients := activity.Object().Actor().RangeIDs()
+	recipients := activity.Actor().RangeIDs()
 
 	actor.Send(message, recipients)
 }
