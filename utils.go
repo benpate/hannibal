@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/benpate/hannibal/vocab"
-	"github.com/benpate/rosetta/list"
 )
 
 // TimeFormat returns a string representation of the provided time value,
@@ -20,10 +19,10 @@ func TimeFormat(value time.Time) string {
 func IsActivityPubContentType(contentType string) bool {
 
 	// If multiple content types are provided, then only check the first one.
-	contentType = list.First(contentType, ',')
+	contentType, _, _ = strings.Cut(contentType, ",")
 
 	// Strip off any parameters from the content type (like charsets and json-ld profiles)
-	contentType = list.First(contentType, ';')
+	contentType, _, _ = strings.Cut(contentType, ";")
 
 	// Remove whitespace around the actual value
 	contentType = strings.TrimSpace(contentType)
@@ -37,5 +36,22 @@ func IsActivityPubContentType(contentType string) bool {
 	}
 
 	// Failure.
+	return false
+}
+
+// IsUndoableActivity returns TRUE if the provided activityType
+// is one that can be undone (as opposed to an activity that must be "Deleted")
+func IsUndoableActivity(activityType string) bool {
+
+	switch activityType {
+
+	case vocab.ActivityTypeAnnounce,
+		vocab.ActivityTypeDislike,
+		vocab.ActivityTypeFollow,
+		vocab.ActivityTypeLike,
+		vocab.ActivityTypeBlock:
+		return true
+	}
+
 	return false
 }
