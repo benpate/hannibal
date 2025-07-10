@@ -40,7 +40,23 @@ func NewVerifier(options ...VerifierOption) Verifier {
 // Verify verifies the given http.Request. This is
 // syntactic sugar for NewVerifier(options...).Verify(request)
 func Verify(request *http.Request, keyFinder PublicKeyFinder, options ...VerifierOption) (Signature, error) {
-	verifier := NewVerifier(options...)
+
+	// RULE: Request cannot be nil
+	if request == nil {
+		return Signature{}, derp.InternalError("hannibal.sigs.Verify", "Request cannot be nil")
+	}
+
+	verifier := NewVerifier()
+
+	// If this is a GET request, then the default should not require the body digest.
+	if request.Method == "GET" {
+		verifier.Fields = []string{FieldRequestTarget, FieldHost, FieldDate}
+	}
+
+	// Use all other options
+	verifier.Use(options...)
+
+	// This verifier is hot-to-go.
 	return verifier.Verify(request, keyFinder)
 }
 
