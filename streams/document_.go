@@ -186,6 +186,8 @@ func (document Document) Int() int {
 // Load retrieves a JSON-LD document from its remote server
 func (document Document) Load(options ...any) (Document, error) {
 
+	const location = "hannibal.streams.document.Load"
+
 	// Get the document ID
 	documentID := document.ID()
 
@@ -198,7 +200,7 @@ func (document Document) Load(options ...any) (Document, error) {
 	result, err := document.getClient().Load(documentID, options...)
 
 	if err != nil {
-		return result, derp.Wrap(err, "hannibal.streams.document.Load", "Error loading document by ID", document.Value())
+		return result, derp.Wrap(err, location, "Error loading document by ID", document.Value())
 	}
 
 	// Success??
