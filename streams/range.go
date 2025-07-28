@@ -18,6 +18,19 @@ func (document Document) Range() iter.Seq[Document] {
 	}
 }
 
+func (document Document) RangeWithIndex() iter.Seq2[int, Document] {
+
+	return func(yield func(int, Document) bool) {
+
+		for index := 0; document.NotNil(); document = document.Tail() {
+			if !yield(index, document.Head()) {
+				return
+			}
+			index++
+		}
+	}
+}
+
 // RangeIDs returns an iterator that yields the IDs of each element of a Document.
 // If the Document is empty, it yields no values.
 // If the Document is a single object, then it yields the ID of that object.

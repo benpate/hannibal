@@ -335,9 +335,19 @@ func (document Document) Tail() Document {
 	return document.sub(document.value.Tail())
 }
 
-// IsEmpty return TRUE if the current object is empty
+// IsEmptyTail return TRUE there are no array items after the current value
 func (document Document) IsEmptyTail() bool {
 	return document.value.Len() < 2
+}
+
+// IsEmpty returns TRUE if the documet is empty.
+func (document Document) IsEmpty() bool {
+	return document.value.Len() == 0
+}
+
+// NotEmpty returns TRUE if the document has at least one item in it.
+func (document Document) NotEmpty() bool {
+	return document.value.Len() > 0
 }
 
 /******************************************

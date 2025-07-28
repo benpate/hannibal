@@ -57,6 +57,11 @@ func (document Document) Username() string {
 	return document.PreferredUsername()
 }
 
+// https://docs.joinmastodon.org/spec/activitypub/#featured
+func (document Document) Featured() Document {
+	return document.Get(vocab.PropertyFeatured)
+}
+
 // UsernameOrID returns the username of the document, if it exists, or the ID of the document if it does not.
 func (document Document) UsernameOrID() string {
 	if username := document.PreferredUsername(); username != "" {

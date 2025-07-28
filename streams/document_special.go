@@ -129,6 +129,11 @@ func (document Document) Statistics() Statistics {
 	return document.statistics
 }
 
+// HasIcon returns TRUE if this document has a valid Icon property
+func (document Document) HasIcon() bool {
+	return document.Icon().NotNil()
+}
+
 // HasImage returns TRUE if this document has a valid Image property
 func (document Document) HasImage() bool {
 	return document.Image().NotNil()
@@ -146,6 +151,49 @@ func (document Document) HasSummary() bool {
 
 func (document Document) HasDimensions() bool {
 	return document.Width() > 0 && document.Height() > 0
+}
+
+func (document Document) SummaryWithTagLinks() string {
+
+	summary := document.Summary()
+
+	if summary == "" {
+		return ""
+	}
+
+	for tag := range document.Tag().Range() {
+		href := tag.Href()
+
+		if href == "" {
+			continue
+		}
+
+		tagName := tag.Name()
+		tagNameLength := len(tagName)
+
+		if tagNameLength == 0 {
+			continue
+		}
+
+		startPosition := 0
+		for {
+
+			index := indexOfNoCase(summary, tagName, startPosition)
+
+			if index < 0 {
+				break
+			}
+
+			tagLink := `<a href="` + href + `" target="_blank">` + tagName + `</a>`
+			tagLinkLength := len(tagLink)
+
+			summary = summary[:index] + tagLink + summary[index+tagNameLength:]
+
+			startPosition = index + tagLinkLength
+		}
+	}
+
+	return summary
 }
 
 func (document Document) AspectRatio() string {
