@@ -18,6 +18,9 @@ func newTestClient() testClient {
 } */
 
 // nolint:unused
+func (client testClient) SetRootClient(rootClient Client) {}
+
+// nolint:unused
 func (client testClient) Load(uri string, options ...any) (Document, error) {
 
 	if value, ok := client.data[uri]; ok {

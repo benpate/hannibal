@@ -8,4 +8,9 @@ type Client interface {
 
 	// Load returns a Document representing the specified URI.
 	Load(uri string, options ...any) (Document, error)
+
+	// SetRootClient is used to make a pointer to the top-level
+	// client. This may be needed by some stacked clients that
+	// make recursive calls to the Interwebs.
+	SetRootClient(Client)
 }

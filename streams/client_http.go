@@ -12,6 +12,8 @@ func NewDefaultClient() Client {
 	return DefaultClient{}
 }
 
+func (client DefaultClient) SetRootClient(rootClient Client) {}
+
 // Load implements the hannibal.Client interface, which loads an ActivityStream
 // document from a remote server. For the hannibal default client, this method
 // simply loads the document from a remote server with no other processing.
