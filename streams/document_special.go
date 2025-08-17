@@ -2,51 +2,19 @@ package streams
 
 import (
 	"strconv"
-
-	"github.com/benpate/hannibal/vocab"
 )
 
 /******************************************
  * Type Detection
  ******************************************/
 
+func (document Document) DocumentCategory() string {
+	return DocumentCategory(document.Type())
+}
+
 // IsActivity returns TRUE if this document represents an Activity
 func (document Document) IsActivity() bool {
-
-	switch document.Type() {
-
-	case vocab.ActivityTypeAccept,
-		vocab.ActivityTypeAdd,
-		vocab.ActivityTypeAnnounce,
-		vocab.ActivityTypeArrive,
-		vocab.ActivityTypeBlock,
-		vocab.ActivityTypeCreate,
-		vocab.ActivityTypeDelete,
-		vocab.ActivityTypeDislike,
-		vocab.ActivityTypeFlag,
-		vocab.ActivityTypeFollow,
-		vocab.ActivityTypeIgnore,
-		vocab.ActivityTypeInvite,
-		vocab.ActivityTypeJoin,
-		vocab.ActivityTypeLeave,
-		vocab.ActivityTypeLike,
-		vocab.ActivityTypeListen,
-		vocab.ActivityTypeMove,
-		vocab.ActivityTypeOffer,
-		vocab.ActivityTypeQuestion,
-		vocab.ActivityTypeReject,
-		vocab.ActivityTypeRead,
-		vocab.ActivityTypeRemove,
-		vocab.ActivityTypeTentativeReject,
-		vocab.ActivityTypeTentativeAccept,
-		vocab.ActivityTypeTravel,
-		vocab.ActivityTypeUndo,
-		vocab.ActivityTypeUpdate,
-		vocab.ActivityTypeView:
-		return true
-	}
-
-	return false
+	return IsActivity(document.Type())
 }
 
 // NotActivity returns TRUE if this document does NOT represent an Activity
@@ -56,18 +24,7 @@ func (document Document) NotActivity() bool {
 
 // IsActor returns TRUE if this document represents an Actor
 func (document Document) IsActor() bool {
-
-	switch document.Type() {
-
-	case vocab.ActorTypeApplication,
-		vocab.ActorTypeGroup,
-		vocab.ActorTypeOrganization,
-		vocab.ActorTypePerson,
-		vocab.ActorTypeService:
-		return true
-	}
-
-	return false
+	return IsActor(document.Type())
 }
 
 // NotActor returns TRUE if this document does NOT represent an Actor
@@ -77,17 +34,7 @@ func (document Document) NotActor() bool {
 
 // IsCollection returns TRUE if this document represents a Collection or CollectionPage
 func (document Document) IsCollection() bool {
-
-	switch document.Type() {
-	case vocab.CoreTypeCollection,
-		vocab.CoreTypeCollectionPage,
-		vocab.CoreTypeOrderedCollection,
-		vocab.CoreTypeOrderedCollectionPage:
-
-		return true
-	}
-
-	return false
+	return IsCollection(document.Type())
 }
 
 // NotCollection returns TRUE if the document does NOT represent a Collection or CollectionPage
@@ -97,26 +44,7 @@ func (document Document) NotCollection() bool {
 
 // IsObject returns TRUE if this document represents an Object type (Article, Note, etc)
 func (document Document) IsObject() bool {
-
-	switch document.Type() {
-
-	case vocab.ObjectTypeArticle,
-		vocab.ObjectTypeAudio,
-		vocab.ObjectTypeDocument,
-		vocab.ObjectTypeEvent,
-		vocab.ObjectTypeImage,
-		vocab.ObjectTypeNote,
-		vocab.ObjectTypePage,
-		vocab.ObjectTypePlace,
-		vocab.ObjectTypeProfile,
-		vocab.ObjectTypeRelationship,
-		vocab.ObjectTypeTombstone,
-		vocab.ObjectTypeVideo:
-
-		return true
-	}
-
-	return false
+	return IsObject(document.Type())
 }
 
 // NotObject returns TRUE if this document does NOT represent an Object type (Article, Note, etc)
@@ -124,9 +52,9 @@ func (document Document) NotObject() bool {
 	return !document.IsObject()
 }
 
-// Statistics returns counts for various interactions: Announces, Replies, Likes, and Dislikes
-func (document Document) Statistics() Statistics {
-	return document.statistics
+// Metadata returns counts for various interactions: Announces, Replies, Likes, and Dislikes
+func (document Document) Metadata() *Metadata {
+	return &document.metadata
 }
 
 // HasIcon returns TRUE if this document has a valid Icon property

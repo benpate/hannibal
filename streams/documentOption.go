@@ -22,9 +22,9 @@ func WithHTTPHeader(httpHeader http.Header) DocumentOption {
 	}
 }
 
-// WithStats attaches statistics to the document
-func WithStats(statistics Statistics) DocumentOption {
+// WithMetadata attaches metadata to the document
+func WithMetadata(metadata Metadata) DocumentOption {
 	return func(doc *Document) {
-		doc.statistics = statistics
+		doc.metadata = metadata
 	}
 }
