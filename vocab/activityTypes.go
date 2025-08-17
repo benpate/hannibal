@@ -83,3 +83,11 @@ const ActivityTypeUpdate = "Update"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-view
 const ActivityTypeView = "View"
+
+// http://w3id.org/fep/c0e0
+// http://litepub.social/ns#EmojiReact
+const ActivityTypeEmojiReact = "EmojiReact"
+
+// Not defined in an official spec/fep, but used in the wild, go figure
+// http://w3id.org/fep/c0e0
+const ActivityTypeEmojiReactAlt = "EmojiReaction"
