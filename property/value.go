@@ -120,9 +120,9 @@ func NewValue(value any) Value {
 	return Nil{}
 }
 
-/****************************************************
+/******************************************
  * Introspection Functions
- ****************************************************/
+ ******************************************/
 
 // IsBool returns TRUE if the value represents a bool
 func IsBool(value any) bool {

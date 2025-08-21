@@ -184,7 +184,7 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 		return derp.Wrap(err, location, "Error creating digest")
 	}
 
-	//* Logging here.. wrapping it in an "if" because the base64 encoding is "expensive"
+	// Logging here.. wrapping it in an "if" because the base64 encoding is "expensive"
 	if log.Logger.GetLevel() == zerolog.TraceLevel {
 		log.Trace().
 			Str("plaintext", plaintext).

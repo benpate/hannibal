@@ -74,31 +74,6 @@ func Test_IETF_All_Headers_Prep(t *testing.T) {
 	require.Equal(t, expectedPlaintext, plaintext)
 }
 
-/*
-Removing this test (for now?) because there appears to be a bug in the official IETF
-spec (because OF COURSE there is).  The "all headers test in section 3 requires  the
-(created) and (expires) headers in the signature, but the provided plaintext doesn't
-include these values, which means that the whole signature is wrong.  FML.
-
-// https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures#appendix-C.3
-func Test_IETF_All_Headers_Test_C3(t *testing.T) {
-	signedFields := []string{"(request-target)", "(created)", "(expires)", "host", "date", "content-type", "digest", "content-length"}
-	request := test_IETF_Request()
-
-	err := Sign(request, "Test", test_IETF_PrivateKey(), SignerFields(signedFields...), SignerCreated(1402170695), SignerExpires(1402170699))
-	require.Nil(t, err)
-
-	// handling this one differently because we can't *force* the created/expires dates to be these correct values
-	// so let's just Verify this signature straight out.
-	expectedSignature := `keyId="Test",algorithm="rsa-sha256",created=1402170695,expires=1402170699,headers="(request-target) (created) (expires) host date content-type digest content-length",signature="vSdrb+dS3EceC9bcwHSo4MlyKS59iFIrhgYkz8+oVLEEzmYZZvRs8rgOp+63LEM3v+MFHB32NfpB2bEKBIvB1q52LaEUHFv120V01IL+TAD48XaERZFukWgHoBTLMhYS2Gb51gWxpeIq8knRmPnYePbF5MOkR0Zkly4zKH7s1dE="`
-
-	require.Equal(t, expectedSignature, request.Header.Get("Signature"))
-
-	err = Verify(request, test_IETF_PublicPEM(), VerifierIgnoreTimeout())
-	require.Nil(t, err)
-}
-*/
-
 // https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures#section-2.3
 func Test_IEFT_SignatureStringConstruction(t *testing.T) {
 

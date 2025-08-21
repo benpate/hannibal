@@ -28,13 +28,3 @@ func WithFollowers(followers iter.Seq[string]) ActorOption {
 		a.followers = followers
 	}
 }
-
-// TODO: Restore Queue::
-/*
-// WithQueue is an ActorOption that sets the outbound Queue for an Actor
-func WithQueue(queue *queue.Queue) ActorOption {
-	return func(a *Actor) {
-		a.queue = queue
-	}
-}
-*/

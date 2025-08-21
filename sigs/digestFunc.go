@@ -14,28 +14,6 @@ import (
 // DigestFunc defines a function that calculates the digest of a given byte array
 type DigestFunc func(body []byte) string
 
-/*
-// getDigestFuncs uses a list of algorithm names to generate a list of DigestFuncs
-// This is unused now, but may be useful in the future.
-func getDigestFuncs(algorithms ...crypto.Hash) ([]DigestFunc, error) {
-
-	result := make([]DigestFunc, 0, len(algorithms))
-
-	for _, algorithm := range algorithms {
-
-		fn, err := getDigestFunc(algorithm)
-
-		if err != nil {
-			return nil, derp.Wrap(err, "sigs.getDigestFunc", "Error parsing algorithm")
-		}
-
-		result = append(result, fn)
-	}
-
-	return result, nil
-}
-*/
-
 // getDigestFuncByName returns the DigestFunc for either `sha-256` or `sha-512`
 func getDigestFuncByName(name string) (DigestFunc, error) {
 	return getDigestFunc(getHashByName(name))

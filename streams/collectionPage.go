@@ -36,6 +36,7 @@ func NewCollectionPage(pageID string) CollectionPage {
 /******************************************
  * JSON Marshalling
  ******************************************/
+
 func (c *CollectionPage) UnmarshalJSON(data []byte) error {
 
 	result := mapof.NewAny()

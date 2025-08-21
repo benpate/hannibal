@@ -139,14 +139,6 @@ func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 	testPrivateKey := privateKey.(*rsa.PrivateKey)
 	testPublicKeyPEM := EncodePublicPEM(testPrivateKey)
 
-	/* sent via browser??
-	publicKeyPEM := removeTabs(
-		`-----BEGIN RSA PUBLIC KEY-----
-		MEgCQQDbLVt+d4EGWdMOgG6lS2xvhP6kbb0OgdkG26jmqWfUCqzYhyuhoL3JgijV
-		N+Y0Jbb4iEU2aQXMNHM+Rq1bfkLTAgMBAAE=
-		-----END RSA PUBLIC KEY-----`)
-	*/
-
 	// in database
 	publicKeyPEM := removeTabs(
 		`-----BEGIN RSA PUBLIC KEY-----

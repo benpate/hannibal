@@ -70,7 +70,7 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	// Log all incoming activity... except delete messages because Mastodon is way too chatty
 	if canDebug() && (activityType != vocab.ActivityTypeDelete) {
-		log.Debug().Str("activity", activityType).Any("type", activity.Object().Type()).Msg("Hannibal Router: Received Message")
+		log.Debug().Str("activity", activityType).Str("type", activity.Object().Type()).Msg("Hannibal Router: Received Message")
 
 		if canTrace() {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
