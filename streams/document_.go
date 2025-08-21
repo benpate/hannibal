@@ -20,7 +20,7 @@ import (
 // `string`, `float`, `int` or `bool`.
 type Document struct {
 	value      property.Value
-	metadata   Metadata
+	Metadata   Metadata
 	httpHeader http.Header
 	client     Client
 }
@@ -30,7 +30,7 @@ func NewDocument(value any, options ...DocumentOption) Document {
 
 	result := Document{
 		value:      property.NewValue(value),
-		metadata:   NewMetadata(),
+		Metadata:   NewMetadata(),
 		httpHeader: make(http.Header),
 		client:     NewDefaultClient(),
 	}

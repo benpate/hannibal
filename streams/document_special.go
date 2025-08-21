@@ -52,11 +52,6 @@ func (document Document) NotObject() bool {
 	return !document.IsObject()
 }
 
-// Metadata returns counts for various interactions: Announces, Replies, Likes, and Dislikes
-func (document Document) Metadata() *Metadata {
-	return &document.metadata
-}
-
 // HasIcon returns TRUE if this document has a valid Icon property
 func (document Document) HasIcon() bool {
 	return document.Icon().NotNil()

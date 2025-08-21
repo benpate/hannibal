@@ -25,6 +25,6 @@ func WithHTTPHeader(httpHeader http.Header) DocumentOption {
 // WithMetadata attaches metadata to the document
 func WithMetadata(metadata Metadata) DocumentOption {
 	return func(doc *Document) {
-		doc.metadata = metadata
+		doc.Metadata = metadata
 	}
 }
