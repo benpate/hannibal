@@ -67,21 +67,36 @@ func (metadata Metadata) HasRelationship() bool {
 	return true
 }
 
-func (metadata *Metadata) SetRelationCount(relationType string, count int64) {
+// SetRelationCount updates the designated relation with a new count,
+// returning TRUE if the value has been changed.
+func (metadata *Metadata) SetRelationCount(relationType string, count int64) bool {
 
 	switch relationType {
 
 	case vocab.RelationTypeReply:
-		metadata.Replies = count
+		if metadata.Replies != count {
+			metadata.Replies = count
+			return true
+		}
 
 	case vocab.RelationTypeAnnounce:
-		metadata.Announces = count
+		if metadata.Announces != count {
+			metadata.Announces = count
+			return true
+		}
 
 	case vocab.RelationTypeLike:
-		metadata.Likes = count
+		if metadata.Likes != count {
+			metadata.Likes = count
+			return true
+		}
 
 	case vocab.RelationTypeDislike:
-		metadata.Dislikes = count
+		if metadata.Dislikes != count {
+			metadata.Dislikes = count
+			return true
+		}
 	}
 
+	return false
 }

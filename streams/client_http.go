@@ -39,3 +39,15 @@ func (client DefaultClient) Load(url string, options ...any) (Document, error) {
 		),
 		nil
 }
+
+// Save is required to implement the document.Cache interface.
+// For this client, Save is a NOOP
+func (client DefaultClient) Save(document Document) error {
+	return nil
+}
+
+// Delete is required to implement the document.Cache interface.
+// For this client, Delete is a NOOP
+func (client DefaultClient) Delete(documentID string) error {
+	return nil
+}

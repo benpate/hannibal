@@ -2,24 +2,22 @@
 package collections
 
 import (
+	"iter"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
-	"github.com/benpate/rosetta/channel"
 )
 
-func Pages(collection streams.Document, done <-chan struct{}) <-chan streams.Document {
+func RangePages(collection streams.Document) iter.Seq[streams.Document] {
 
 	const location = "hannibal.collections.Pages"
 
-	var err error
-	result := make(chan streams.Document, 1)
+	return func(yield func(streams.Document) bool) {
 
-	go func() {
+		var err error
 
 		// emptyPage is used to prevent WriteFreely-style infinite loops
 		var emptyPage bool
-
-		defer close(result)
 
 		// If this is a collection header, then try to load the first page of results
 		if firstPage := collection.First(); firstPage.NotNil() {
@@ -34,13 +32,10 @@ func Pages(collection streams.Document, done <-chan struct{}) <-chan streams.Doc
 		// As long as we have a valid collection...
 		for collection.NotNil() {
 
-			// Breakpoint for cancellation
-			if channel.Closed(done) {
+			// Send the collection to the caller
+			if !yield(collection) {
 				return
 			}
-
-			// Send the collection to the caller
-			result <- collection
 
 			// Look for the next page in the collection (if available)
 			collection = collection.Next()
@@ -66,7 +61,5 @@ func Pages(collection streams.Document, done <-chan struct{}) <-chan streams.Doc
 				emptyPage = true
 			}
 		}
-	}()
-
-	return result
+	}
 }

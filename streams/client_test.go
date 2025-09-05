@@ -22,3 +22,11 @@ func (client testClient) Load(uri string, options ...any) (Document, error) {
 
 	return NilDocument(), derp.InternalError("hannibal.streams.testClient.Load", "Unknown URI", uri)
 }
+
+func (client testClient) Save(document Document) error {
+	return nil
+}
+
+func (client testClient) Delete(documentID string) error {
+	return nil
+}
