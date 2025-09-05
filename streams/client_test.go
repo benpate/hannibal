@@ -1,8 +1,11 @@
 package streams
 
 import (
+	"testing"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/stretchr/testify/require"
 )
 
 // nolint:unused
@@ -29,4 +32,15 @@ func (client testClient) Save(document Document) error {
 
 func (client testClient) Delete(documentID string) error {
 	return nil
+}
+
+func TestTestClient(t *testing.T) {
+
+	// this is just a hack to make the "unused" linting messages go away
+	client := testClient{}
+
+	document := NewDocument(nil, WithClient(client))
+
+	require.Nil(t, client.Save(document))
+	require.Nil(t, client.Delete(document.ID()))
 }
