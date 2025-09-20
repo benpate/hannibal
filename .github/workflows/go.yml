@@ -2,38 +2,42 @@ name: Go
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 jobs:
 
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-
+    - name: Checkout repository
+      uses: actions/checkout@v4
+  
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.25'
 
-    - name: Test
+    - name: Test Coverage
       run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
 
     - name: Report Code Coverage
       uses: codecov/codecov-action@v5
       with:
-        fail_ci_if_error: true 
+        fail_ci_if_error: false 
         flags: unittests
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
 
     - name: GolangCI-Lint
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v8
       with:
-        # Require: The version of golangci-lint to use.
-        # When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
-        # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
         version: latest
         skip-cache: true
+
+    - name: Nilaway
+      uses: qbaware/nilaway-action@v0
+      with:
+        package-to-scan: ./...		
+
