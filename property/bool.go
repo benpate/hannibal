@@ -39,8 +39,11 @@ func (value Bool) Len() int {
 	return 1
 }
 
+// IsNil returns TRUE if this boolean value is nil
 func (value Bool) IsNil() bool {
-	return value == false // nolint:gosimple // This form is just nicer, srry.
+	// nolint:staticcheck
+	// S1002 It's okay to use a more verbose comparison here
+	return value == false
 }
 
 func (value Bool) String() string {
