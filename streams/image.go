@@ -16,6 +16,11 @@ type Image struct {
 // NewImage creates a new Image object from a JSON-LD value (string, map[string]any, or []any)
 func NewImage(value any) Image {
 
+	// NILCHECK: allow `nil` values to become empty images
+	if value == nil {
+		return Image{}
+	}
+
 	switch typed := value.(type) {
 
 	case Document:

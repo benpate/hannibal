@@ -256,6 +256,11 @@ func getField(request *http.Request, signature Signature, field string) string {
 // getPathAndQuery returns the path and query from a URL
 func getPathAndQuery(url *url.URL) string {
 
+	// NILCHECK
+	if url == nil {
+		return ""
+	}
+
 	result := url.Path
 
 	if result == "" {

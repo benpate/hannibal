@@ -41,6 +41,11 @@ type Value interface {
 
 func NewValue(value any) Value {
 
+	// NILCHECK: If value is nil, then exit here.
+	if value == nil {
+		return Nil{}
+	}
+
 	switch typed := value.(type) {
 
 	// We already have a value, so return it

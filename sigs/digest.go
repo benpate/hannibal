@@ -43,6 +43,11 @@ func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc
 // matches the contents of the http.Request body.
 func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 
+	// NILCHECK: Request cannot be nil
+	if request == nil {
+		return derp.InternalError("sigs.VerifyDigest", "Request cannot be nil")
+	}
+
 	// Retrieve the request body (in a replayable manner)
 	body, err := re.ReadRequestBody(request)
 

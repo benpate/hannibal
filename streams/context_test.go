@@ -16,6 +16,12 @@ func TestNew(t *testing.T) {
 		require.True(t, c.IsEmptyTail())
 		require.True(t, c.Tail().IsEmpty())
 		head := c.Head()
+
+		if head == nil {
+			t.Fatal("Head() returned nil")
+			return
+		}
+
 		require.Equal(t, "https://www.w3.org/ns/activitystreams", head.Vocabulary)
 		require.Equal(t, "und", head.Language)
 		require.Zero(t, len(head.Extensions))
@@ -29,10 +35,17 @@ func TestNew(t *testing.T) {
 	{
 		c := NewContext()
 		entry := c.Add("https://test.com").WithLanguage("en-us")
+		head := c.Head()
 
-		require.Equal(t, "https://test.com", c.Head().Vocabulary)
-		require.Equal(t, "en-us", c.Head().Language)
-		require.Zero(t, len(c.Head().Extensions))
+		if head == nil {
+			t.Fatal("Head() returned nil")
+			return
+		}
+
+		// Verify the head entry
+		require.Equal(t, "https://test.com", head.Vocabulary)
+		require.Equal(t, "en-us", head.Language)
+		require.Zero(t, len(head.Extensions))
 
 		{
 			result, err := json.Marshal(c)
@@ -59,8 +72,15 @@ func TestNew(t *testing.T) {
 		c.Add("https://test.com").
 			WithExtension("dog", "https://dog.com/ns/activitystreams")
 
-		require.Equal(t, "https://test.com", c.Head().Vocabulary)
-		require.Equal(t, "und", c.Head().Language)
-		require.Equal(t, c.Head().Extensions["dog"], "https://dog.com/ns/activitystreams")
+		head := c.Head()
+
+		if head == nil {
+			t.Fatal("Head() returned nil")
+			return
+		}
+
+		require.Equal(t, "https://test.com", head.Vocabulary)
+		require.Equal(t, "und", head.Language)
+		require.Equal(t, head.Extensions["dog"], "https://dog.com/ns/activitystreams")
 	}
 }
