@@ -3,7 +3,7 @@ module github.com/benpate/hannibal
 go 1.24.0
 
 require (
-	github.com/benpate/derp v0.33.0
+	github.com/benpate/derp v0.34.0
 	github.com/benpate/domain v0.2.9
 	github.com/benpate/re v0.3.4
 	github.com/benpate/remote v0.17.6
