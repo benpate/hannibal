@@ -3,28 +3,27 @@
 package collections
 
 import (
-	"context"
 	"testing"
 
 	"github.com/benpate/hannibal/streams"
 	"github.com/davecgh/go-spew/spew"
 )
 
-func TestDocuments(t *testing.T) {
+func TestPages(t *testing.T) {
 
 	doc := streams.NewDocument("https://mastodon.social/@benpate")
 	outbox := doc.Outbox()
 
-	items := Documents(outbox, context.TODO().Done())
+	pages := RangePages(outbox)
 
 	index := 1
-	for item := range items {
+	for page := range pages {
 		spew.Dump(index)
-		spew.Dump(item.Published())
+		spew.Dump(page.ID())
 		index++
 
-		if index > 100 {
-			break // okay, we get it.. you can load lots of documents...
+		if index > 16 {
+			break // okay, we get it.. you can load lots of pages.
 		}
 	}
 }
