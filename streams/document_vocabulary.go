@@ -267,6 +267,11 @@ func (document Document) Replies() Document {
 	return document.Get(vocab.PropertyReplies)
 }
 
+// https://www.w3.org/TR/activitypub/#shares
+func (document Document) Shares() Document {
+	return document.Get(vocab.PropertyShares)
+}
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tag
 func (document Document) Tag() Document {
 	return document.Get(vocab.PropertyTag)
