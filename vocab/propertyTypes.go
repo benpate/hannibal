@@ -31,6 +31,9 @@ const PropertyAudience = "audience"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bcc
 const PropertyBCC = "bcc"
 
+// https://docs.joinmastodon.org/spec/activitypub/#blurhash
+const PropertyBlurHash = "blurHash"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-bto
 const PropertyBTo = "bto"
 
