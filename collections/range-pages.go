@@ -24,7 +24,7 @@ func RangePages(collection streams.Document) iter.Seq[streams.Document] {
 			collection, err = firstPage.Load()
 
 			if err != nil {
-				derp.Report(derp.Wrap(err, location, "Error loading first page", collection))
+				derp.Report(derp.Wrap(err, location, "Unable to load first page", collection))
 				return
 			}
 		}
@@ -44,7 +44,7 @@ func RangePages(collection streams.Document) iter.Seq[streams.Document] {
 			collection, err = collection.Load()
 
 			if err != nil {
-				derp.Report(derp.Wrap(err, location, "Error loading first page", collection))
+				derp.Report(derp.Wrap(err, location, "Unable to load first page", collection))
 				return
 			}
 

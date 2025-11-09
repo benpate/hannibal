@@ -200,7 +200,7 @@ func (document Document) Load(options ...any) (Document, error) {
 	result, err := document.getClient().Load(documentID, options...)
 
 	if err != nil {
-		return result, derp.Wrap(err, location, "Error loading document by ID", document.Value())
+		return result, derp.Wrap(err, location, "Unable to load document by ID", document.Value())
 	}
 
 	// Success??

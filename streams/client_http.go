@@ -29,7 +29,7 @@ func (client DefaultClient) Load(url string, options ...any) (Document, error) {
 		Result(&result)
 
 	if err := transaction.Send(); err != nil {
-		return NilDocument(), derp.Wrap(err, location, "Error loading JSON-LD document", url)
+		return NilDocument(), derp.Wrap(err, location, "Unable to load JSON-LD document", url)
 	}
 
 	// Return in triumph

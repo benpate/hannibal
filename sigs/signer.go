@@ -98,7 +98,7 @@ func (signer *Signer) MakeSignature(request *http.Request) (Signature, error) {
 		digestFunc, err := getDigestFunc(signer.BodyDigest)
 
 		if err != nil {
-			return Signature{}, derp.Wrap(err, location, "Error creating digest function")
+			return Signature{}, derp.Wrap(err, location, "Unable to create digest function")
 		}
 
 		// Apply the Digest function to the body
@@ -123,7 +123,7 @@ func (signer *Signer) MakeSignature(request *http.Request) (Signature, error) {
 	digestText, err := makeSignatureHash(plainText, signer.SignatureHash)
 
 	if err != nil {
-		return Signature{}, derp.Wrap(err, location, "Error creating digest")
+		return Signature{}, derp.Wrap(err, location, "Unable to create digest")
 	}
 
 	// Sign the digest using the private key

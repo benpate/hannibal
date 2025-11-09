@@ -90,7 +90,7 @@ func (document Document) RangeInReplyTo() iter.Seq[string] {
 		inReplyToDocument, err := inReplyTo.Load()
 
 		if err != nil {
-			derp.Report(derp.Wrap(err, "streams.Document.RangeInReplyTo", "Error loading InReplyTo document", inReplyTo.ID()))
+			derp.Report(derp.Wrap(err, "streams.Document.RangeInReplyTo", "Unable to load InReplyTo document", inReplyTo.ID()))
 			return // Nothing to yield
 		}
 

@@ -60,7 +60,7 @@ func (actor *Actor) SendOne(recipientID string, message mapof.Any) error {
 	recipient, err := recipient.Load()
 
 	if err != nil {
-		return derp.Wrap(err, location, "Error loading recipient", recipientID)
+		return derp.Wrap(err, location, "Unable to load recipient", recipientID)
 	}
 
 	inboxURL := recipient.Inbox().ID()

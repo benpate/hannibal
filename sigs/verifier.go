@@ -181,7 +181,7 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 	digest, err := makeSignatureHash(plaintext, hash)
 
 	if err != nil {
-		return derp.Wrap(err, location, "Error creating digest")
+		return derp.Wrap(err, location, "Unable to create digest")
 	}
 
 	// Logging here.. wrapping it in an "if" because the base64 encoding is "expensive"

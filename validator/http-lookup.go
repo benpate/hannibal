@@ -39,7 +39,7 @@ func (v HTTPLookup) Validate(request *http.Request, document *streams.Document) 
 	original, err := document.Client().Load(objectID)
 
 	if err != nil {
-		derp.Report(derp.Wrap(err, location, "Error loading original document", objectID))
+		derp.Report(derp.Wrap(err, location, "Unable to load original document", objectID))
 	}
 
 	// Extract the value from the "original" retrieved document and replace it int the
