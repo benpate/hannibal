@@ -24,7 +24,7 @@ func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc
 	body, err := re.ReadRequestBody(request)
 
 	if err != nil {
-		return derp.Wrap(err, "sigs.ApplyDigest", "Error reading request body")
+		return derp.Wrap(err, "sigs.ApplyDigest", "Unable to read request body")
 	}
 
 	if len(body) == 0 {
@@ -52,7 +52,7 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 	body, err := re.ReadRequestBody(request)
 
 	if err != nil {
-		return derp.Wrap(err, "sigs.VerifyDigest", "Error reading request body")
+		return derp.Wrap(err, "sigs.VerifyDigest", "Unable to read request body")
 	}
 
 	// Retrieve the digest(s) included in the HTTP Request

@@ -25,7 +25,7 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 	body, err := re.ReadRequestBody(request)
 
 	if err != nil {
-		return streams.NilDocument(), derp.Wrap(err, location, "Error reading body from request")
+		return streams.NilDocument(), derp.Wrap(err, location, "Unable to read body from request")
 	}
 
 	// Try to retrieve the object from the buffer
