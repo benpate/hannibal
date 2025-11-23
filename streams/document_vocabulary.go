@@ -1,8 +1,6 @@
 package streams
 
 import (
-	"mime"
-	"strings"
 	"time"
 
 	"github.com/benpate/hannibal/vocab"
@@ -157,19 +155,6 @@ func (document Document) ImageOrIcon() Image {
 	return NewImage("")
 }
 
-func (document Document) FirstImageAttachment() Image {
-
-	for attachment := range document.Attachment().Range() {
-		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType())
-
-		if strings.HasPrefix(mediaType, "image/") {
-			return NewImage(attachment.Head())
-		}
-	}
-
-	return NewImage("")
-}
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-inreplyto
 func (document Document) InReplyTo() Document {
 	return document.Get(vocab.PropertyInReplyTo)
@@ -255,6 +240,12 @@ func (document Document) PublicKey() Document {
 
 func (document Document) PublicKeyPEM() string {
 	return document.Get(vocab.PropertyPublicKeyPEM).String()
+}
+
+// RedirectURI is defined in https://w3cid.org/fep/d8c2
+// and is required for OAuth 2.0 workflow
+func (document Document) RedirectURI() []string {
+	return convert.SliceOfString(document.Get(vocab.PropertyRedirectURI).Value())
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result

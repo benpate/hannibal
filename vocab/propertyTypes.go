@@ -121,6 +121,10 @@ const PropertyLongitude = "longitude"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 const PropertyMediaType = "mediaType"
 
+// LOLA account migration extention
+// https://swicg.github.io/activitypub-data-portability/lola
+const PropertyMigration = "migration"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 const PropertyName = "name"
 
@@ -156,6 +160,11 @@ const PropertyPublished = "published"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-radius
 const PropertyRadius = "radius"
+
+// Defined in FEP-d8c2: OAuth 2.0 profile for ActivityPub and
+// required for Server-to-Server OAuth connections.
+// https://w3id.orgp/d8c2
+const PropertyRedirectURI = "redirectURI"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-rel
 const PropertyRel = "rel"

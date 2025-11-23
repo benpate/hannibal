@@ -1,7 +1,9 @@
 package streams
 
 import (
+	"mime"
 	"strconv"
+	"strings"
 )
 
 /******************************************
@@ -76,6 +78,7 @@ func (document Document) HasDimensions() bool {
 	return document.Width() > 0 && document.Height() > 0
 }
 
+// SummaryWithTagLinks
 func (document Document) SummaryWithTagLinks() string {
 
 	summary := document.Summary()
@@ -119,6 +122,23 @@ func (document Document) SummaryWithTagLinks() string {
 	return summary
 }
 
+// FirstImageAttachment scans all attachments and returns the first
+// one with a media type that begins with "image/"
+func (document Document) FirstImageAttachment() Image {
+
+	for attachment := range document.Attachment().Range() {
+		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType())
+
+		if strings.HasPrefix(mediaType, "image/") {
+			return NewImage(attachment.Head())
+		}
+	}
+
+	return NewImage("")
+}
+
+// AspectRatio inspects a Document's "width" and "height" properties
+// and (if they are non-zero) returns a computed aspect ratio
 func (document Document) AspectRatio() string {
 
 	width := document.Width()
