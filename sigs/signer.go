@@ -237,7 +237,7 @@ func getField(request *http.Request, signature Signature, field string) string {
 
 	// Special case for "host" which needs to read the request URL
 	case FieldHost:
-		return domaintools.Hostname(request)
+		return domaintools.TrueHostname(request)
 
 	case FieldCreated:
 		return signature.CreatedString()
