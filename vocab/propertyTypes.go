@@ -64,6 +64,9 @@ const PropertyDescribes = "describes"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-duration
 const PropertyDuration = "duration"
 
+// https://swicg.github.io/activitypub-e2ee/mls#encoding
+const PropertyEncoding = "encoding"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-endtime
 const PropertyEndTime = "endTime"
 
@@ -105,6 +108,9 @@ const PropertyInstrument = "instrument"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-items
 const PropertyItems = "items"
+
+// https://swicg.github.io/activitypub-e2ee/mls#keyPackages
+const PropertyKeyPackages = "keyPackages"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-last
 const PropertyLast = "last"

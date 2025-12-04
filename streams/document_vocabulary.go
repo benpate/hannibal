@@ -90,6 +90,11 @@ func (document Document) Describes() Document {
 	return document.Get(vocab.PropertyDescribes)
 }
 
+// https://swicg.github.io/activitypub-e2ee/mls#encoding
+func (document Document) Encoding() string {
+	return document.Get(vocab.PropertyEncoding).String()
+}
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-first
 func (document Document) First() Document {
 	return document.Get(vocab.PropertyFirst)

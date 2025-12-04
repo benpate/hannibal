@@ -8,6 +8,11 @@ const ContextTypeActivityStreams = "https://www.w3.org/ns/activitystreams"
 // https://w3c.github.io/vc-data-integrity/vocab/security/vocabulary.html
 const ContextTypeSecurity = "https://w3id.org/security/v1"
 
+// ContextTypeSocialWebMLS describes end-to-end-encrypted messaging using
+// "Message Layer Security" (MLS) protocol defined by the Social Web Foundation
+// https://swicg.github.io/activitypub-e2ee/mls
+const ContextTypeSocialWebMLS = "https://purl.archive.org/socialweb/mls"
+
 // https://joinmastodon.org/ns#
 var ContextTypeToot = map[string]any{
 	"toot":         "https://joinmastodon.org/ns#",

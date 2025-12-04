@@ -18,6 +18,9 @@ const ObjectTypeImage = "Image"
 // https://w3c-ccg.github.io/security-vocab/#publicKey
 const ObjectTypeKey = "Key"
 
+// https://swicg.github.io/activitypub-e2ee/mls#KeyPackage
+const ObjectTypeKeyPackage = "KeyPackage"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 const ObjectTypeNote = "Note"
 
