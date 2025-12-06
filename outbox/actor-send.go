@@ -34,7 +34,7 @@ func (actor *Actor) Send(message mapof.Any, recipients ...iter.Seq[string]) {
 			}
 
 			// Don't send to the magic public recipient
-			if recipientID == vocab.NamespaceActivityStreamsPublic {
+			if recipientID == vocab.NamespaceASPublic {
 				continue
 			}
 
