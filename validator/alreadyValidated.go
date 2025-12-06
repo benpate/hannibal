@@ -1,0 +1,22 @@
+package validator
+
+import (
+	"net/http"
+
+	"github.com/benpate/hannibal/streams"
+)
+
+// AlreadyValidated is a Validator that always returns VALID because
+// the request has already been validated in some external way.
+// For example, the route may require a Cookie or API Key for access
+type AlreadyValidated struct{}
+
+func NewAlreadyValidated() AlreadyValidated {
+	return AlreadyValidated{}
+}
+
+// Validate uses the hannibal/sigs library to verify that the HTTP
+// request is signed with a valid key.
+func (validator AlreadyValidated) Validate(request *http.Request, document *streams.Document) Result {
+	return ResultValid
+}
