@@ -165,6 +165,11 @@ func (document Document) InReplyTo() Document {
 	return document.Get(vocab.PropertyInReplyTo)
 }
 
+// https://swicg.github.io/activitypub-e2ee/mls#keyPackages
+func (document Document) KeyPackages() Document {
+	return document.Get(vocab.PropertyKeyPackages)
+}
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
 func (document Document) Instrument() Document {
 	return document.Get(vocab.PropertyInstrument)
