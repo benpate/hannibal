@@ -252,12 +252,6 @@ func (document Document) PublicKeyPEM() string {
 	return document.Get(vocab.PropertyPublicKeyPEM).String()
 }
 
-// RedirectURI is defined in https://w3cid.org/fep/d8c2
-// and is required for OAuth 2.0 workflow
-func (document Document) RedirectURI() []string {
-	return convert.SliceOfString(document.Get(vocab.PropertyRedirectURI).Value())
-}
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-result
 func (document Document) Result() Document {
 	return document.Get(vocab.PropertyResult)
