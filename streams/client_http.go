@@ -6,13 +6,17 @@ import (
 	"github.com/benpate/remote"
 )
 
-type DefaultClient struct{}
-
-func NewDefaultClient() Client {
-	return DefaultClient{}
+// DefaultClient is a default implementation of the hannibal.Client interface.
+// It simply loads ActivityStream documents from remote servers with no caching
+type DefaultClient struct {
+	options []remote.Option
 }
 
-func (client DefaultClient) SetRootClient(rootClient Client) {}
+func NewDefaultClient(options ...remote.Option) Client {
+	return DefaultClient{
+		options: options,
+	}
+}
 
 // Load implements the hannibal.Client interface, which loads an ActivityStream
 // document from a remote server. For the hannibal default client, this method
@@ -26,6 +30,7 @@ func (client DefaultClient) Load(url string, options ...any) (Document, error) {
 	// Try to load-and-parse the value from the remote server
 	transaction := remote.Get(url).
 		Accept(vocab.ContentTypeActivityPub).
+		With(client.options...).
 		Result(&result)
 
 	if err := transaction.Send(); err != nil {
@@ -51,3 +56,7 @@ func (client DefaultClient) Save(document Document) error {
 func (client DefaultClient) Delete(documentID string) error {
 	return nil
 }
+
+// SetRootClient is required to implement the hannibal.Client interface.
+// For this client, SetRootClient is a NOOP
+func (client DefaultClient) SetRootClient(rootClient Client) {}
