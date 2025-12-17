@@ -18,9 +18,7 @@ func NewUniquer[T comparable]() *Uniquer[T] {
 // Subsequent calls to IsUnique() with the same value will return FALSE.
 func (u *Uniquer[T]) IsUnique(id T) bool {
 
-	_, ok := u.seen[id]
-
-	if ok {
+	if _, seen := u.seen[id]; seen {
 		return false
 	}
 

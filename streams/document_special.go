@@ -101,8 +101,7 @@ func (document Document) SummaryWithTagLinks() string {
 			continue
 		}
 
-		startPosition := 0
-		for {
+		for startPosition := 0; ; {
 
 			index := indexOfNoCase(summary, tagName, startPosition)
 
@@ -127,7 +126,7 @@ func (document Document) SummaryWithTagLinks() string {
 func (document Document) FirstImageAttachment() Image {
 
 	for attachment := range document.Attachment().Range() {
-		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType())
+		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType()) // nolint:scopeguard c'mon man. scoping this below will make the one line WAAAAY too long
 
 		if strings.HasPrefix(mediaType, "image/") {
 			return NewImage(attachment.Head())

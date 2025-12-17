@@ -91,8 +91,7 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 			log.Trace().Msg("Hannibal sigs: VerifyDigest: Valid Digest Found. Algorithm: " + digestAlgorithm)
 
 			// Verify that this algorithm is in the list of allowed hashes
-			hash := getHashByName(digestAlgorithm)
-			if slice.Contains(allowedHashes, hash) {
+			if hash := getHashByName(digestAlgorithm); slice.Contains(allowedHashes, hash) {
 				atLeastOneAlgorithmMatches = true
 			}
 			continue

@@ -101,6 +101,7 @@ func TestSignAndVerify_Emissary(t *testing.T) {
 
 func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 
+	// Decode a Private Key
 	privateKeyPEM := removeTabs(
 		`-----BEGIN RSA PRIVATE KEY-----
 		MIIEpQIBAAKCAQEAy1xxGJw8d+FouEHikqkmNo/X8/tPAMtZtzXXj03Uzr3Pxfpy
@@ -137,9 +138,8 @@ func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 	}
 
 	testPrivateKey := privateKey.(*rsa.PrivateKey)
-	testPublicKeyPEM := EncodePublicPEM(testPrivateKey)
 
-	// in database
+	// Decode a Public Key
 	publicKeyPEM := removeTabs(
 		`-----BEGIN RSA PUBLIC KEY-----
 		MIIBCgKCAQEAy1xxGJw8d+FouEHikqkmNo/X8/tPAMtZtzXXj03Uzr3Pxfpy4a0M
@@ -151,7 +151,7 @@ func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 		-----END RSA PUBLIC KEY-----
 		`)
 
-	if publicKeyPEM != testPublicKeyPEM {
+	if testPublicKeyPEM := EncodePublicPEM(testPrivateKey); publicKeyPEM != testPublicKeyPEM {
 		panic("Public PEMs do not match")
 	}
 
