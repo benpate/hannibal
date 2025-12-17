@@ -9,12 +9,24 @@ package vocab
 // https://www.w3.org/TR/activitypub/#oauthAuthorizationEndpoint
 const EndpointOAuthAuthorization = "oauthAuthorizationEndpoint"
 
+// https://www.w3.org/TR/activitypub/#oauthTokenEndpoint
+const EndpointOAuthToken = "oauthTokenEndpoint"
+
 // Proposed account migration extension
 // https://swicg.github.io/activitypub-data-portability/lola
 const EndpointOAuthMigration = "oauthMigrationEndpoint"
 
-// https://www.w3.org/TR/activitypub/#oauthTokenEndpoint
-const EndpointOAuthToken = "oauthTokenEndpoint"
+// Proposed account migration extension
+// https://swicg.github.io/activitypub-data-portability/lola
+const EndpointOAuthMigrationToken = "oauthMigrationTokenEndpoint"
+
+// Proposed account migration extension (DO NOT USE)
+// https://github.com/swicg/activitypub-data-portability/issues/56
+const EndpointStartMigration = "startMigration"
+
+// Proposed account migration extension (DO NOT USE)
+// https://github.com/swicg/activitypub-data-portability/issues/56
+const EndpointFinishMigration = "finishMigration"
 
 // https://www.w3.org/TR/activitypub/#provideClientKey
 const EndpointProvideClientKey = "provideClientKey"
