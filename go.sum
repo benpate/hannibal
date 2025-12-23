@@ -2,8 +2,8 @@ github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuP
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/benpate/derp v0.34.0 h1:Eg54jS1g6IRfdUHVCm3Fp77UsqEPwzHbc8losID1HwI=
 github.com/benpate/derp v0.34.0/go.mod h1:eWyOubqTrcUKVPnBoQBw9J9GdpCxupkMO56mGGvjCtI=
-github.com/benpate/domain v0.2.10 h1:D7Owi5OxdqXQSx9cfLyL7pb4PTXmYocDd2iP+MXJAUs=
-github.com/benpate/domain v0.2.10/go.mod h1:L4izRt2ma1OJXXtN90NqC4IvBJScyG7WzVCm/QzSYcc=
+github.com/benpate/domain v0.2.11 h1:SAdU9F3NncPN265sE5Oy245jDZl2ieL9f9RuN/7p9v4=
+github.com/benpate/domain v0.2.11/go.mod h1:L4izRt2ma1OJXXtN90NqC4IvBJScyG7WzVCm/QzSYcc=
 github.com/benpate/exp v0.9.0 h1:rlYLchy1u4ChQ9oYFi4zOQAKb+yRsrvMivcrcF18irI=
 github.com/benpate/exp v0.9.0/go.mod h1:OPDLAVhPZvz/G43bX3JFAEP02OTIRvZNwNRduV44RoU=
 github.com/benpate/re v0.3.5 h1:7v4jQfrzCqnhy1+6rG+AaJUyxh4R7atLJEZN3vhQtNA=
