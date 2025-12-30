@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/benpate/hannibal/streams"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func TestDocuments(t *testing.T) {
@@ -18,8 +17,7 @@ func TestDocuments(t *testing.T) {
 
 	index := 1
 	for item := range items {
-		spew.Dump(index)
-		spew.Dump(item.Published())
+		t.Log(item.Published())
 		index++
 
 		if index > 100 {

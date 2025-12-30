@@ -10,7 +10,6 @@ import (
 	"github.com/benpate/hannibal/clients"
 	"github.com/benpate/hannibal/sigs"
 	"github.com/benpate/hannibal/streams"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -48,8 +47,10 @@ func main() {
 
 	verifier := sigs.NewVerifier()
 	if _, err := verifier.Verify(request, keyFinder()); err != nil {
-		spew.Dump(err)
+		fmt.Println(err.Error())
+		return
 	}
+
 	fmt.Println("")
 	fmt.Println("HTTP SIGNATURE VERIFIED SUCCESSFULLY.")
 }

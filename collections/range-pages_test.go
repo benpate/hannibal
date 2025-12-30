@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/benpate/hannibal/streams"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func TestPages(t *testing.T) {
@@ -18,8 +17,7 @@ func TestPages(t *testing.T) {
 
 	index := 1
 	for page := range pages {
-		spew.Dump(index)
-		spew.Dump(page.ID())
+		t.Log(page.ID())
 		index++
 
 		if index > 16 {
