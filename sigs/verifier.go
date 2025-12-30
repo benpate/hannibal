@@ -43,7 +43,7 @@ func Verify(request *http.Request, keyFinder PublicKeyFinder, options ...Verifie
 
 	// RULE: Request cannot be nil
 	if request == nil {
-		return Signature{}, derp.InternalError("hannibal.sigs.Verify", "Request cannot be nil")
+		return Signature{}, derp.Internal("hannibal.sigs.Verify", "Request cannot be nil")
 	}
 
 	verifier := NewVerifier()
@@ -73,7 +73,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	const location = "hannibal.sigs.Verify"
 
 	if request == nil {
-		return Signature{}, derp.InternalError(location, "Request cannot be nil")
+		return Signature{}, derp.Internal(location, "Request cannot be nil")
 	}
 
 	log.Trace().
@@ -94,7 +94,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 			}
 
 			if date.Unix() < time.Now().Add(-1*time.Duration(verifier.Timeout)*time.Second).Unix() {
-				return Signature{}, derp.ForbiddenError(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
+				return Signature{}, derp.Forbidden(location, "Request date has expired. Must be within the last "+strconv.Itoa(verifier.Timeout)+" seconds")
 			}
 		}
 	}
@@ -115,12 +115,12 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 
 	// RULE: If the signature has expired, then reject it.
 	if signature.IsExpired(verifier.Timeout) {
-		return signature, derp.ForbiddenError(location, "Signature has expired")
+		return signature, derp.Forbidden(location, "Signature has expired")
 	}
 
 	// RULE: Verify that the signature contains all of the fields that we require
 	if !slice.ContainsAll(signature.Headers, verifier.Fields...) {
-		return signature, derp.ForbiddenError(location, "Signature must include ALL of these fields", verifier.Fields)
+		return signature, derp.Forbidden(location, "Signature must include ALL of these fields", verifier.Fields)
 	}
 
 	// Retrieve the public key used for this Signature
@@ -140,7 +140,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 	publicKey, err := DecodePublicPEM(certificate)
 
 	if err != nil {
-		return signature, derp.Wrap(err, location, "Error decoding public key", certificate)
+		return signature, derp.Wrap(err, location, "Unable to decode public key", certificate)
 	}
 
 	log.Trace().
@@ -159,11 +159,11 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 		} else if canTrace() {
 			log.Trace().Msg(".......")
 			log.Trace().Str("loc", location).Str("hash", hash.String()).Err(err).Msg("Hannibal.sigs: Error validating signature")
-			derp.Report(derp.Wrap(err, location, "Error validating signature", plaintext, hash, certificate, signature))
+			derp.Report(derp.Wrap(err, location, "Unable to validate signature", plaintext, hash, certificate, signature))
 		}
 	}
 
-	return signature, derp.ForbiddenError(location, "No valid signatures found")
+	return signature, derp.Forbidden(location, "No valid signatures found")
 }
 
 /******************************************
@@ -225,10 +225,10 @@ func verifySignature(publicKey crypto.PublicKey, hash crypto.Hash, digest []byte
 
 	case *ecdsa.PublicKey:
 		if !ecdsa.VerifyASN1(typedKey, digest, signature) {
-			return derp.ForbiddenError(location, "Invalid ECDSA signature")
+			return derp.Forbidden(location, "Invalid ECDSA signature")
 		}
 		return nil
 	}
 
-	return derp.BadRequestError(location, "Unrecognized public key type")
+	return derp.BadRequest(location, "Unrecognized public key type")
 }

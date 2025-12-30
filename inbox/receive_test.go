@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/benpate/hannibal/streams"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,5 +39,5 @@ X-Forwarded-Proto: https
 	document, err := ReceiveRequest(req, client)
 	require.Nil(t, err)
 
-	spew.Dump(document.Value())
+	t.Log(document.Value())
 }

@@ -102,5 +102,5 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		return routeHandler(context, activity)
 	}
 
-	return derp.BadRequestError(location, "No route found for activity", activityType, activity.Object().Types(), activity.Value())
+	return derp.BadRequest(location, "No route found for activity", activityType, activity.Object().Types(), activity.Value())
 }

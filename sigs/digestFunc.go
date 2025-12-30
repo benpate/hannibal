@@ -33,7 +33,7 @@ func getDigestFunc(algorithm crypto.Hash) (DigestFunc, error) {
 		return DigestSHA512, nil
 	}
 
-	return nil, derp.BadRequestError("sigs.getDigestFunc", "Unknown algorithm", algorithm)
+	return nil, derp.BadRequest("sigs.getDigestFunc", "Unknown algorithm", algorithm)
 }
 
 // getDigestName returns the name of a given crypto.Hash value

@@ -44,7 +44,7 @@ func (actor *Actor) Send(message mapof.Any, recipients ...iter.Seq[string]) {
 			}
 
 			if err := actor.SendOne(recipientID, message); err != nil {
-				derp.Report(derp.Wrap(err, location, "Error sending message", recipientID))
+				derp.Report(derp.Wrap(err, location, "Unable to send message", recipientID))
 			}
 		}
 	}
@@ -85,7 +85,7 @@ func (actor *Actor) SendOne(recipientID string, message mapof.Any) error {
 
 	// Send the transaction
 	if err := transaction.Send(); err != nil {
-		return derp.Wrap(err, location, "Error sending ActivityPub request", inboxURL)
+		return derp.Wrap(err, location, "Unable to send ActivityPub request", inboxURL)
 	}
 
 	return nil

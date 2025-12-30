@@ -30,5 +30,5 @@ func (mock *MockVerifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 		return signature, nil
 	}
 
-	return NewSignature(), derp.ForbiddenError("hannibal.sigs.MockVerifier.Verify", "MockVerifier is configured to fail")
+	return NewSignature(), derp.Forbidden("hannibal.sigs.MockVerifier.Verify", "MockVerifier is configured to fail")
 }

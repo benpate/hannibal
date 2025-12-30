@@ -23,7 +23,7 @@ func (client testClient) Load(uri string, options ...any) (Document, error) {
 		return NewDocument(value, WithClient(client)), nil
 	}
 
-	return NilDocument(), derp.InternalError("hannibal.streams.testClient.Load", "Unknown URI", uri)
+	return NilDocument(), derp.Internal("hannibal.streams.testClient.Load", "Unknown URI", uri)
 }
 
 func (client testClient) Save(document Document) error {

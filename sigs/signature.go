@@ -103,7 +103,7 @@ func ParseSignature(value string) (Signature, error) {
 
 		case "signature":
 			if value, err := base64.StdEncoding.DecodeString(value); err != nil {
-				return Signature{}, derp.Wrap(err, "sigs.ParseSignature", "Error decoding signature", value)
+				return Signature{}, derp.Wrap(err, "sigs.ParseSignature", "Unable to decode signature", value)
 			} else {
 				result.Signature = value
 			}
@@ -118,15 +118,15 @@ func ParseSignature(value string) (Signature, error) {
 
 	// RULE: Required Fields
 	if result.KeyID == "" {
-		return Signature{}, derp.BadRequestError("sigs.ParseSignature", "Field 'keyId' is required.")
+		return Signature{}, derp.BadRequest("sigs.ParseSignature", "Field 'keyId' is required.")
 	}
 
 	if len(result.Headers) == 0 {
-		return Signature{}, derp.BadRequestError("sigs.ParseSignature", "Field 'headers' is required.")
+		return Signature{}, derp.BadRequest("sigs.ParseSignature", "Field 'headers' is required.")
 	}
 
 	if len(result.Signature) == 0 {
-		return Signature{}, derp.BadRequestError("sigs.ParseSignature", "Field 'signature' is required.")
+		return Signature{}, derp.BadRequest("sigs.ParseSignature", "Field 'signature' is required.")
 	}
 
 	return result, nil

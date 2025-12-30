@@ -48,7 +48,7 @@ func (c *Collection) UnmarshalJSON(data []byte) error {
 func (c *Collection) UnmarshalMap(data mapof.Any) error {
 
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeCollection {
-		return derp.InternalError("activitystreams.Collection.UnmarshalMap", "Invalid type", dataType)
+		return derp.Internal("activitystreams.Collection.UnmarshalMap", "Invalid type", dataType)
 	}
 
 	c.Type = vocab.CoreTypeCollection
