@@ -1,0 +1,38 @@
+package sender
+
+import (
+	"iter"
+
+	"github.com/benpate/derp"
+	"github.com/benpate/rosetta/ranges"
+)
+
+type testLocator struct{}
+
+func (t testLocator) Actor(address string) (Actor, error) {
+
+	result := testActor{}
+
+	if address == result.ActorID() {
+		return result, nil
+	}
+
+	return nil, derp.NotFound("testLocator.Actor", "Unable to load actor")
+}
+
+func (t testLocator) Recipient(address string) (iter.Seq[string], error) {
+
+	switch address {
+	case "https://test.actor.social/":
+		return ranges.Values("https://testactor.social/inbox"), nil
+
+	case "https://test.actor.social/followers":
+		return ranges.Values(
+			"https://follower1.social/inbox",
+			"https://follower2.social/inbox",
+			"https://follower3.social/inbox",
+		), nil
+	}
+
+	return ranges.Empty[string](), nil
+}
