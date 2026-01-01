@@ -1,4 +1,4 @@
-package inbox
+package router
 
 import (
 	"net/http"

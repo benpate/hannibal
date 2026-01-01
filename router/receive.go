@@ -1,4 +1,4 @@
-package inbox
+package router
 
 import (
 	"encoding/json"
@@ -15,9 +15,9 @@ import (
 )
 
 // ReceiveRequest reads an incoming HTTP request and returns a parsed and validated ActivityPub activity
-func ReceiveRequest(request *http.Request, client streams.Client, options ...Option) (document streams.Document, err error) {
+func ReceiveRequest(request *http.Request, client streams.Client, options ...Option) (activity streams.Document, err error) {
 
-	const location = "hannibal.pub.ReceiveRequest"
+	const location = "hannibal.router.ReceiveRequest"
 
 	config := NewReceiveConfig(options...)
 
@@ -29,15 +29,15 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 	}
 
 	// Try to retrieve the object from the buffer
-	document = streams.NilDocument(streams.WithClient(client))
+	activity = streams.NilDocument(streams.WithClient(client))
 
-	if err := json.Unmarshal(body, &document); err != nil {
-		log.Err(err).Msg("Hannibal Inbox: Error Unmarshalling JSON")
-		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub document")
+	if err := json.Unmarshal(body, &activity); err != nil {
+		log.Err(err).Msg("Hannibal Router: Error Unmarshalling JSON")
+		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub activity")
 	}
 
 	// Log the request
-	if canDebug() && document.Type() != vocab.ActivityTypeDelete {
+	if canDebug() && activity.Type() != vocab.ActivityTypeDelete {
 		requestBytes, _ := httputil.DumpRequest(request, true)
 
 		fmt.Println("")
@@ -47,14 +47,14 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 		fmt.Println("")
 	}
 
-	// Validate the document using injected Validators
-	if isValid := validateRequest(request, &document, config.Validators); !isValid {
-		log.Trace().Msg("Hannibal Inbox: Received document is not valid")
-		return streams.NilDocument(), derp.Unauthorized(location, "Cannot validate received document", document.Value())
+	// Validate the activity using injected Validators
+	if isValid := validateRequest(request, &activity, config.Validators); !isValid {
+		log.Trace().Msg("Hannibal Router: Received activity is not valid")
+		return streams.NilDocument(), derp.Unauthorized(location, "Cannot validate received activity", activity.Value())
 	}
 
-	// Return the parsed document to the caller (vöïlä!)
-	return document, nil
+	// Return the parsed activity to the caller (vöïlä!)
+	return activity, nil
 }
 
 func validateRequest(request *http.Request, document *streams.Document, validators []Validator) bool {

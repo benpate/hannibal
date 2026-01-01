@@ -1,6 +1,6 @@
 //go:build localonly
 
-package inbox
+package router
 
 import (
 	"bufio"

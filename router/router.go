@@ -1,8 +1,9 @@
-package inbox
+package router
 
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/property"
@@ -16,13 +17,8 @@ type Router[T any] struct {
 	routes map[string]RouteHandler[T]
 }
 
-// RouteHandler is a function that handles a specific type of ActivityPub activity.
-// RouteHandlers are registered with the Router object along with the names of the activity
-// types that they correspond to.
-type RouteHandler[T any] func(context T, activity streams.Document) error
-
-// NewRouter creates a new Router object
-func NewRouter[T any]() Router[T] {
+// New creates a new Router object
+func New[T any]() Router[T] {
 	result := Router[T]{
 		routes: make(map[string]RouteHandler[T]),
 	}
@@ -43,6 +39,28 @@ func NewRouter[T any]() Router[T] {
 // instance, in your app's `init` functions.
 func (router *Router[T]) Add(activityType string, objectType string, routeHandler RouteHandler[T]) {
 	router.routes[activityType+"/"+objectType] = routeHandler
+}
+
+// ReceiveAndHandle reads an incoming HTTP request, parses the ActivityPub activity,
+// and routes it to the appropriate handler.  This is the easiest way to use the Router.
+func (router *Router[T]) ReceiveAndHandle(context T, request *http.Request, client streams.Client, options ...Option) error {
+
+	const location = "hannibal.router.ReceiveAndHandle"
+
+	// Receive the activity from the request (with optional options)
+	activity, err := ReceiveRequest(request, client, options...)
+
+	if err != nil {
+		return derp.Wrap(err, location, "Unable to receive ActivityPub request")
+	}
+
+	// Route the activity to the appropriate handlers (based on activityType and objectType)
+	if err := router.Handle(context, activity); err != nil {
+		return derp.Wrap(err, location, "Unable to handle ActivityPub request")
+	}
+
+	// Success.
+	return nil
 }
 
 // Handle takes an ActivityPub activity and routes it to the appropriate handler

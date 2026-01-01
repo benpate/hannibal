@@ -1,4 +1,4 @@
-package inbox
+package router
 
 type Option func(*ReceiveConfig)
 
