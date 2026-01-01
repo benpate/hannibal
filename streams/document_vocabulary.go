@@ -262,6 +262,11 @@ func (document Document) Replies() Document {
 	return document.Get(vocab.PropertyReplies)
 }
 
+// https://www.w3.org/TR/activitypub/#sharedInbox
+func (document Document) SharedInbox() string {
+	return document.Get(vocab.EndpointSharedInbox).String()
+}
+
 // https://www.w3.org/TR/activitypub/#shares
 func (document Document) Shares() Document {
 	return document.Get(vocab.PropertyShares)

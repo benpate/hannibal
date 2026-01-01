@@ -4,6 +4,8 @@ import (
 	"mime"
 	"strconv"
 	"strings"
+
+	"github.com/benpate/hannibal/vocab"
 )
 
 /******************************************
@@ -76,6 +78,32 @@ func (document Document) HasSummary() bool {
 
 func (document Document) HasDimensions() bool {
 	return document.Width() > 0 && document.Height() > 0
+}
+
+// Recipients retrieves all recipients of an activity,
+// i.e. actors identified in the to, cc, bcc, and bto fields
+func (document Document) Recipients(activity Document) []string {
+
+	result := make([]string, 0)
+
+	// Define properties to scan
+	properties := []string{
+		vocab.PropertyTo,
+		vocab.PropertyCC,
+		vocab.PropertyBTo,
+		vocab.PropertyBCC,
+	}
+
+	// Scan each property in the list, adding IDs to the result
+	for _, property := range properties {
+
+		for value := range activity.Get(property).Range() {
+			result = append(result, value.ID())
+		}
+	}
+
+	// Success
+	return result
 }
 
 // SummaryWithTagLinks
@@ -165,4 +193,15 @@ func (document Document) UnwrapActivity() Document {
 	}
 
 	return document
+}
+
+// PreferredInbox returns an actor's Shared Inbox (if available)
+// otherwise the actor's regular Inbox
+func (document Document) PreferredInbox() string {
+
+	if sharedInbox := document.Endpoints().SharedInbox(); sharedInbox != "" {
+		return sharedInbox
+	}
+
+	return document.Inbox().String()
 }
