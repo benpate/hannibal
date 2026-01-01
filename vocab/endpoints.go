@@ -6,6 +6,10 @@ package vocab
 // with these properties.
 // (from) https://www.w3.org/TR/activitypub/#endpoints
 
+// Proposed account migration extension (DO NOT USE)
+// https://github.com/swicg/activitypub-data-portability/issues/56
+const EndpointFinishMigration = "finishMigration"
+
 // https://www.w3.org/TR/activitypub/#oauthAuthorizationEndpoint
 const EndpointOAuthAuthorization = "oauthAuthorizationEndpoint"
 
@@ -20,14 +24,6 @@ const EndpointOAuthMigration = "oauthMigrationEndpoint"
 // https://swicg.github.io/activitypub-data-portability/lola
 const EndpointOAuthMigrationToken = "oauthMigrationTokenEndpoint"
 
-// Proposed account migration extension (DO NOT USE)
-// https://github.com/swicg/activitypub-data-portability/issues/56
-const EndpointStartMigration = "startMigration"
-
-// Proposed account migration extension (DO NOT USE)
-// https://github.com/swicg/activitypub-data-portability/issues/56
-const EndpointFinishMigration = "finishMigration"
-
 // https://www.w3.org/TR/activitypub/#provideClientKey
 const EndpointProvideClientKey = "provideClientKey"
 
@@ -39,3 +35,7 @@ const EndpointSignClientKey = "signClientKey"
 
 // https://www.w3.org/TR/activitypub/#sharedInbox
 const EndpointSharedInbox = "sharedInbox"
+
+// Proposed account migration extension (DO NOT USE)
+// https://github.com/swicg/activitypub-data-portability/issues/56
+const EndpointStartMigration = "startMigration"

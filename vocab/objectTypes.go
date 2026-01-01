@@ -1,5 +1,9 @@
 package vocab
 
+/******************************************
+ * ActivityStreams Vocabulary: Object Types
+ ******************************************/
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-article
 const ObjectTypeArticle = "Article"
 
@@ -17,9 +21,6 @@ const ObjectTypeImage = "Image"
 
 // https://w3c-ccg.github.io/security-vocab/#publicKey
 const ObjectTypeKey = "Key"
-
-// https://swicg.github.io/activitypub-e2ee/mls#KeyPackage
-const ObjectTypeKeyPackage = "KeyPackage"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-note
 const ObjectTypeNote = "Note"
@@ -41,3 +42,22 @@ const ObjectTypeTombstone = "Tombstone"
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-video
 const ObjectTypeVideo = "Video"
+
+/******************************************
+ * End-to-End Encryption (MLS) Vocabulary
+ ******************************************/
+
+// https://swicg.github.io/activitypub-e2ee/mls#GroupInfo
+const ObjectTypeGroupInfo = "mls:GroupInfo"
+
+// https://swicg.github.io/activitypub-e2ee/mls#KeyPackage
+const ObjectTypeKeyPackage = "mls:KeyPackage"
+
+// https://swicg.github.io/activitypub-e2ee/mls#PublicMessage
+const ObjectTypePublicMessage = "mls:PublicMessage"
+
+// https://swicg.github.io/activitypub-e2ee/mls#PrivateMessage
+const ObjectTypePrivateMessage = "mls:PrivateMessage"
+
+// https://swicg.github.io/activitypub-e2ee/mls#Welcome
+const ObjectTypeWelcome = "mls:Welcome"
