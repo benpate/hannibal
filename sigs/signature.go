@@ -29,10 +29,6 @@ func NewSignature() Signature {
 	}
 }
 
-// SignatureFinder is a function that can look up a public key.
-// This is injected into the Verify function by the inbox.
-type PublicKeyFinder func(keyID string) (string, error)
-
 // IsExpired returns TRUE if the current date is
 // less than its expiration date, OR if the
 // createDate + duration is less than the current date.
