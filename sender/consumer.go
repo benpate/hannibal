@@ -1,8 +1,6 @@
 package sender
 
 import (
-	"time"
-
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
@@ -111,21 +109,8 @@ func sendActivity_SingleRecipient(locator Locator, args mapof.Any) queue.Result 
 	if err := transaction.Send(); err != nil {
 
 		// Special handling for HTTP 429 (Too Many Requests) error
-		if derp.IsTooManyRequests(err) {
-
-			// Try to find the "retry after" header response
-			if httpError := derp.UnwrapHTTPError(err); httpError != nil {
-
-				// See how long we should wait before retrying
-				// +2 minutes because everyone needs two extra minutes. UwU
-				if retryAfter := httpError.RetryAfter(); retryAfter > 0 {
-					retryDuration := time.Duration(retryAfter) + (2 * time.Minute)
-					return queue.Requeue(retryDuration)
-				}
-			}
-
-			// If the retry-after value can't be found, try again in 1 hour
-			return queue.Requeue(time.Hour)
+		if tooManyRequests, retryDuration := derp.IsTooManyRequests(err); tooManyRequests {
+			return queue.Requeue(retryDuration)
 		}
 
 		// If this is our fault then it can't be retried. Fail accordingly.

@@ -11,7 +11,7 @@ type testLocator struct{}
 
 func (t testLocator) Actor(address string) (Actor, error) {
 
-	result := testActor{}
+	result := testActor{} // nolint:scopeguard - it's just a test, bro.
 
 	if address == result.ActorID() {
 		return result, nil
