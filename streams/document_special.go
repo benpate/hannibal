@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/rosetta/sliceof"
 )
 
 /******************************************
@@ -82,7 +83,7 @@ func (document Document) HasDimensions() bool {
 
 // Recipients retrieves all recipients of an activity,
 // i.e. actors identified in the to, cc, bcc, and bto fields
-func (document Document) Recipients(activity Document) []string {
+func (document Document) Recipients() sliceof.String {
 
 	result := make([]string, 0)
 
@@ -97,7 +98,7 @@ func (document Document) Recipients(activity Document) []string {
 	// Scan each property in the list, adding IDs to the result
 	for _, property := range properties {
 
-		for value := range activity.Get(property).Range() {
+		for value := range document.Get(property).Range() {
 			result = append(result, value.ID())
 		}
 	}

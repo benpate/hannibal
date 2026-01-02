@@ -9,6 +9,7 @@ import (
 	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/convert"
+	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/sliceof"
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -130,24 +131,34 @@ func (document Document) Get(key string) Document {
 	return NilDocument()
 }
 
-// TODO: LOW: Add GetContext() method
-
 /******************************************
  * Conversion Methods
  ******************************************/
 
 // Array returns the array value of the current object
-func (document Document) Slice() []any {
+func (document Document) Slice() sliceof.Any {
 	return convert.SliceOfAny(document.value.Raw())
 }
 
 // SliceOfDocuments transforms the current object into a slice of separate
 // Document objects, one for each value in the current document array.
 func (document Document) SliceOfDocuments() sliceof.Object[Document] {
-	values := document.Slice()
-	result := make([]Document, 0, len(values))
-	for _, value := range values {
-		result = append(result, document.sub(property.NewValue(value)))
+	result := sliceof.NewObject[Document]()
+
+	for item := range document.Range() {
+		result = append(result, item)
+	}
+
+	return result
+}
+
+// SliceOfString transforms the current object into a slice of strings
+// by extracting the ID from each sub-document in the current document array.
+func (document Document) SliceOfString() sliceof.String {
+	result := sliceof.NewString()
+
+	for item := range document.Range() {
+		result = append(result, item.ID())
 	}
 
 	return result
@@ -229,7 +240,8 @@ func (document Document) LoadLink(options ...any) Document {
 	return document
 }
 
-func (document Document) Map(options ...string) map[string]any {
+// Map returns the current object as an enhanced map[string]any
+func (document Document) Map(options ...string) mapof.Any {
 
 	// Create an empty result map
 	result := make(map[string]any)
@@ -262,7 +274,8 @@ func (document Document) Map(options ...string) map[string]any {
 
 }
 
-func (document Document) MapKeys() []string {
+// MapKeys returns a slice of all keys in the current map
+func (document Document) MapKeys() sliceof.String {
 
 	if mapper, ok := document.value.(property.IsMapper); ok {
 		return mapper.MapKeys()
@@ -356,6 +369,7 @@ func (document Document) NotEmpty() bool {
 
 // Channel returns a channel that iterates over all of the sub-documents
 // in the current document.
+// deprecated: Use Range method instead of channels
 func (document Document) Channel() <-chan Document {
 
 	result := make(chan Document)
