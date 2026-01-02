@@ -52,7 +52,7 @@ func New(locator Locator, q *queue.Queue) Sender {
 // Send queues a new task to deliver the provided activity to all recipients.
 // IMPORTANT: The queue.Consumer in this package MUST be connected to a live
 // queue process in order for outbound activities to be sent.
-func (sender *Sender) Send(activity mapof.Any) error {
+func (sender Sender) Send(activity mapof.Any) error {
 
 	const location = "outbox2.Sender.Send"
 
@@ -102,6 +102,6 @@ func (sender *Sender) Send(activity mapof.Any) error {
 	return nil
 }
 
-func (sender *Sender) getRecipients(activity mapof.Any) (iter.Seq[string], error) {
+func (sender Sender) getRecipients(activity mapof.Any) (iter.Seq[string], error) {
 	return getRecipients(sender.locator, activity)
 }
