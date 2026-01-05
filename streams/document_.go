@@ -400,11 +400,6 @@ func (document *Document) SetValue(value property.Value) {
 	document.value = value
 }
 
-// SetProperty sets an individual property within this document.
-func (document *Document) SetProperty(property string, value any) {
-	document.value = document.value.Set(property, value)
-}
-
 func (document *Document) WithOptions(options ...DocumentOption) {
 	for _, option := range options {
 		option(document)
