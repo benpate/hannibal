@@ -9,8 +9,8 @@ import (
 	"github.com/benpate/remote"
 )
 
-// SignRequest is a middleware for the remote package that adds an HTTP Signature to a request.
-func SignRequest(publicKeyID string, privateKey *crypto.PrivateKey) remote.Option {
+// signRequest is a middleware for the remote package that adds an HTTP Signature to a request.
+func signRequest(publicKeyID string, privateKey crypto.PrivateKey) remote.Option {
 
 	return remote.Option{
 

@@ -1,13 +1,19 @@
+// Package sender provides an object and queue consumer that
+// can send outbound ActivityPub activities from an outbox
+// to actor's inbox URLs. It automatically signs activities
+// using the sending actor's private key.
 package sender
 
 import (
-	"iter"
-
 	"github.com/benpate/derp"
-	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/remote"
+	"github.com/benpate/remote/options"
+	"github.com/benpate/rosetta/convert"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/benpate/rosetta/ranges"
 	"github.com/benpate/turbine/queue"
+	"github.com/rs/zerolog/log"
 )
 
 // Sender manages delivery of outbound activities from the outbox,
@@ -65,43 +71,119 @@ func (sender Sender) Send(activity mapof.Any) error {
 		)
 	}
 
-	// Locate the Actor that is sending this activity
-	actorID := activity.GetString(vocab.PropertyActor)
-	actor, err := sender.locator.Actor(actorID)
+	// Queue a new task to send this activity to all recipients.
+	task := queue.NewTask(OutboxSendToAllRecipients, activity)
 
-	if err != nil {
-		return derp.Wrap(err, location, "Unable to retrieve actor for outbound activity", "actorID", actorID)
-	}
-
-	// Use the Locator to resolve recipient URIs into inbox URLs
-	recipients, err := sender.getRecipients(activity)
-
-	if err != nil {
-		return derp.Wrap(err, location, "Unable to retrieve of activity recipient addresses")
-	}
-
-	// Remove duplicate recipient inbox URLs
-	uniquer := streams.NewUniquer[string]()
-	recipients = uniquer.Range(recipients)
-
-	// Strip BCC and BTo fields before sending
-	activity.Remove(vocab.PropertyBCC)
-	activity.Remove(vocab.PropertyBTo)
-
-	// Queue up new tasks to send this Activity to each recipient's inboxURL
-	for inboxURL := range recipients {
-
-		queue.NewTask(OutboxSendActivity, mapof.Any{
-			"actorID":  actor.ActorID(),
-			"inboxURL": inboxURL,
-			"activity": activity,
-		})
+	if err := sender.queue.Publish(task); err != nil {
+		return derp.Wrap(err, location, "Unable to enqueue outbound activity", activity)
 	}
 
 	// Success!
 	return nil
 }
 
-func (sender Sender) getRecipients(activity mapof.Any) (iter.Seq[string], error) {
-	return getRecipients(sender.locator, activity)
+// SendToAllRecipients sends a single ActivityPub activity from a the provided Actor to a single recipient's inbox URL.
+func (sender *Sender) SendToAllRecipients(activity mapof.Any) queue.Result {
+
+	const location = "hannibal.sender.SendToAllRecipients"
+
+	// Locate the Actor that is sending this activity
+	actorID := activity.GetString(vocab.PropertyActor)
+	actor, err := sender.locator.Actor(actorID)
+
+	if err != nil {
+		return queue.Failure(derp.Wrap(err, location, "Unable to locate actor", activity))
+	}
+
+	// Use the Locator to resolve recipient URIs into inbox URLs
+	recipients, err := getRecipients(sender.locator, activity)
+
+	if err != nil {
+		return queue.Error(derp.Wrap(err, location, "Unable to retrieve recipient addresses"))
+	}
+
+	// Remove duplicate recipient inbox URLs
+	recipients = ranges.Unique(recipients)
+
+	// Strip BCC and BTo fields before sending
+	activity.Remove(vocab.PropertyBCC)
+	activity.Remove(vocab.PropertyBTo)
+
+	// Enqueue additional tasks to send this Activity to each recipient's inboxURL
+	for recipient := range recipients {
+
+		// Skip empty inbox URLs
+		if recipient == "" {
+			continue
+		}
+
+		log.Debug().Str("actorID", actorID).Str("recipient", recipient).Msg("Queueing outbound activity")
+
+		task := queue.NewTask(OutboxSendToSingleRecipient, mapof.Any{
+			"actor":    actor.ActorID(),
+			"inbox":    recipient,
+			"activity": activity,
+		})
+
+		if err := sender.queue.Publish(task); err != nil {
+			return queue.Error(derp.Wrap(err, location, "Unable to enqueue outbound activity", "recipient", recipient))
+		}
+	}
+
+	// Task Successed Successfully!
+	return queue.Success()
+}
+
+// SendToSingleRecipient sends a single ActivityPub activity from a the provided Actor to a single recipient's inbox URL.
+func (sender *Sender) SendToSingleRecipient(args mapof.Any) queue.Result {
+
+	const location = "hannibal.sender.SendToSingleRecipient"
+
+	// Collect arguments
+	actorID := convert.String(args["actor"])
+	inboxURL := convert.String(args["inbox"])
+	activity := convert.MapOfAny(args["activity"])
+
+	log.Debug().Str("actorID", actorID).Str("inboxURL", inboxURL).Msg("Sending outbound activity")
+
+	// Locate the Actor that is sending this activity
+	actor, err := sender.locator.Actor(actorID)
+
+	if err != nil {
+		return queue.Failure(derp.Wrap(err, location, "Unable to retrieve actor for outbound activity", "actorID: "+actorID))
+	}
+
+	// Prepare a transaction to send to target Actor's inbox
+	transaction := remote.Post(inboxURL).
+		Accept(vocab.ContentTypeActivityPub).
+		ContentType(vocab.ContentTypeActivityPub).
+		With(signRequest(actor.PrivateKey())).
+		JSON(activity)
+
+	// Enable debugging (if requested)
+	if canDebug() {
+		transaction.With(options.Debug())
+	}
+
+	// Send the transaction to the recipient's inbox.
+	// Errors will be handled by the asQueueResult() function in the queue.Consumer.
+	if err := transaction.Send(); err != nil {
+
+		// Special handling for HTTP 429 (Too Many Requests) error
+		if tooManyRequests, retryDuration := derp.IsTooManyRequests(err); tooManyRequests {
+			return queue.Requeue(retryDuration)
+		}
+
+		// If this is our fault then it can't be retried. Fail accordingly.
+		if derp.IsClientError(err) {
+			return queue.Failure(derp.Wrap(err, location, "Unable to send HTTP request (Client Error cannot be retried)"))
+		}
+
+		// Otherwise, it is a server error that can be retried by the standard queue mechanism.
+		return queue.Error(derp.Wrap(err, location, "Unable to send HTTP request (Server Error can be retried)"))
+
+	}
+
+	// No error means the transaction was successful.  Woot woot!
+	return queue.Success()
 }

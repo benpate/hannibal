@@ -12,7 +12,7 @@ type Actor interface {
 
 	// PrivateKey returns a PrivateKeyID and PrivateKey to use for
 	// signing outbound ActivityPub messages from this Actor
-	PrivateKey() (privateKeyID string, privateKey *crypto.PrivateKey)
+	PrivateKey() (privateKeyID string, privateKey crypto.PrivateKey)
 }
 
 func NewActor(actorID string, publicKeyID string, privateKey crypto.PrivateKey) Actor {
@@ -38,6 +38,6 @@ func (actor defaultActor) ActorID() string {
 
 // PrivateKey is a part of the sender.Actor interface
 // It returns a PrivateKeyID and PrivateKey to use for signing outbound ActivityPub messages from this Actor
-func (actor defaultActor) PrivateKey() (publicKeyID string, privateKey *crypto.PrivateKey) {
-	return actor.publicKeyID, &actor.privateKey
+func (actor defaultActor) PrivateKey() (publicKeyID string, privateKey crypto.PrivateKey) {
+	return actor.publicKeyID, actor.privateKey
 }

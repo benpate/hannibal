@@ -13,8 +13,8 @@ func TestSender_GetRecipients(t *testing.T) {
 
 	activity := mapof.Any{vocab.PropertyTo: "https://test.actor.social/"}
 
-	sender := New(testLocator{}, nil)
-	rangeRecipients, err := sender.getRecipients(activity)
+	locator := testLocator{}
+	rangeRecipients, err := getRecipients(locator, activity)
 
 	require.Nil(t, err)
 
@@ -23,12 +23,12 @@ func TestSender_GetRecipients(t *testing.T) {
 	require.Equal(t, "https://testactor.social/inbox", recipients[0])
 }
 
-func TestSender_GetFollowers(t *testing.T) {
+func TestLocator_GetFollowers(t *testing.T) {
 
 	activity := mapof.Any{vocab.PropertyTo: "https://test.actor.social/followers"}
 
-	sender := New(testLocator{}, nil)
-	rangeRecipients, err := sender.getRecipients(activity)
+	locator := testLocator{}
+	rangeRecipients, err := getRecipients(locator, activity)
 
 	require.Nil(t, err)
 
