@@ -3,107 +3,112 @@
 package collection
 
 import (
+	"net/http"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
+	"github.com/labstack/echo/v4"
 )
 
 // Serve generates a data for the collection that can be retured via HTTP,
 // returning ActivityStreams OrderedCollection or OrderedCollectionPage of outbound activities.
 // The `storage` parameter is assumed to already contain any necessary filtering information
 // such as Actor permissions and "after" cursors.
-func Serve(storage Storage, after string) (mapof.Any, error) {
+func Serve(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc) error {
 
 	// If we have an "after" parameter, then return the OrderedCollectionPage
 	// corresponding to all activities after the provided ID
-	if after != "" {
-		return serveOrderedCollectionPage(storage, after)
+	if after := ctx.QueryParam("after"); after != "" {
+		return serveOrderedCollectionPage(ctx, idFunc, countFunc, iteratorFunc, after)
 	}
 
 	// Otherwise, return the OrderedCollection container
-	return serveOrderedCollection(storage)
+	return serveOrderedCollection(ctx, idFunc, countFunc, iteratorFunc)
 }
 
-func serveOrderedCollection(storage Storage) (mapof.Any, error) {
+func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc) error {
 
 	const location = "collection.serveOrderedCollection"
 
 	// Count the total number of activities in this outbox
-	totalItems, err := storage.TotalItems()
+	totalItems, err := countFunc()
 
 	if err != nil {
-		return mapof.NewAny(), derp.Wrap(err, location, "Unable to count activities in outbox storage")
+		return derp.Wrap(err, location, "Unable to count activities in outbox storage")
+	}
+
+	result := mapof.Any{
+		vocab.AtContext:          vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:       vocab.CoreTypeOrderedCollection,
+		vocab.PropertyID:         idFunc(),
+		vocab.PropertyTotalItems: totalItems,
+	}
+
+	if totalItems == 0 {
+		return ctx.JSON(http.StatusOK, result)
 	}
 
 	// If there are more than 60 items in the collection, then
 	// don't include them all here.  Instead, provide a "first" link
 	// to the first page of results.
 	if totalItems > 60 {
-
-		return mapof.Any{
-			vocab.AtContext:          vocab.ContextTypeActivityStreams,
-			vocab.PropertyType:       vocab.CoreTypeOrderedCollection,
-			vocab.PropertyID:         storage.ID(),
-			vocab.PropertyTotalItems: totalItems,
-			vocab.PropertyFirst:      storage.ID() + "?after=0",
-		}, nil
+		result[vocab.PropertyFirst] = idFunc() + "?after=FIRST"
+		return ctx.JSON(http.StatusOK, result)
 	}
 
 	// Retrieve all items from the storage adapter
-	orderedItems, _, err := getItems(storage, "0")
+	orderedItems, _, err := getItems(iteratorFunc, "FIRST")
 
 	if err != nil {
-		return mapof.NewAny(), derp.Wrap(err, location, "Unable to retrieve outbox activities")
+		return derp.Wrap(err, location, "Unable to retrieve outbox activities")
 	}
 
-	return mapof.Any{
-		vocab.AtContext:            vocab.ContextTypeActivityStreams,
-		vocab.PropertyType:         vocab.CoreTypeOrderedCollection,
-		vocab.PropertyID:           storage.ID(),
-		vocab.PropertyTotalItems:   totalItems,
-		vocab.PropertyOrderedItems: orderedItems,
-	}, nil
+	result[vocab.PropertyOrderedItems] = orderedItems
+	return ctx.JSON(http.StatusOK, result)
 }
 
 // serveOrderedCollectionPage serves a single page of activities from the OrderedCollection
 // starting after the provided activity ID.
-func serveOrderedCollectionPage(storage Storage, after string) (mapof.Any, error) {
+func serveOrderedCollectionPage(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc, after string) error {
 
 	const location = "collection.serveOrderedCollectionPage"
 
 	// Get the activities in the collection
-	orderedItems, lastID, err := getItems(storage, after)
+	orderedItems, lastID, err := getItems(iteratorFunc, after)
 
 	if err != nil {
-		return mapof.NewAny(), derp.Wrap(err, location, "Unable to retrieve outbox activities")
+		return derp.Wrap(err, location, "Unable to retrieve outbox activities")
 	}
+
+	collectionID := idFunc()
 
 	// Build the OrderedCollectionPage response
 	result := mapof.Any{
 		vocab.AtContext:            vocab.ContextTypeActivityStreams,
 		vocab.PropertyType:         vocab.CoreTypeOrderedCollectionPage,
-		vocab.PropertyID:           storage.ID() + "?after=" + after,
-		vocab.PropertyPartOf:       storage.ID(),
-		vocab.PropertyFirst:        storage.ID() + "?after=0",
+		vocab.PropertyID:           collectionID + "?after=" + after,
+		vocab.PropertyPartOf:       collectionID,
+		vocab.PropertyFirst:        collectionID + "?after=FIRST",
 		vocab.PropertyOrderedItems: orderedItems,
 	}
 
 	// Set the "next" after URL (if applicable)
 	if lastID != "" {
-		result[vocab.PropertyNext] = storage.ID() + "?after=" + lastID
+		result[vocab.PropertyNext] = collectionID + "?after=" + lastID
 	}
 
 	// Done!
-	return result, nil
+	return ctx.JSON(http.StatusOK, result)
 }
 
 // getItems retrieves all items from the collection after the provided "lastID".
-func getItems(storage Storage, after string) (items []any, lastID string, err error) {
+func getItems(iteratorFunc IteratorFunc, after string) (items []any, lastID string, err error) {
 
 	const location = "collection.getItems"
 
 	// Get an iterator over all (matching) activities in the Storage adapter
-	activities, err := storage.Iterator(after)
+	activities, err := iteratorFunc(after)
 
 	if err != nil {
 		return nil, "", derp.Wrap(err, location, "Unable to retrieve outbox activities")
