@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/labstack/echo/v4"
@@ -46,7 +47,7 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 	}
 
 	if totalItems == 0 {
-		return ctx.JSON(http.StatusOK, result)
+		return serveJSON(ctx, http.StatusOK, result)
 	}
 
 	// If there are more than 60 items in the collection, then
@@ -54,7 +55,7 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 	// to the first page of results.
 	if totalItems > 60 {
 		result[vocab.PropertyFirst] = idFunc() + "?after=FIRST"
-		return ctx.JSON(http.StatusOK, result)
+		return serveJSON(ctx, http.StatusOK, result)
 	}
 
 	// Retrieve all items from the storage adapter
@@ -65,7 +66,7 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 	}
 
 	result[vocab.PropertyOrderedItems] = orderedItems
-	return ctx.JSON(http.StatusOK, result)
+	return serveJSON(ctx, http.StatusOK, result)
 }
 
 // serveOrderedCollectionPage serves a single page of activities from the OrderedCollection
@@ -131,4 +132,13 @@ func activityValue(activity mapof.Any) any {
 	}
 
 	return activity
+}
+
+func serveJSON(ctx echo.Context, statusCode int, data any) error {
+
+	if hannibal.IsActivityPubContentType(ctx.Request().Header.Get("Accept")) {
+		return ctx.JSON(statusCode, data)
+	}
+
+	return ctx.JSONPretty(statusCode, data, "    ")
 }
