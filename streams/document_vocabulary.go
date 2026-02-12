@@ -166,8 +166,8 @@ func (document Document) InReplyTo() Document {
 }
 
 // https://swicg.github.io/activitypub-e2ee/mls#keyPackages
-func (document Document) KeyPackages() Document {
-	return document.Get(vocab.PropertyKeyPackages)
+func (document Document) MLSKeyPackages() Document {
+	return document.Get(vocab.PropertyMLSKeyPackages)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
