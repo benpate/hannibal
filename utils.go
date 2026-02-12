@@ -39,6 +39,16 @@ func IsActivityPubContentType(contentType string) bool {
 	return false
 }
 
+// IsActivityPubRequest returns TRUE if the request's "Accept" header is an ActivityPub content type.
+func IsActivityPubRequest(request *http.Request) bool {
+	return IsActivityPubContentType(request.Header.Get("Accept"))
+}
+
+// NotActivityPubRequest returns TRUE if the request's "Accept" header IS NOT an ActivityPub content type.
+func NotActivityPubRequest(request *http.Request) bool {
+	return !IsActivityPubRequest(request)
+}
+
 // IsUndoableActivity returns TRUE if the provided activityType
 // is one that can be undone (as opposed to an activity that must be "Deleted")
 func IsUndoableActivity(activityType string) bool {
