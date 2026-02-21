@@ -4,11 +4,11 @@ go 1.24.0
 
 require (
 	github.com/benpate/derp v0.35.0
-	github.com/benpate/domain v0.2.11
+	github.com/benpate/domain v0.2.12
 	github.com/benpate/re v0.3.5
 	github.com/benpate/remote v0.18.0
-	github.com/benpate/rosetta v0.25.29
-	github.com/benpate/turbine v0.4.5
+	github.com/benpate/rosetta v0.25.30
+	github.com/benpate/turbine v0.4.6
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/rs/zerolog v1.34.0
