@@ -70,6 +70,9 @@ const PropertyEncoding = "encoding"
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-endtime
 const PropertyEndTime = "endTime"
 
+// https://swicg.github.io/activitypub-api/sse#discovery
+const PropertyEventStream = "eventStream"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-first
 const PropertyFirst = "first"
 

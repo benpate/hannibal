@@ -16,19 +16,21 @@ import (
 // returning ActivityStreams OrderedCollection or OrderedCollectionPage of outbound activities.
 // The `storage` parameter is assumed to already contain any necessary filtering information
 // such as Actor permissions and "after" cursors.
-func Serve(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc) error {
+func Serve(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc, options ...Option) error {
+
+	config := NewConfig(options...)
 
 	// If we have an "after" parameter, then return the OrderedCollectionPage
 	// corresponding to all activities after the provided ID
 	if after := ctx.QueryParam("after"); after != "" {
-		return serveOrderedCollectionPage(ctx, idFunc, countFunc, iteratorFunc, after)
+		return serveOrderedCollectionPage(ctx, idFunc, iteratorFunc, after, config)
 	}
 
 	// Otherwise, return the OrderedCollection container
-	return serveOrderedCollection(ctx, idFunc, countFunc, iteratorFunc)
+	return serveOrderedCollection(ctx, idFunc, countFunc, iteratorFunc, config)
 }
 
-func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc) error {
+func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc, config Config) error {
 
 	const location = "collection.serveOrderedCollection"
 
@@ -44,6 +46,10 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 		vocab.PropertyType:       vocab.CoreTypeOrderedCollection,
 		vocab.PropertyID:         idFunc(),
 		vocab.PropertyTotalItems: totalItems,
+	}
+
+	if config.SSEEndpoint != "" {
+		result[vocab.PropertyEventStream] = config.SSEEndpoint
 	}
 
 	if totalItems == 0 {
@@ -71,7 +77,7 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 
 // serveOrderedCollectionPage serves a single page of activities from the OrderedCollection
 // starting after the provided activity ID.
-func serveOrderedCollectionPage(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc, after string) error {
+func serveOrderedCollectionPage(ctx echo.Context, idFunc IdentifierFunc, iteratorFunc IteratorFunc, after string, config Config) error {
 
 	const location = "collection.serveOrderedCollectionPage"
 
