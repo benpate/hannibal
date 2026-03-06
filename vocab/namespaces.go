@@ -10,3 +10,7 @@ const NamespaceActivityStreamsPublic = "https://www.w3.org/ns/activitystreams#Pu
 // Abbreviated namespace for ActivityStreams Public
 // https://www.w3.org/TR/activitypub/#public-addressing
 const NamespaceASPublic = "as:Public"
+
+// Compacted namespace for "Public" addressing in ActivityPub
+// https://www.w3.org/TR/activitypub/#public-addressing
+const NamespacePublic = "Public"
