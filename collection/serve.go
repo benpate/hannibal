@@ -16,21 +16,21 @@ import (
 // returning ActivityStreams OrderedCollection or OrderedCollectionPage of outbound activities.
 // The `storage` parameter is assumed to already contain any necessary filtering information
 // such as Actor permissions and "after" cursors.
-func Serve(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc, options ...Option) error {
+func Serve(ctx echo.Context, collectionID string, countFunc CounterFunc, iteratorFunc IteratorFunc, options ...Option) error {
 
 	config := NewConfig(options...)
 
 	// If we have an "after" parameter, then return the OrderedCollectionPage
 	// corresponding to all activities after the provided ID
 	if after := ctx.QueryParam("after"); after != "" {
-		return serveOrderedCollectionPage(ctx, idFunc, iteratorFunc, after, config)
+		return serveOrderedCollectionPage(ctx, collectionID, iteratorFunc, after, config)
 	}
 
 	// Otherwise, return the OrderedCollection container
-	return serveOrderedCollection(ctx, idFunc, countFunc, iteratorFunc, config)
+	return serveOrderedCollection(ctx, collectionID, countFunc, iteratorFunc, config)
 }
 
-func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc CounterFunc, iteratorFunc IteratorFunc, config Config) error {
+func serveOrderedCollection(ctx echo.Context, collectionID string, countFunc CounterFunc, iteratorFunc IteratorFunc, config Config) error {
 
 	const location = "collection.serveOrderedCollection"
 
@@ -44,7 +44,7 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 	result := mapof.Any{
 		vocab.AtContext:          vocab.ContextTypeActivityStreams,
 		vocab.PropertyType:       vocab.CoreTypeOrderedCollection,
-		vocab.PropertyID:         idFunc(),
+		vocab.PropertyID:         collectionID,
 		vocab.PropertyTotalItems: totalItems,
 	}
 
@@ -60,7 +60,7 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 	// don't include them all here.  Instead, provide a "first" link
 	// to the first page of results.
 	if totalItems > 60 {
-		result[vocab.PropertyFirst] = idFunc() + "?after=FIRST"
+		result[vocab.PropertyFirst] = collectionID + "?after=FIRST"
 		return serveJSON(ctx, http.StatusOK, result)
 	}
 
@@ -77,7 +77,7 @@ func serveOrderedCollection(ctx echo.Context, idFunc IdentifierFunc, countFunc C
 
 // serveOrderedCollectionPage serves a single page of activities from the OrderedCollection
 // starting after the provided activity ID.
-func serveOrderedCollectionPage(ctx echo.Context, idFunc IdentifierFunc, iteratorFunc IteratorFunc, after string, config Config) error {
+func serveOrderedCollectionPage(ctx echo.Context, collectionID string, iteratorFunc IteratorFunc, after string, config Config) error {
 
 	const location = "collection.serveOrderedCollectionPage"
 
@@ -87,8 +87,6 @@ func serveOrderedCollectionPage(ctx echo.Context, idFunc IdentifierFunc, iterato
 	if err != nil {
 		return derp.Wrap(err, location, "Unable to retrieve outbox activities")
 	}
-
-	collectionID := idFunc()
 
 	// Build the OrderedCollectionPage response
 	result := mapof.Any{
