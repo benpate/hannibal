@@ -57,6 +57,26 @@ func (document Document) NotObject() bool {
 	return !document.IsObject()
 }
 
+// If this document is an activity (create, update, delete, etc), then
+// this method returns the activity's Object.  Otherwise, it returns
+// the document itself.
+func (document Document) UnwrapActivity() Document {
+
+	// If this is an "Activity" type, the dig deeper into the object
+	// to find the actual document.
+	// This is recursive because it's possible to have a deep tree
+	// such as Announce > Create > Document. Looking at you, Lemmy...
+	if document.IsActivity() {
+		return document.Object().UnwrapActivity()
+	}
+
+	return document
+}
+
+/******************************************
+ * Image/Icon Metadata
+ ******************************************/
+
 // HasIcon returns TRUE if this document has a valid Icon property
 func (document Document) HasIcon() bool {
 	return document.Icon().NotNil()
@@ -66,6 +86,45 @@ func (document Document) HasIcon() bool {
 func (document Document) HasImage() bool {
 	return document.Image().NotNil()
 }
+
+// HasDimensions returns TRUE if this document has non-zero values for both "width" and "height"
+func (document Document) HasDimensions() bool {
+	return document.Width() > 0 && document.Height() > 0
+}
+
+// FirstImageAttachment scans all attachments and returns the first
+// one with a media type that begins with "image/"
+func (document Document) FirstImageAttachment() Image {
+
+	for attachment := range document.Attachment().Range() {
+		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType()) // nolint:scopeguard c'mon man. scoping this below will make the one line WAAAAY too long
+
+		if strings.HasPrefix(mediaType, "image/") {
+			return NewImage(attachment.Head())
+		}
+	}
+
+	return NewImage("")
+}
+
+// AspectRatio inspects a Document's "width" and "height" properties
+// and (if they are non-zero) returns a computed aspect ratio
+func (document Document) AspectRatio() string {
+
+	width := document.Width()
+	height := document.Height()
+
+	if width == 0 || height == 0 {
+		return "auto"
+	}
+
+	ratio := float64(width) / float64(height)
+	return strconv.FormatFloat(ratio, 'f', -1, 64)
+}
+
+/******************************************
+ * Content Metadata
+ ******************************************/
 
 // HasContent returns TRUE if this document has a valid Content property
 func (document Document) HasContent() bool {
@@ -77,37 +136,7 @@ func (document Document) HasSummary() bool {
 	return document.Summary() != ""
 }
 
-func (document Document) HasDimensions() bool {
-	return document.Width() > 0 && document.Height() > 0
-}
-
-// Recipients retrieves all recipients of an activity,
-// i.e. actors identified in the to, cc, bcc, and bto fields
-func (document Document) Recipients() sliceof.String {
-
-	result := make([]string, 0)
-
-	// Define properties to scan
-	properties := []string{
-		vocab.PropertyTo,
-		vocab.PropertyCC,
-		vocab.PropertyBTo,
-		vocab.PropertyBCC,
-	}
-
-	// Scan each property in the list, adding IDs to the result
-	for _, property := range properties {
-
-		for value := range document.Get(property).Range() {
-			result = append(result, value.ID())
-		}
-	}
-
-	// Success
-	return result
-}
-
-// SummaryWithTagLinks
+// SummaryWithTagLinks returns the document's summary with any "tag" mentions converted to HTML links
 func (document Document) SummaryWithTagLinks() string {
 
 	summary := document.Summary()
@@ -150,50 +179,53 @@ func (document Document) SummaryWithTagLinks() string {
 	return summary
 }
 
-// FirstImageAttachment scans all attachments and returns the first
-// one with a media type that begins with "image/"
-func (document Document) FirstImageAttachment() Image {
+/******************************************
+ * Delivery Metadata
+ ******************************************/
 
-	for attachment := range document.Attachment().Range() {
-		mediaType, _, _ := mime.ParseMediaType(attachment.MediaType()) // nolint:scopeguard c'mon man. scoping this below will make the one line WAAAAY too long
+// IsPublic returns TRUE if this document is addressed to the "Public" namespace
+// https://www.w3.org/TR/activitypub/#public-addressing
+func (document Document) IsPublic() bool {
 
-		if strings.HasPrefix(mediaType, "image/") {
-			return NewImage(attachment.Head())
+	public := []string{
+		vocab.NamespaceActivityStreamsPublic,
+		vocab.NamespaceASPublic,
+		vocab.NamespacePublic,
+	}
+
+	return document.Recipients().ContainsAny(public...)
+}
+
+// NotPublic returns TRUE if this document is NOT addressed to the "Public" namespace
+// https://www.w3.org/TR/activitypub/#public-addressing
+func (document Document) NotPublic() bool {
+	return !document.IsPublic()
+}
+
+// Recipients retrieves all recipients of an activity,
+// i.e. actors identified in the to, cc, bcc, and bto fields
+func (document Document) Recipients() sliceof.String {
+
+	result := make([]string, 0)
+
+	// Define properties to scan
+	properties := []string{
+		vocab.PropertyTo,
+		vocab.PropertyCC,
+		vocab.PropertyBTo,
+		vocab.PropertyBCC,
+	}
+
+	// Scan each property in the list, adding IDs to the result
+	for _, property := range properties {
+
+		for value := range document.Get(property).Range() {
+			result = append(result, value.ID())
 		}
 	}
 
-	return NewImage("")
-}
-
-// AspectRatio inspects a Document's "width" and "height" properties
-// and (if they are non-zero) returns a computed aspect ratio
-func (document Document) AspectRatio() string {
-
-	width := document.Width()
-	height := document.Height()
-
-	if width == 0 || height == 0 {
-		return "auto"
-	}
-
-	ratio := float64(width) / float64(height)
-	return strconv.FormatFloat(ratio, 'f', -1, 64)
-}
-
-// If this document is an activity (create, update, delete, etc), then
-// this method returns the activity's Object.  Otherwise, it returns
-// the document itself.
-func (document Document) UnwrapActivity() Document {
-
-	// If this is an "Activity" type, the dig deeper into the object
-	// to find the actual document.
-	// This is recursive because it's possible to have a deep tree
-	// such as Announce > Create > Document. Looking at you, Lemmy...
-	if document.IsActivity() {
-		return document.Object().UnwrapActivity()
-	}
-
-	return document
+	// Success
+	return result
 }
 
 // PreferredInbox returns an actor's Shared Inbox (if available)
