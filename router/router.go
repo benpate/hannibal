@@ -66,8 +66,6 @@ func (router *Router[T]) ReceiveAndHandle(context T, request *http.Request, clie
 // Handle takes an ActivityPub activity and routes it to the appropriate handler
 func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
-	const location = "hannibal.inbox.Router.Handle"
-
 	activityType := activity.Type()
 
 	// If this is a Document (not an Activity) then wrap it in
@@ -88,7 +86,7 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	// Log all incoming activity... except delete messages because Mastodon is way too chatty
 	if canDebug() && (activityType != vocab.ActivityTypeDelete) {
-		log.Debug().Str("activity", activityType).Str("type", activity.Object().Type()).Msg("Hannibal Router: Received Message")
+		log.Debug().Str("activity", activityType).Str("type", activity.Object().Type()).Msg("Hannibal Router: Handle Message")
 
 		if canTrace() {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
@@ -120,5 +118,6 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		return routeHandler(context, activity)
 	}
 
-	return derp.BadRequest(location, "No route found for activity", activityType, activity.Object().Types(), activity.Value())
+	log.Trace().Str("activity", activity.Type()).Str("object", activity.Object().Type()).Msg("No match found for activity")
+	return nil
 }
