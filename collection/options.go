@@ -1,22 +1,5 @@
 package collection
 
-// Config represents optional configuration parameters for a collection
-type Config struct {
-	SSEEndpoint string
-}
-
-// NewConfig creates a new Config struct with the provided options
-func NewConfig(options ...Option) Config {
-
-	config := Config{}
-
-	for _, option := range options {
-		option(&config)
-	}
-
-	return config
-}
-
 // Option is a functional option that can be used to configure a collection
 type Option func(config *Config)
 
@@ -24,5 +7,17 @@ type Option func(config *Config)
 func WithSSEEndpoint(endpoint string) Option {
 	return func(config *Config) {
 		config.SSEEndpoint = endpoint
+	}
+}
+
+func WithAttributedTo(attributedTo string) Option {
+	return func(config *Config) {
+		config.AttributedTo = attributedTo
+	}
+}
+
+func WithAudience(audience string) Option {
+	return func(config *Config) {
+		config.Audience = audience
 	}
 }

@@ -52,14 +52,27 @@ func serveOrderedCollection(ctx echo.Context, collectionID string, countFunc Cou
 		vocab.PropertyTotalItems: totalItems,
 	}
 
-	if config.SSEEndpoint != "" {
-		result[vocab.PropertyEventStream] = config.SSEEndpoint
-	}
+	config.Apply(&result)
 
+	// If there are no items, then return an empty collection
 	if totalItems == 0 {
 		return serveJSON(ctx, http.StatusOK, result)
 	}
 
+	// If we only have one page worth of items, then return it directly in the "orderedItems" property
+	if totalItems < maxItemsPerPage {
+		orderedItems, _, err := getItems(iteratorFunc, "")
+
+		if err != nil {
+			return derp.Wrap(err, location, "Unable to retrieve outbox activities")
+		}
+
+		result[vocab.PropertyOrderedItems] = orderedItems
+		return serveJSON(ctx, http.StatusOK, result)
+
+	}
+
+	// Otherwise, break the collection into pages. Return the FIRST page URL
 	result[vocab.PropertyFirst] = collectionID + "?after=FIRST"
 	return serveJSON(ctx, http.StatusOK, result)
 }
