@@ -1,6 +1,6 @@
 module github.com/benpate/hannibal
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/benpate/derp v0.35.0
@@ -9,6 +9,7 @@ require (
 	github.com/benpate/remote v0.18.0
 	github.com/benpate/rosetta v0.25.30
 	github.com/benpate/turbine v0.4.6
+	github.com/benpate/uri v0.0.6
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/rs/zerolog v1.34.0
@@ -26,9 +27,9 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.48.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
