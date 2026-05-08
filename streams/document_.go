@@ -11,6 +11,7 @@ import (
 	"github.com/benpate/rosetta/convert"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/sliceof"
+	"github.com/benpate/uri"
 	"github.com/microcosm-cc/bluemonday"
 )
 
@@ -205,6 +206,11 @@ func (document Document) Load(options ...any) (Document, error) {
 	// Guarantee that we have an actual value
 	if documentID == "" {
 		return NilDocument(), nil
+	}
+
+	// Require that the DocumentID is a valid URL
+	if !uri.IsValidURL(documentID) {
+		return NilDocument(), derp.BadRequest(location, "Document ID is not a valid URL", documentID)
 	}
 
 	// Try to load the document from the Interwebs
