@@ -12,8 +12,8 @@ github.com/benpate/remote v0.18.0 h1:Rrm3Iam2zEfyPKNXubBXY7lr267V7/f4bWqs4wRocA8
 github.com/benpate/remote v0.18.0/go.mod h1:nM+T4v6NgIcLRRYmgNbXykMPL2qJEG6EjhOZD9P/3r4=
 github.com/benpate/rosetta v0.25.30 h1:3LHKSROv7lxtfdlVLEfDD6YViMZHPa4pZDjLaivCnTo=
 github.com/benpate/rosetta v0.25.30/go.mod h1:uLB6ROkXaKe9HpGsX5oqwy8ZsgVRrcTJvckwi5veHcM=
-github.com/benpate/turbine v0.4.6 h1:H7jzL85r+iZ1aSj2RigkRygF2rSvfiASCPuJKO1QfxQ=
-github.com/benpate/turbine v0.4.6/go.mod h1:6Jobp3XYlM17Z/JWasRAv4x427oQ05cQxGXm2U+u50w=
+github.com/benpate/turbine v0.4.8 h1:LpSimm7l1tbLo0Iv0zsVQtE/sUBuxstDAj9m3pl4X5o=
+github.com/benpate/turbine v0.4.8/go.mod h1:6Jobp3XYlM17Z/JWasRAv4x427oQ05cQxGXm2U+u50w=
 github.com/benpate/uri v0.0.6 h1:Gmm2R+2VnPtyketYbjkMRpS90lSijolQNX/oL4wR63A=
 github.com/benpate/uri v0.0.6/go.mod h1:WLR3zb1z2jofISX+gB55gJ/+w3yZJszi52pqIQstd4E=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
