@@ -67,6 +67,7 @@ func (router *Router[T]) ReceiveAndHandle(context T, request *http.Request, clie
 func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	activityType := activity.Type()
+	activityObject := activity.Object().LoadLink()
 
 	// If this is a Document (not an Activity) then wrap it in
 	// an implicit "Create" activity before routing.
@@ -86,7 +87,7 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	// Log all incoming activity... except delete messages because Mastodon is way too chatty
 	if canDebug() && (activityType != vocab.ActivityTypeDelete) {
-		log.Debug().Str("activity", activityType).Str("type", activity.Object().Type()).Msg("Hannibal Router: Handle Message")
+		log.Debug().Str("activity", activityType).Str("type", activityObject.Type()).Msg("Hannibal Router: Handle Message")
 
 		if canTrace() {
 			marshalled, _ := json.MarshalIndent(activity.Value(), "", "  ")
@@ -95,7 +96,7 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 	}
 
 	// Loop through all object Type values (though there's usually just one) to find a matching route
-	for _, objectType := range activity.Object().Types() {
+	for _, objectType := range activityObject.Types() {
 
 		if routeHandler, ok := router.routes[activityType+"/"+objectType]; ok {
 			log.Trace().Str("type", activityType+"/"+objectType).Msg("Hannibal Router: route matched.")
@@ -118,6 +119,6 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		return routeHandler(context, activity)
 	}
 
-	log.Trace().Str("activity", activity.Type()).Str("object", activity.Object().Type()).Msg("No match found for activity")
+	log.Trace().Str("activity", activity.Type()).Str("object", activityObject.Type()).Msg("No match found for activity")
 	return nil
 }
