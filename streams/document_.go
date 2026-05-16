@@ -412,6 +412,13 @@ func (document *Document) WithOptions(options ...DocumentOption) {
 	}
 }
 
+func (document Document) AddOptions(options ...DocumentOption) Document {
+	for _, option := range options {
+		option(&document)
+	}
+	return document
+}
+
 func (document *Document) getClient() Client {
 
 	if document.client != nil {
