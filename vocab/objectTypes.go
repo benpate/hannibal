@@ -48,16 +48,16 @@ const ObjectTypeVideo = "Video"
  ******************************************/
 
 // https://swicg.github.io/activitypub-e2ee/mls#GroupInfo
-const ObjectTypeGroupInfo = "mls:GroupInfo"
+const ObjectTypeGroupInfo = "GroupInfo"
 
 // https://swicg.github.io/activitypub-e2ee/mls#KeyPackage
-const ObjectTypeKeyPackage = "mls:KeyPackage"
+const ObjectTypeKeyPackage = "KeyPackage"
 
 // https://swicg.github.io/activitypub-e2ee/mls#PublicMessage
-const ObjectTypePublicMessage = "mls:PublicMessage"
+const ObjectTypePublicMessage = "PublicMessage"
 
 // https://swicg.github.io/activitypub-e2ee/mls#PrivateMessage
-const ObjectTypePrivateMessage = "mls:PrivateMessage"
+const ObjectTypePrivateMessage = "PrivateMessage"
 
 // https://swicg.github.io/activitypub-e2ee/mls#Welcome
-const ObjectTypeWelcome = "mls:Welcome"
+const ObjectTypeWelcome = "Welcome"

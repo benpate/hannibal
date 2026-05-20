@@ -16,10 +16,10 @@ const PropertyFollowers = "followers"
 const PropertyInbox = "inbox"
 
 // https://swicg.github.io/activitypub-e2ee/mls#keyPackages
-const PropertyMLSKeyPackages = "mls:keyPackages"
+const PropertyMLSKeyPackages = "keyPackages"
 
 // https://swicg.github.io/activitypub-e2ee/mls#messages
-const PropertyMLSMessages = "mls:messages"
+const PropertyMLSMessages = "messages"
 
 // https://www.w3.org/TR/activitypub/#liked
 const PropertyLiked = "liked"
