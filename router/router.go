@@ -71,12 +71,12 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	// If this is a Document (not an Activity) then wrap it in
 	// an implicit "Create" activity before routing.
-	if vocab.ValidateActivityType(activityType) == vocab.Unknown {
+	if activity.IsObject() {
 
 		newValue := property.Map{
 			vocab.AtContext:      activity.AtContext(),
 			vocab.PropertyID:     activity.ID(),
-			vocab.PropertyActor:  activity.Actor(),
+			vocab.PropertyActor:  activity.Actor().ID(),
 			vocab.PropertyType:   vocab.ActivityTypeCreate,
 			vocab.PropertyObject: activity.Value(),
 		}
