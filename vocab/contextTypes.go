@@ -15,9 +15,12 @@ const ContextTypeSocialWebMLS = "https://purl.archive.org/socialweb/mls"
 
 // https://joinmastodon.org/ns#
 var ContextTypeToot = map[string]any{
-	"toot":         "https://joinmastodon.org/ns#",
-	"discoverable": "toot:discoverable",
-	"indexable":    "toot:indexable",
+	"toot":          "https://joinmastodon.org/ns#",
+	"schema":        "http://schema.org#",
+	"PropertyValue": "schema:PropertyValue",
+	"value":         "schema:value",
+	"discoverable":  "toot:discoverable",
+	"indexable":     "toot:indexable",
 	"featured": map[string]any{
 		"@id":   "http://joinmastodon.org/ns#featured",
 		"@type": "@id",
