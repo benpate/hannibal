@@ -131,6 +131,9 @@ const PropertyMediaType = "mediaType"
 // https://swicg.github.io/activitypub-data-portability/lola
 const PropertyMigration = "migration"
 
+// https://swicg.github.io/activitypub-e2ee/mls#ciphersuite
+const PropertyMLSCiphersuite = "ciphersuite"
+
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 const PropertyName = "name"
 

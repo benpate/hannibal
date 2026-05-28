@@ -165,11 +165,6 @@ func (document Document) InReplyTo() Document {
 	return document.Get(vocab.PropertyInReplyTo)
 }
 
-// https://swicg.github.io/activitypub-e2ee/mls#keyPackages
-func (document Document) MLSKeyPackages() Document {
-	return document.Get(vocab.PropertyMLSKeyPackages)
-}
-
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-instrument
 func (document Document) Instrument() Document {
 	return document.Get(vocab.PropertyInstrument)
@@ -202,6 +197,16 @@ func (document Document) Last() Document {
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-location
 func (document Document) Location() Document {
 	return document.Get(vocab.PropertyLocation)
+}
+
+// https://swicg.github.io/activitypub-e2ee/mls#ciphersuite
+func (document Document) MLSCiphersuite() string {
+	return document.Get(vocab.PropertyMLSCiphersuite).String()
+}
+
+// https://swicg.github.io/activitypub-e2ee/mls#keyPackages
+func (document Document) MLSKeyPackages() Document {
+	return document.Get(vocab.PropertyMLSKeyPackages)
 }
 
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-oneof
