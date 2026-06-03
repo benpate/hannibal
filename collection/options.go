@@ -10,12 +10,16 @@ func WithSSEEndpoint(endpoint string) Option {
 	}
 }
 
+// WithAttributedTo sets the "attributedTo" property for this collection,
+// which indicates the entity responsible for the collection's content
 func WithAttributedTo(attributedTo string) Option {
 	return func(config *Config) {
 		config.AttributedTo = attributedTo
 	}
 }
 
+// WithAudience sets the "audience" property for this collection,
+// which indicates the intended audience for the collection's content
 func WithAudience(audience string) Option {
 	return func(config *Config) {
 		config.Audience = audience
