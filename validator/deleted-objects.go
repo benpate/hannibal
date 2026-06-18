@@ -18,12 +18,12 @@ func NewDeletedObject() DeletedObject {
 }
 
 // Validate implements the Validator interface, which performs the actual validation.
-func (v DeletedObject) Validate(request *http.Request, document *streams.Document) Result {
+func (v DeletedObject) Validate(request *http.Request, activity *streams.Document) Result {
 
 	const location = "hannibal.validator.DeletedObject"
 
 	// Only validate "Delete" activities
-	if document.Type() != vocab.ActivityTypeDelete {
+	if activity.Type() != vocab.ActivityTypeDelete {
 		return ResultUnknown
 	}
 
@@ -32,7 +32,7 @@ func (v DeletedObject) Validate(request *http.Request, document *streams.Documen
 	// time.Sleep(10 * time.Minute)
 
 	// Retrieve the objectID from the document
-	objectID := document.Object().ID()
+	objectID := activity.Object().ID()
 
 	if objectID == "" {
 		return ResultInvalid

@@ -16,37 +16,29 @@ func NewHTTPLookup() HTTPLookup {
 	return HTTPLookup{}
 }
 
-func (v HTTPLookup) Validate(request *http.Request, document *streams.Document) Result {
+func (v HTTPLookup) Validate(request *http.Request, activity *streams.Document) Result {
 
 	// 	return ResultUnknown
 
 	const location = "hannibal.validator.HTTPLookup"
 
-	switch document.Type() {
+	switch activity.Type() {
 	case vocab.ActivityTypeCreate, vocab.ActivityTypeUpdate:
 	default:
 		return ResultUnknown
 	}
 
 	// Get the ObjectID of the document
-	objectID := document.Object().ID()
-
-	if objectID == "" {
-		return ResultInvalid
-	}
-
-	// Load the original document
-	original, err := document.Client().Load(objectID)
+	object, err := activity.Object().Load()
 
 	if err != nil {
-		derp.Report(derp.Wrap(err, location, "Unable to load original document", objectID))
+		derp.Report(derp.Wrap(err, location, "Loading original document"))
 	}
 
 	// Extract the value from the "original" retrieved document and replace it int the
 	// document that was passed in
-	value := original.Value()
-	propertyValue := property.NewValue(value)
-	document.SetValue(propertyValue)
+	propertyValue := property.NewValue(object.Value())
+	activity.SetValue(propertyValue)
 
 	// Return in triumph
 	return ResultValid

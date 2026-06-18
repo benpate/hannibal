@@ -14,8 +14,8 @@ func NewReceiveConfig(options ...Option) ReceiveConfig {
 	result := ReceiveConfig{
 		Validators: []Validator{
 
-			// checks HTTP signatures
-			validator.NewHTTPSig(),
+			// checks HTTP signatures (nil = use default key finder)
+			validator.NewHTTPSig(nil),
 
 			// checks if objects have been deleted
 			validator.NewDeletedObject(),

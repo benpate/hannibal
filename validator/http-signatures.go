@@ -12,26 +12,47 @@ import (
 // HTTPSig is a Validator that checks incoming HTTP requests
 // using the HTTP signatures algorithm.
 // https://docs.joinmastodon.org/spec/security/
-type HTTPSig struct{}
+type HTTPSig struct {
+	keyFinder sigs.PublicKeyFinder
+}
 
-func NewHTTPSig() HTTPSig {
-	return HTTPSig{}
+// NewHTTPSig returns a fully initialized HTTPSig validator. The provided
+// keyFinder is OPTIONAL: if it is nil, the validator uses its default behavior
+// of loading the signing Actor's public key from the inbound document.
+func NewHTTPSig(keyFinder sigs.PublicKeyFinder) HTTPSig {
+
+	return HTTPSig{
+		keyFinder: keyFinder,
+	}
 }
 
 // Validate uses the hannibal/sigs library to verify that the HTTP
 // request is signed with a valid key.
-func (validator HTTPSig) Validate(request *http.Request, document *streams.Document) Result {
+func (validator HTTPSig) Validate(request *http.Request, activity *streams.Document) Result {
 
 	if !sigs.HasSignature(request) {
 		return ResultUnknown
 	}
 
-	// Find the public key for the Actor who signed this request
-	keyFinder := validator.keyFinder(document)
+	// Try to use the KeyFinder configured in this Validator.
+	keyFinder := validator.keyFinder
+
+	// If none is provided, then use the default KeyFinder, which looks up the Actor's public key from the document.
+	if keyFinder == nil {
+		keyFinder = defaultKeyFinder(activity)
+	}
 
 	// Verify the request using the Actor's public key
-	if _, err := sigs.Verify(request, keyFinder); err != nil {
+	signature, err := sigs.Verify(request, keyFinder)
+
+	if err != nil {
 		log.Trace().Err(err).Msg("Hannibal Inbox: Error verifying HTTP Signature")
+		return ResultInvalid
+	}
+
+	// Actor who owns the signature must match the Actor in the Activity.
+	if signature.ActorID() != activity.Actor().ID() {
+		log.Trace().Str("signatureActor", signature.ActorID()).Str("activityActor", activity.Actor().ID()).Msg("Hannibal Inbox: HTTP Signature Actor does not match Activity Actor")
 		return ResultInvalid
 	}
 
@@ -39,24 +60,26 @@ func (validator HTTPSig) Validate(request *http.Request, document *streams.Docum
 	return ResultValid
 }
 
-// keyFinder looks up the public Key for the provided document/Actor using the
-// HTTP client in the document.
-func (validator HTTPSig) keyFinder(document *streams.Document) sigs.PublicKeyFinder {
+// keyFinder looks up the public Key for the provided activity/Actor using the
+// HTTP client in the activity.
+func defaultKeyFinder(activity *streams.Document) sigs.PublicKeyFinder {
 
-	const location = "hannibal.validator.HTTPSig.keyFinder"
+	const location = "hannibal.validator.defaultKeyFinder"
 
 	return func(keyID string) (string, error) {
 
-		// Load the Actor from the document
-		actor, err := document.Actor().Load()
+		// Create a fresh client to load the Actor from the activity
+		actor, err := streams.NewDocument(activity.Actor().ID()).Load()
 
 		if err != nil {
-			return "", derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document", document.Value())
+			return "", derp.Wrap(err, location, "Retrieving Actor from ActivityPub activity", activity.Value())
 		}
 
 		// Search the Actor's public keys for the one that matches the provided keyID
 		for key := actor.PublicKey(); key.NotNil(); key = key.Tail() {
 
+			// Verify that the key ID retrieved from the Actor matches the key ID provided in the Signature
+			// Without this step, it is possible for an attacker to sign a request with a key that does not belong to the Actor.
 			if key.ID() == keyID {
 				return key.PublicKeyPEM(), nil
 			}
