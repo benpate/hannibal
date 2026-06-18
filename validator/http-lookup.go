@@ -18,8 +18,6 @@ func NewHTTPLookup() HTTPLookup {
 
 func (v HTTPLookup) Validate(request *http.Request, activity *streams.Document) Result {
 
-	// 	return ResultUnknown
-
 	const location = "hannibal.validator.HTTPLookup"
 
 	switch activity.Type() {
