@@ -14,8 +14,6 @@ func NewReceiveConfig(options ...Option) ReceiveConfig {
 	result := ReceiveConfig{
 		Validators: []Validator{
 
-			// TODO: check Object Integrity Proofs?
-
 			// checks HTTP signatures
 			validator.NewHTTPSig(),
 
