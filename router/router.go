@@ -67,7 +67,6 @@ func (router *Router[T]) ReceiveAndHandle(context T, request *http.Request, clie
 func (router *Router[T]) Handle(context T, activity streams.Document) error {
 
 	activityType := activity.Type()
-	activityObject := activity.Object().LoadLink()
 
 	// If this is a Document (not an Activity) then wrap it in
 	// an implicit "Create" activity before routing.
@@ -84,6 +83,11 @@ func (router *Router[T]) Handle(context T, activity streams.Document) error {
 		activity.SetValue(newValue)
 		activityType = vocab.ActivityTypeCreate
 	}
+
+	// Resolve the object AFTER any implicit-Create wrapping, so that object-type
+	// routing (e.g. Create/Note) sees the real wrapped object rather than the
+	// pre-wrap value.
+	activityObject := activity.Object().LoadLink()
 
 	// Log all incoming activity... except delete messages because Mastodon is way too chatty
 	if canDebug() && (activityType != vocab.ActivityTypeDelete) {
