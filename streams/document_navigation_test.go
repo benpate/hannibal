@@ -129,25 +129,34 @@ func TestDocument_MapKeys(t *testing.T) {
 	assert.Empty(t, NewDocument("string").MapKeys())
 }
 
-// TestDocument_SliceOfString_EmptyElementRecursion documents a KNOWN BUG that
-// is intentionally NOT executed: a slice document containing an empty-string
-// element overflows the stack when projected with SliceOfString (or any path
-// that calls ID() on the empty element).
+// TestDocument_SliceOfString_EmptyElement confirms a slice document containing
+// an empty-string element is projected safely, without recursing.
 //
-// Minimal reproducer (DO NOT run -- it is a fatal, unrecoverable stack overflow,
-// not a recoverable panic):
-//
-//	NewDocument([]any{"", "https://example.com/1"}).SliceOfString()
-//
-// Root cause: Document.Get on an empty string enters the remote Load() path
-// (document_.go:121); Load() calls ID(), ID() calls Get(), and the cycle never
-// terminates because the empty id never short-circuits in the slice context.
-// The empty element commonly arises from the Append bug (see TestDocument_Append).
-// This test is skipped so it records the bug without crashing the suite.
-func TestDocument_SliceOfString_EmptyElementRecursion(t *testing.T) {
-	t.Skip("KNOWN BUG: SliceOfString on a slice with an empty-string element " +
-		"recurses infinitely (fatal stack overflow). See streams/document_.go Get/Load/ID. " +
-		"Not executed because the overflow is unrecoverable and would crash the test binary.")
+// Regression guard: a non-URL string element (here, "") must NOT enter the
+// remote Load() path in Get, which previously caused Get -> Load -> ID -> Get to
+// recurse infinitely (a fatal stack overflow). An empty/non-URL string has no
+// id to load, so SliceOfString simply yields an empty id for that element.
+func TestDocument_SliceOfString_EmptyElement(t *testing.T) {
+
+	doc := NewDocument([]any{"", "https://example.com/1"})
+
+	// Must complete without overflowing the stack.
+	result := doc.SliceOfString()
+
+	assert.Equal(t, []string{"", "https://example.com/1"}, []string(result))
+}
+
+// TestDocument_Get_NonURLString confirms Get on a bare non-URL string never
+// attempts a remote Load and never recurses; it returns Nil for any non-id key.
+func TestDocument_Get_NonURLString(t *testing.T) {
+
+	doc := NewDocument("not-a-url")
+
+	// The id of a bare string is the string itself.
+	assert.Equal(t, "not-a-url", doc.Get(vocab.PropertyID).String())
+
+	// Any other property is absent (and must not trigger a Load / recursion).
+	assert.True(t, doc.Get(vocab.PropertyName).IsNil())
 }
 
 // TestDocument_Clone confirms a cloned document carries an independent value:

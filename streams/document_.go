@@ -116,10 +116,14 @@ func (document Document) Get(key string) Document {
 			return document
 		}
 
-		// All other properties require a Load from the Interweb.
-		// Update this document with the loaded result.
-		if loaded, err := document.Load(); err == nil {
-			document.value = loaded.value
+		// All other properties require a Load from the Interweb, but only if the
+		// string is actually a loadable URL. Empty or non-URL strings have
+		// nothing to load; attempting to do so would recurse infinitely through
+		// Load -> ID -> Get (Load and ID both call Get on this same string).
+		if uri.IsValidURL(document.rawString()) {
+			if loaded, err := document.Load(); err == nil {
+				document.value = loaded.value
+			}
 		}
 	}
 

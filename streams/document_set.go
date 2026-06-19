@@ -32,10 +32,12 @@ func (document *Document) Append(name string, value any) bool {
 		return false
 	}
 
-	currentValue := convert.SliceOfAny(document.value.Head().Get(name))
+	// Read the current values via the unwrapped raw value. Passing the Document
+	// wrapper to SliceOfAny would seed a phantom "" and drop the prior contents.
+	currentValue := convert.SliceOfAny(document.Get(name).Value())
 	newValue := append(currentValue, value)
 
-	document.value.Set(name, newValue)
+	document.value = document.value.Set(name, newValue)
 	return true
 }
 
@@ -47,10 +49,12 @@ func (document *Document) AppendString(name string, value string) bool {
 		return false
 	}
 
-	currentValue := convert.SliceOfAny(document.value.Head().Get(name))
+	// Read the current values via the unwrapped raw value. Passing the Document
+	// wrapper to SliceOfAny would seed a phantom "" and drop the prior contents.
+	currentValue := convert.SliceOfAny(document.Get(name).Value())
 	newValue := append(currentValue, value)
 
-	document.value.Set(name, newValue)
+	document.value = document.value.Set(name, newValue)
 	return true
 }
 

@@ -24,6 +24,14 @@ func (document Document) MarshalJSON() ([]byte, error) {
 // essentially just aiming the unmashaller at the
 // Document's value
 func (document *Document) UnmarshalJSON(bytes []byte) error {
+
+	// Guard against a zero-value Document, whose value is a nil interface.
+	// json.Unmarshal into &Document{} is the idiomatic call path, so this must
+	// not panic on document.value.Raw().
+	if document.value == nil {
+		document.value = property.Nil{}
+	}
+
 	value := document.value.Raw()
 	if err := json.Unmarshal(bytes, &value); err != nil {
 		return derp.Wrap(err, "streams.Document.UnmarshalJSON", "Error unmarshalling JSON into Document")

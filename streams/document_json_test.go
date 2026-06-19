@@ -21,9 +21,7 @@ func TestDocument_MarshalJSON(t *testing.T) {
 }
 
 // TestDocument_UnmarshalJSON confirms a document unmarshals JSON into its value
-// and the accessors then read it back. The document must be constructed via
-// NewDocument first -- see TestDocument_UnmarshalJSON_ZeroValuePanics for the
-// known bug that affects a zero-value Document.
+// and the accessors then read it back.
 func TestDocument_UnmarshalJSON(t *testing.T) {
 
 	doc := NewDocument(nil)
@@ -34,26 +32,24 @@ func TestDocument_UnmarshalJSON(t *testing.T) {
 	assert.Equal(t, "Alice", doc.Name())
 }
 
-// TestDocument_UnmarshalJSON_ZeroValuePanics documents a KNOWN BUG: unmarshalling
-// into a zero-value Document{} -- the idiomatic `var d Document; json.Unmarshal`
-// -- panics with a nil pointer dereference, because document.value is a nil
-// interface and UnmarshalJSON calls document.value.Raw() without a guard.
-// See streams/document_json.go:27. The fix is a one-line nil check; until then
-// callers must use NewDocument(). This test asserts the panic so the suite stays
-// green while the bug is on record -- it is NOT an endorsement of the behavior.
-func TestDocument_UnmarshalJSON_ZeroValuePanics(t *testing.T) {
+// TestDocument_UnmarshalJSON_ZeroValue confirms the idiomatic
+// `var d Document; json.Unmarshal(data, &d)` works without panicking. A
+// zero-value Document has a nil value interface; UnmarshalJSON must guard for it.
+func TestDocument_UnmarshalJSON_ZeroValue(t *testing.T) {
 
-	assert.Panics(t, func() {
-		var doc Document
-		_ = json.Unmarshal([]byte(`{"id":"x"}`), &doc)
-	}, "KNOWN BUG: zero-value Document.UnmarshalJSON should not panic; add a nil guard in document_json.go")
+	var doc Document
+	err := json.Unmarshal([]byte(`{"id":"https://example.com/9","name":"Bob"}`), &doc)
+
+	require.NoError(t, err)
+	assert.Equal(t, "https://example.com/9", doc.ID())
+	assert.Equal(t, "Bob", doc.Name())
 }
 
 // TestDocument_UnmarshalJSON_Invalid confirms malformed JSON returns an error
 // rather than panicking.
 func TestDocument_UnmarshalJSON_Invalid(t *testing.T) {
 
-	doc := NewDocument(nil)
+	var doc Document
 	err := json.Unmarshal([]byte(`{not valid json`), &doc)
 	assert.Error(t, err)
 }
@@ -64,8 +60,7 @@ func TestDocument_JSON_RoundTrip(t *testing.T) {
 
 	original := `{"id":"https://example.com/3","type":"Note","name":"Test"}`
 
-	// Must use NewDocument; a zero-value Document panics (see ZeroValuePanics).
-	doc := NewDocument(nil)
+	var doc Document
 	require.NoError(t, json.Unmarshal([]byte(original), &doc))
 
 	output, err := json.Marshal(doc)
