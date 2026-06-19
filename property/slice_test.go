@@ -78,12 +78,8 @@ func TestSlice_Set(t *testing.T) {
 	assert.Equal(t, 2, result.Len())
 }
 
-// TestSlice_SetEmpty documents the intended contract: setting a property on an
-// empty slice should produce a one-element slice carrying that property.
-// KNOWN BUG -- on an empty slice, Set() delegates to Nil{}.Set(), which discards
-// the value and returns Nil{}, so the result is Slice{Nil{}} and the property is
-// lost. This test currently FAILS. See property/slice.go Set(). The non-empty
-// path (Head().Set()) is correct; only the empty branch is broken.
+// TestSlice_SetEmpty confirms setting a property on an empty slice produces a
+// one-element slice carrying that property.
 func TestSlice_SetEmpty(t *testing.T) {
 
 	value := Slice{}
@@ -93,10 +89,8 @@ func TestSlice_SetEmpty(t *testing.T) {
 	assert.Equal(t, "Alice", result.Get(vocab.PropertyName).Raw())
 }
 
-// TestSlice_Clone documents the intended contract: a clone must be independent
-// of the original. KNOWN BUG -- Slice.Clone() returns the original backing
-// slice (it builds a copy then discards it), so this test currently FAILS.
-// See property/slice.go Clone(). Do not "fix" by weakening the assertion.
+// TestSlice_Clone confirms a clone is independent of the original: mutating the
+// clone's backing array must not affect the source.
 func TestSlice_Clone(t *testing.T) {
 
 	original := Slice{"a", "b", "c"}

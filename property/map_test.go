@@ -76,10 +76,8 @@ func TestMap_MapKeys(t *testing.T) {
 	assert.Equal(t, []string{"a", "b", "c"}, keys)
 }
 
-// TestMap_Clone documents the intended contract: a clone must be independent of
-// the original. KNOWN BUG -- Map.Clone() returns the original backing map (it
-// builds a copy then discards it), so this test currently FAILS.
-// See property/map.go Clone(). Do not "fix" by weakening the assertion.
+// TestMap_Clone confirms a clone is independent of the original: mutating the
+// clone must not affect the source.
 func TestMap_Clone(t *testing.T) {
 
 	original := Map{"key": "original"}
