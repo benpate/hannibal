@@ -24,7 +24,7 @@ func (actor *Actor) SendUndo(activity streams.Document) {
 	message := mapof.Any{
 		vocab.AtContext:         vocab.ContextTypeActivityStreams,
 		vocab.PropertyType:      vocab.ActivityTypeUndo,
-		vocab.PropertyActor:     actor.ActorID,
+		vocab.PropertyActor:     actor.actorID,
 		vocab.PropertyObject:    activity.Map(),
 		vocab.PropertyPublished: hannibal.TimeFormat(time.Now()),
 	}
