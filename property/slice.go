@@ -19,8 +19,11 @@ func (value Slice) Get(name string) Value {
 func (value Slice) Set(name string, newValue any) Value {
 
 	if len(value) == 0 {
-		first := Nil{}.Set(name, newValue)
-		return Slice([]any{first})
+		// Promote into a single-element slice holding a Map with the property.
+		// Routing through Nil{}.Set() would discard the value, so build the Map
+		// directly -- the same promotion a scalar's Set() performs.
+		first := Map{}.Set(name, newValue)
+		return Slice([]any{first.Raw()})
 	}
 
 	first := value.Head().Set(name, newValue)
@@ -75,5 +78,5 @@ func (value Slice) Clone() Value {
 	result := make([]any, len(value))
 	copy(result, value)
 
-	return Slice(value)
+	return Slice(result)
 }

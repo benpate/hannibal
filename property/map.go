@@ -57,7 +57,7 @@ func (value Map) Clone() Value {
 		result[key] = value
 	}
 
-	return Map(value)
+	return Map(result)
 }
 
 /******************************************
