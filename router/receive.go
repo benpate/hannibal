@@ -33,7 +33,6 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 	activity = streams.NilDocument(streams.WithClient(client))
 
 	if err := json.Unmarshal(body, &activity); err != nil {
-		log.Err(err).Msg("Hannibal Router: Error Unmarshalling JSON")
 		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub activity")
 	}
 
