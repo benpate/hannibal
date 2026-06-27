@@ -11,6 +11,7 @@ import (
 // For example, the route may require a Cookie or API Key for access
 type None struct{}
 
+// NewNone returns a Validator that performs no validation and always returns ResultUnknown.
 func NewNone() None {
 	return None{}
 }

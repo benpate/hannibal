@@ -12,6 +12,7 @@ type MatchActor struct {
 	actorID string
 }
 
+// NewMatchActor returns a Validator that confirms the activity's actor matches the expected actor ID.
 func NewMatchActor(actorID string) MatchActor {
 	return MatchActor{
 		actorID: actorID,

@@ -12,10 +12,12 @@ import (
 // HTTPLookup is a Validator that tries to retrieve the original document from the source server
 type HTTPLookup struct{}
 
+// NewHTTPLookup returns a Validator that confirms an activity exists by fetching it from its origin server.
 func NewHTTPLookup() HTTPLookup {
 	return HTTPLookup{}
 }
 
+// Validate confirms the activity exists by fetching it from its origin server.
 func (v HTTPLookup) Validate(request *http.Request, activity *streams.Document) Result {
 
 	const location = "hannibal.validator.HTTPLookup"
