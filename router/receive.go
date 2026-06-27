@@ -21,8 +21,9 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 
 	config := NewReceiveConfig(options...)
 
-	// Try to read the body from the request
-	body, err := re.ReadRequestBody(request)
+	// Read the body, capped at config.MaxBodySize so a hostile peer cannot force an
+	// unbounded allocation. An oversized body returns an error rather than truncating.
+	body, err := re.ReadRequestBody(request, config.MaxBodySize)
 
 	if err != nil {
 		return streams.NilDocument(), derp.Wrap(err, location, "Unable to read body from request")

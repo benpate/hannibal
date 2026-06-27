@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/benpate/hannibal/sigs"
 	"github.com/benpate/hannibal/validator"
+	"github.com/benpate/re"
 )
 
 type Option func(*ReceiveConfig)
@@ -10,6 +11,17 @@ type Option func(*ReceiveConfig)
 func WithValidators(validators ...Validator) Option {
 	return func(config *ReceiveConfig) {
 		config.Validators = validators
+	}
+}
+
+// WithMaxBodySize sets the maximum number of bytes that ReceiveRequest will read
+// from an inbound request body. A value of zero (or less) restores the default.
+func WithMaxBodySize(maxBytes int64) Option {
+	return func(config *ReceiveConfig) {
+		if maxBytes <= 0 {
+			maxBytes = re.DefaultMaximum
+		}
+		config.MaxBodySize = maxBytes
 	}
 }
 

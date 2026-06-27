@@ -1,10 +1,14 @@
 package router
 
-import "github.com/benpate/hannibal/validator"
+import (
+	"github.com/benpate/hannibal/validator"
+	"github.com/benpate/re"
+)
 
 // ReceiveConfig is a configuration object for the `ReceiveRequest` function.
 type ReceiveConfig struct {
-	Validators []Validator
+	Validators  []Validator
+	MaxBodySize int64 // Maximum number of bytes to read from an inbound request body. Zero uses re.DefaultMaximum.
 }
 
 // NewReceiveConfig creates a new ReceiveConfig object with default settings,
@@ -12,6 +16,7 @@ type ReceiveConfig struct {
 func NewReceiveConfig(options ...Option) ReceiveConfig {
 
 	result := ReceiveConfig{
+		MaxBodySize: re.DefaultMaximum,
 		Validators: []Validator{
 
 			// checks HTTP signatures (nil = use default key finder)

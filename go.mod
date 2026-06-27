@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/benpate/derp v0.36.0
-	github.com/benpate/re v0.4.0
+	github.com/benpate/re v0.5.0
 	github.com/benpate/remote v0.21.1
 	github.com/benpate/rosetta v0.27.0
 	github.com/benpate/turbine v0.5.1

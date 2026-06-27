@@ -20,8 +20,8 @@ func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc
 		return derp.Internal("sigs.ApplyDigest", "Request cannot be nil")
 	}
 
-	// Retrieve the request body (in a replayable manner)
-	body, err := re.ReadRequestBody(request)
+	// Retrieve the request body (in a replayable manner), capped to guard against an oversized body
+	body, err := re.ReadRequestBody(request, re.DefaultMaximum)
 
 	if err != nil {
 		return derp.Wrap(err, "sigs.ApplyDigest", "Unable to read request body")
@@ -48,8 +48,8 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 		return derp.Internal("sigs.VerifyDigest", "Request cannot be nil")
 	}
 
-	// Retrieve the request body (in a replayable manner)
-	body, err := re.ReadRequestBody(request)
+	// Retrieve the request body (in a replayable manner), capped to guard against an oversized body
+	body, err := re.ReadRequestBody(request, re.DefaultMaximum)
 
 	if err != nil {
 		return derp.Wrap(err, "sigs.VerifyDigest", "Unable to read request body")
