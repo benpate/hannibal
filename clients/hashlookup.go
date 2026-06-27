@@ -31,8 +31,10 @@ func (client HashLookup) Load(url string, options ...any) (streams.Document, err
 		return client.innerClient.Load(url, options...)
 	}
 
-	// Otherwise, try to load the baseURL and find the hash inside that document
-	result, err := client.innerClient.Load(baseURL, options)
+	// Otherwise, try to load the baseURL and find the hash inside that document.
+	// Spread options... so they pass through individually; passing the slice
+	// as one argument would nest it and silently drop caller options.
+	result, err := client.innerClient.Load(baseURL, options...)
 
 	if err != nil {
 		return result, err
@@ -53,5 +55,19 @@ func (client HashLookup) Load(url string, options ...any) (streams.Document, err
 }
 
 func (client HashLookup) Save(document streams.Document) error {
-	return nil
+	return client.innerClient.Save(document)
 }
+
+// Delete removes a document from the underlying client's cache.
+func (client HashLookup) Delete(documentID string) error {
+	return client.innerClient.Delete(documentID)
+}
+
+// SetRootClient passes the top-level client down to the underlying client, so
+// stacked clients that make recursive calls resolve through the whole chain.
+func (client HashLookup) SetRootClient(rootClient streams.Client) {
+	client.innerClient.SetRootClient(rootClient)
+}
+
+// Verify that HashLookup satisfies the streams.Client interface.
+var _ streams.Client = HashLookup{}

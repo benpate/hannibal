@@ -12,6 +12,11 @@ import (
 	"github.com/benpate/rosetta/mapof"
 )
 
+// allowPrivateIPs controls whether outbound deliveries may connect to non-public
+// (private/loopback) addresses. It is FALSE in production so that remote's SSRF
+// guard stays active; only tests that deliver to a loopback server set it TRUE.
+var allowPrivateIPs = false
+
 /******************************************
  * Sending Messages
  ******************************************/
@@ -78,6 +83,11 @@ func (actor *Actor) SendOne(recipientID string, message mapof.Any) error {
 		ContentType(vocab.ContentTypeActivityPub).
 		With(SignRequest(*actor)).
 		JSON(message)
+
+	// RULE: By default, remote refuses to connect to non-public (private/loopback)
+	// addresses to guard against SSRF. allowPrivateIPs stays FALSE in production;
+	// tests that deliver to a loopback server flip it on.
+	transaction.AllowPrivateIPs(allowPrivateIPs)
 
 	if canDebug() {
 		transaction.With(options.Debug())

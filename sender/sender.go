@@ -16,6 +16,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// allowPrivateIPs controls whether outbound deliveries may connect to non-public
+// (private/loopback) addresses. It is FALSE in production so that remote's SSRF
+// guard stays active; only tests that deliver to a loopback server set it TRUE.
+var allowPrivateIPs = false
+
 // Sender manages delivery of outbound activities from the outbox,
 // using the turbind Queue to deliver activities asynchronously.
 // This object can be used on its own, or it can be embedded in the
@@ -159,6 +164,11 @@ func (sender *Sender) SendToSingleRecipient(args mapof.Any) queue.Result {
 		ContentType(vocab.ContentTypeActivityPub).
 		With(signRequest(actor.PrivateKey())).
 		JSON(activity)
+
+	// RULE: By default, remote refuses to connect to non-public (private/loopback)
+	// addresses to guard against SSRF. allowPrivateIPs stays FALSE in production;
+	// tests that deliver to a loopback server flip it on.
+	transaction.AllowPrivateIPs(allowPrivateIPs)
 
 	// Enable debugging (if requested)
 	if canDebug() {

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/benpate/derp"
-	domaintools "github.com/benpate/domain"
 	"github.com/benpate/hannibal"
 	"github.com/benpate/rosetta/slice"
 	"github.com/rs/zerolog/log"
@@ -237,7 +236,7 @@ func getField(request *http.Request, signature Signature, field string) string {
 
 	// Special case for "host" which needs to read the request URL
 	case FieldHost:
-		return domaintools.TrueHostname(request)
+		return trueHostname(request)
 
 	case FieldCreated:
 		return signature.CreatedString()
@@ -272,6 +271,20 @@ func getPathAndQuery(url *url.URL) string {
 	}
 
 	return result
+}
+
+// trueHostname returns the host name from the request, accounting for
+// proxy headers (like X-Forwarded-Host).
+func trueHostname(request *http.Request) string {
+
+	// If this is a proxied request, then use the X-Forwarded-Host header
+	// instead of the Host header
+	if trueHost := request.Header.Get("X-Forwarded-Host"); trueHost != "" {
+		return trueHost
+	}
+
+	// Fallback to the Host header if X-Forwarded-Host is not present
+	return request.Host
 }
 
 // getAlgorithmName returns the standard name used for the combination of private key and digest algorithms.

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync"
 	"testing"
 
@@ -16,6 +17,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// TestMain enables delivery to non-public addresses for the whole package, since
+// these tests POST to loopback httptest servers that remote's SSRF guard would
+// otherwise block. Production keeps allowPrivateIPs = false.
+func TestMain(m *testing.M) {
+	allowPrivateIPs = true
+	os.Exit(m.Run())
+}
 
 // mockClient is a streams.Client that resolves any recipient URI to a document
 // whose inbox points at the configured inbox URL. This lets SendOne run fully

@@ -1,8 +1,8 @@
 package streams
 
 import (
-	"github.com/benpate/domain"
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/uri"
 )
 
 // https://www.w3.org/TR/activitypub/#x4-1-actor-objects
@@ -65,7 +65,7 @@ func (document Document) Featured() Document {
 // UsernameOrID returns the username of the document, if it exists, or the ID of the document if it does not.
 func (document Document) UsernameOrID() string {
 	if username := document.PreferredUsername(); username != "" {
-		return "@" + username + "@" + domain.NameOnly(document.ID())
+		return "@" + username + "@" + uri.Hostname(document.ID())
 	}
 	return document.ID()
 }
