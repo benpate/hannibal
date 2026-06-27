@@ -2,12 +2,15 @@ package property
 
 import "github.com/benpate/rosetta/convert"
 
+// Bool is a property Value that wraps a boolean.
 type Bool bool
 
+// IsBool returns TRUE if this value is a boolean.
 func (value Bool) IsBool() bool {
 	return true
 }
 
+// Bool returns the underlying boolean value.
 func (value Bool) Bool() bool {
 	return bool(value)
 }
@@ -48,14 +51,17 @@ func (value Bool) String() string {
 	return convert.String(value)
 }
 
+// Map returns the value as a map[string]any.
 func (value Bool) Map() map[string]any {
 	return make(map[string]any)
 }
 
+// Raw returns the underlying Go value.
 func (value Bool) Raw() any {
 	return bool(value)
 }
 
+// Clone returns a copy of this value.
 func (value Bool) Clone() Value {
 	return value
 }

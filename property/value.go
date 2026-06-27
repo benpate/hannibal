@@ -39,6 +39,7 @@ type Value interface {
 	Clone() Value
 }
 
+// NewValue wraps an arbitrary Go value in the matching property.Value implementation.
 func NewValue(value any) Value {
 
 	// NILCHECK: If value is nil, then exit here.
@@ -137,7 +138,7 @@ func IsBool(value any) bool {
 	return false
 }
 
-// IsInt returns TRUE if the value represents a float
+// IsFloat returns TRUE if the value represents a floating-point number.
 func IsFloat(value any) bool {
 	if is, ok := value.(IsFloater); ok {
 		return is.IsFloat()

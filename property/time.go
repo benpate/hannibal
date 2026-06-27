@@ -6,12 +6,15 @@ import (
 	"github.com/benpate/hannibal"
 )
 
+// Time is a property Value that wraps a timestamp.
 type Time time.Time
 
+// IsTime returns TRUE if this value is a timestamp.
 func (value Time) IsTime() bool {
 	return true
 }
 
+// Time returns the underlying timestamp value.
 func (value Time) Time() time.Time {
 	return time.Time(value)
 }

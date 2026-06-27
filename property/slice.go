@@ -1,11 +1,14 @@
 package property
 
+// Slice is a property Value that wraps a slice of values.
 type Slice []any
 
+// IsSlice returns TRUE if this value is a slice.
 func (value Slice) IsSlice() bool {
 	return true
 }
 
+// Slice returns the underlying slice value.
 func (value Slice) Slice() []any {
 	return []any(value)
 }

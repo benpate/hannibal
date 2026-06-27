@@ -2,8 +2,10 @@ package property
 
 import "github.com/benpate/hannibal/vocab"
 
+// String is a property Value that wraps a string.
 type String string
 
+// IsString returns TRUE if this value is a string.
 func (value String) IsString() bool {
 	return true
 }
