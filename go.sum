@@ -12,8 +12,8 @@ github.com/benpate/rosetta v0.27.0 h1:GEr8u1HIIGuK1X/PfitHKJ8CLfK9en8BQItZBT+kQD
 github.com/benpate/rosetta v0.27.0/go.mod h1:auvJS50BLnFNYaYNPn7bCUq7lGhqS4TF8PHKgy0JFyc=
 github.com/benpate/turbine v0.5.1 h1:ip4pxLIeGRJhPiZy0oSAahzsNf4UKExDFOhzpCAYrAk=
 github.com/benpate/turbine v0.5.1/go.mod h1:QDp1zqpk8IJe0iXU1G/8WsA9t7xtH4ITQZcRpq+JkNY=
-github.com/benpate/uri v0.1.1 h1:u3P+P0f+Pgc3GMmVQdKyNzDLmyxhgVhgaxieWg5XvNs=
-github.com/benpate/uri v0.1.1/go.mod h1:34kqqF8UgcQC7jcVY7EQ6ZFHhOjOcZ7+tCX972cLGW8=
+github.com/benpate/uri v0.1.2 h1:b0qefPQ+AhkqCEAH4EGakQdk1KiVxL297BPo5LhaBGI=
+github.com/benpate/uri v0.1.2/go.mod h1:34kqqF8UgcQC7jcVY7EQ6ZFHhOjOcZ7+tCX972cLGW8=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gorilla/css v1.0.1 h1:ntNaBIghp6JmvWnxbZKANoLyuXTPZ4cAMlo6RyhlbO8=

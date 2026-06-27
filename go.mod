@@ -8,7 +8,7 @@ require (
 	github.com/benpate/remote v0.21.1
 	github.com/benpate/rosetta v0.27.0
 	github.com/benpate/turbine v0.5.1
-	github.com/benpate/uri v0.1.1
+	github.com/benpate/uri v0.1.2
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/rs/zerolog v1.35.1
