@@ -13,6 +13,7 @@ const ContextTypeSecurity = "https://w3id.org/security/v1"
 // https://swicg.github.io/activitypub-e2ee/mls
 const ContextTypeSocialWebMLS = "https://purl.archive.org/socialweb/mls"
 
+// ContextTypeToot is a context type.
 // https://joinmastodon.org/ns#
 var ContextTypeToot = map[string]any{
 	"toot":          "https://joinmastodon.org/ns#",
