@@ -203,18 +203,18 @@ func makeSignedDigest(digest []byte, hash crypto.Hash, privateKey crypto.Private
 	switch typedValue := privateKey.(type) {
 
 	case *rsa.PrivateKey:
-		if resultBytes, err := rsa.SignPKCS1v15(rand.Reader, typedValue, hash, digest); err != nil {
+		resultBytes, err := rsa.SignPKCS1v15(rand.Reader, typedValue, hash, digest)
+		if err != nil {
 			return nil, derp.Wrap(err, location, "Error signing hash with RSA private key")
-		} else {
-			return resultBytes, nil
 		}
+		return resultBytes, nil
 
 	case *ecdsa.PrivateKey:
-		if resultBytes, err := ecdsa.SignASN1(rand.Reader, typedValue, digest); err != nil {
+		resultBytes, err := ecdsa.SignASN1(rand.Reader, typedValue, digest)
+		if err != nil {
 			return nil, derp.Wrap(err, location, "Error signing hash with ECDSA private key")
-		} else {
-			return resultBytes, nil
 		}
+		return resultBytes, nil
 	}
 
 	return nil, derp.Internal(location, "Unrecognized private key type", privateKey)

@@ -98,11 +98,11 @@ func ParseSignature(value string) (Signature, error) {
 			result.Headers = strings.Split(value, " ")
 
 		case "signature":
-			if value, err := base64.StdEncoding.DecodeString(value); err != nil {
+			decoded, err := base64.StdEncoding.DecodeString(value)
+			if err != nil {
 				return Signature{}, derp.Wrap(err, "sigs.ParseSignature", "Unable to decode signature", value)
-			} else {
-				result.Signature = value
 			}
+			result.Signature = decoded
 
 		case "created":
 			result.Created, _ = strconv.ParseInt(value, 10, 64)
