@@ -22,6 +22,7 @@ type Collection struct {
 	Items      []any   `json:"items,omitempty"       bson:"items,omitempty"`      // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
+// NewCollection returns a new Collection with the provided ID and the default context.
 func NewCollection(collectionID string) Collection {
 	return Collection{
 		Context: DefaultContext(),
@@ -34,6 +35,7 @@ func NewCollection(collectionID string) Collection {
  * JSON Marshalling
  ******************************************/
 
+// UnmarshalJSON populates the Collection from its JSON representation.
 func (c *Collection) UnmarshalJSON(data []byte) error {
 
 	result := make(map[string]any)
@@ -45,6 +47,7 @@ func (c *Collection) UnmarshalJSON(data []byte) error {
 	return c.UnmarshalMap(result)
 }
 
+// UnmarshalMap populates the Collection from a generic map representation.
 func (c *Collection) UnmarshalMap(data mapof.Any) error {
 
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeCollection {

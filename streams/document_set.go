@@ -72,7 +72,7 @@ func (document Document) SetTo(value ...string) bool {
 	return document.SetString(vocab.PropertyTo, value...)
 }
 
-// SetBto sets the "bto" property of the document
+// SetBTo sets the "bto" property of the document
 func (document Document) SetBTo(value ...string) bool {
 	return document.SetString(vocab.PropertyBTo, value...)
 }

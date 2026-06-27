@@ -20,6 +20,7 @@ func DocumentCategory(documentType string) string {
 	return vocab.DocumentCategoryObject
 }
 
+// IsActivity returns TRUE if the provided document type is an ActivityStreams Activity type.
 func IsActivity(documentType string) bool {
 
 	switch documentType {
@@ -58,6 +59,7 @@ func IsActivity(documentType string) bool {
 	return false
 }
 
+// IsActor returns TRUE if the provided document type is an ActivityStreams Actor type.
 func IsActor(documentType string) bool {
 
 	switch documentType {
@@ -73,6 +75,7 @@ func IsActor(documentType string) bool {
 	return false
 }
 
+// IsCollection returns TRUE if the provided document type is an ActivityStreams Collection type.
 func IsCollection(documentType string) bool {
 
 	switch documentType {
@@ -88,6 +91,7 @@ func IsCollection(documentType string) bool {
 	return false
 }
 
+// IsObject returns TRUE if the provided document type is an ActivityStreams Object type.
 func IsObject(documentType string) bool {
 
 	switch documentType {

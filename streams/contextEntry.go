@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 )
 
-// ContextEntry
+// ContextEntry represents a single entry in a JSON-LD @context: a vocabulary,
+// an optional language, and an optional map of namespace extensions.
 // https://www.w3.org/TR/json-ld/#the-context
 type ContextEntry struct {
 	Vocabulary string            // The primary vocabulary represented by the context/document.
@@ -12,6 +13,7 @@ type ContextEntry struct {
 	Extensions map[string]string // a map of additional namespaces that are included in this context/document.
 }
 
+// NewContextEntry returns a new ContextEntry for the provided vocabulary.
 func NewContextEntry(vocabulary string) ContextEntry {
 	return ContextEntry{
 		Vocabulary: vocabulary,
@@ -20,11 +22,13 @@ func NewContextEntry(vocabulary string) ContextEntry {
 	}
 }
 
+// WithLanguage sets the entry's language and returns the entry for chaining.
 func (entry *ContextEntry) WithLanguage(language string) *ContextEntry {
 	entry.Language = language
 	return entry
 }
 
+// WithExtension adds a namespace extension to the entry and returns the entry for chaining.
 func (entry *ContextEntry) WithExtension(key string, value string) *ContextEntry {
 	if len(entry.Extensions) == 0 {
 		entry.Extensions = make(map[string]string)
@@ -34,6 +38,7 @@ func (entry *ContextEntry) WithExtension(key string, value string) *ContextEntry
 	return entry
 }
 
+// MarshalJSON encodes the entry as a JSON string (vocabulary only) or object (with language/extensions).
 func (entry ContextEntry) MarshalJSON() ([]byte, error) {
 
 	// If this context only has a vocabulary, then
@@ -59,6 +64,7 @@ func (entry ContextEntry) MarshalJSON() ([]byte, error) {
 	return json.Marshal(result)
 }
 
+// IsVocabularyOnly returns TRUE if the entry defines only a vocabulary (no language or extensions).
 func (entry ContextEntry) IsVocabularyOnly() bool {
 	if entry.IsLanguageDefined() {
 		return false
@@ -71,6 +77,7 @@ func (entry ContextEntry) IsVocabularyOnly() bool {
 	return true
 }
 
+// IsLanguageDefined returns TRUE if the entry defines a language other than the undefined default.
 func (entry ContextEntry) IsLanguageDefined() bool {
 	if entry.Language == "" {
 		return false
@@ -83,6 +90,7 @@ func (entry ContextEntry) IsLanguageDefined() bool {
 	return true
 }
 
+// HasExtensions returns TRUE if the entry defines one or more namespace extensions.
 func (entry ContextEntry) HasExtensions() bool {
 	return len(entry.Extensions) > 0
 }

@@ -13,6 +13,7 @@ import (
  * Type Detection
  ******************************************/
 
+// DocumentCategory returns the high-level category (Actor, Activity, Object, or Collection) of the Document.
 func (document Document) DocumentCategory() string {
 	return DocumentCategory(document.Type())
 }
@@ -57,9 +58,8 @@ func (document Document) NotObject() bool {
 	return !document.IsObject()
 }
 
-// If this document is an activity (create, update, delete, etc), then
-// this method returns the activity's Object.  Otherwise, it returns
-// the document itself.
+// UnwrapActivity returns the activity's Object if this document is an activity
+// (create, update, delete, etc); otherwise it returns the document itself.
 func (document Document) UnwrapActivity() Document {
 
 	// If this is an "Activity" type, the dig deeper into the object

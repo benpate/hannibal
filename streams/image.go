@@ -8,6 +8,7 @@ import (
 	"github.com/benpate/rosetta/sliceof"
 )
 
+// Image represents an ActivityStreams Image object (a string, map, or slice value).
 // https://www.w3.org/ns/activitystreams#Image
 type Image struct {
 	value any
@@ -51,12 +52,14 @@ func NewImage(value any) Image {
 	return Image{""}
 }
 
+// URL returns the Image's URL property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-href
 // Note: URL is an alias for Href, which is the proper name to use
 func (image Image) URL() string {
 	return image.Href()
 }
 
+// Href returns the Image's Href property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-href
 // Note: This method searches both the "href" and "url" properties in maps.
 func (image Image) Href() string {
@@ -86,6 +89,7 @@ func (image Image) Href() string {
 	return ""
 }
 
+// Summary returns the Image's Summary property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
 func (image Image) Summary() string {
 
@@ -103,6 +107,7 @@ func (image Image) Summary() string {
 	return ""
 }
 
+// MediaType returns the Image's MediaType property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mediatype
 func (image Image) MediaType() string {
 
@@ -120,6 +125,7 @@ func (image Image) MediaType() string {
 	return ""
 }
 
+// Height returns the Image's Height property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-height
 func (image Image) Height() int {
 
@@ -137,6 +143,7 @@ func (image Image) Height() int {
 	return 0
 }
 
+// Width returns the Image's Width property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-width
 func (image Image) Width() int {
 

@@ -25,6 +25,7 @@ type CollectionPage struct {
 	Items      []any   `json:"items,omitempty"       bson:"items,omitempty"`      // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
+// NewCollectionPage returns a new CollectionPage with the provided ID and the default context.
 func NewCollectionPage(pageID string) CollectionPage {
 	return CollectionPage{
 		Context: DefaultContext(),
@@ -37,6 +38,7 @@ func NewCollectionPage(pageID string) CollectionPage {
  * JSON Marshalling
  ******************************************/
 
+// UnmarshalJSON populates the CollectionPage from its JSON representation.
 func (c *CollectionPage) UnmarshalJSON(data []byte) error {
 
 	result := mapof.NewAny()
@@ -48,6 +50,7 @@ func (c *CollectionPage) UnmarshalJSON(data []byte) error {
 	return c.UnmarshalMap(result)
 }
 
+// UnmarshalMap populates the CollectionPage from a generic map representation.
 func (c *CollectionPage) UnmarshalMap(data mapof.Any) error {
 
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeCollectionPage {

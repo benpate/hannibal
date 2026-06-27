@@ -31,6 +31,7 @@ func (u *Uniquer[T]) IsDuplicate(id T) bool {
 	return !u.IsUnique(id)
 }
 
+// Range returns an iterator that yields each item from the provided iterator exactly once, skipping duplicates.
 func (u *Uniquer[T]) Range(iterator iter.Seq[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 

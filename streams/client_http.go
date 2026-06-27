@@ -12,6 +12,7 @@ type DefaultClient struct {
 	options []remote.Option
 }
 
+// NewDefaultClient returns a DefaultClient that loads documents from remote servers using the provided options.
 func NewDefaultClient(options ...remote.Option) Client {
 	return DefaultClient{
 		options: options,

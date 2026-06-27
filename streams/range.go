@@ -7,6 +7,7 @@ import (
 	"github.com/benpate/hannibal/vocab"
 )
 
+// Range returns an iterator over each sub-document of the Document.
 func (document Document) Range() iter.Seq[Document] {
 
 	return func(yield func(Document) bool) {
@@ -18,6 +19,7 @@ func (document Document) Range() iter.Seq[Document] {
 	}
 }
 
+// RangeWithIndex returns an iterator over each sub-document of the Document, paired with its index.
 func (document Document) RangeWithIndex() iter.Seq2[int, Document] {
 
 	return func(yield func(int, Document) bool) {
@@ -46,6 +48,7 @@ func (document Document) RangeIDs() iter.Seq[string] {
 	}
 }
 
+// RangeMentions returns an iterator over the IDs mentioned by the Document.
 func (document Document) RangeMentions() iter.Seq[string] {
 	return func(yield func(string) bool) {
 		for tag := document.Tag(); tag.NotNil(); tag = tag.Tail() {
@@ -59,6 +62,7 @@ func (document Document) RangeMentions() iter.Seq[string] {
 	}
 }
 
+// RangeAddressees returns an iterator over the addressees (to, cc, bto, bcc, audience) of the Document.
 func (document Document) RangeAddressees() iter.Seq[string] {
 
 	return joinIterators(
@@ -77,6 +81,7 @@ func (document Document) RangeAddressees() iter.Seq[string] {
 	)
 }
 
+// RangeInReplyTo returns an iterator over the IDs that the Document is in reply to.
 func (document Document) RangeInReplyTo() iter.Seq[string] {
 
 	return func(yield func(string) bool) {

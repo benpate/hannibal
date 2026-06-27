@@ -2,6 +2,7 @@ package streams
 
 import "net/http"
 
+// DocumentOption is a function that configures a Document during construction.
 type DocumentOption func(*Document)
 
 // WithClient option sets the HTTP client that can load remote documents if necessary

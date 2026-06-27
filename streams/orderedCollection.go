@@ -22,6 +22,7 @@ type OrderedCollection struct {
 	Last         string  `json:"last,omitempty"         bson:"last,omitempty"`         // In a paged Collection, indicates the furthest proceeding page of the collection.
 }
 
+// NewOrderedCollection returns a new OrderedCollection with the provided ID and the default context.
 func NewOrderedCollection(collectionID string) OrderedCollection {
 	return OrderedCollection{
 		Context:      DefaultContext(),
@@ -31,6 +32,7 @@ func NewOrderedCollection(collectionID string) OrderedCollection {
 	}
 }
 
+// UnmarshalJSON populates the OrderedCollection from its JSON representation.
 func (c *OrderedCollection) UnmarshalJSON(data []byte) error {
 
 	result := mapof.NewAny()
@@ -42,6 +44,7 @@ func (c *OrderedCollection) UnmarshalJSON(data []byte) error {
 	return c.UnmarshalMap(result)
 }
 
+// UnmarshalMap populates the OrderedCollection from a generic map representation.
 func (c *OrderedCollection) UnmarshalMap(data mapof.Any) error {
 
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeOrderedCollection {

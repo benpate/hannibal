@@ -50,38 +50,47 @@ func NilDocument(options ...DocumentOption) Document {
  * Introspection Methods
  ******************************************/
 
+// IsBool returns TRUE if the document's value is a boolean.
 func (document Document) IsBool() bool {
 	return property.IsBool(document.value)
 }
 
+// IsInt returns TRUE if the document's value is an integer.
 func (document Document) IsInt() bool {
 	return property.IsInt(document.value)
 }
 
+// IsInt64 returns TRUE if the document's value is a 64-bit integer.
 func (document Document) IsInt64() bool {
 	return property.IsInt64(document.value)
 }
 
+// IsFloat returns TRUE if the document's value is a floating-point number.
 func (document Document) IsFloat() bool {
 	return property.IsFloat(document.value)
 }
 
+// IsNil returns TRUE if the document's value is nil.
 func (document Document) IsNil() bool {
 	return document.value.IsNil()
 }
 
+// IsMap returns TRUE if the document's value is a map.
 func (document Document) IsMap() bool {
 	return property.IsMap(document.value)
 }
 
+// IsSlice returns TRUE if the document's value is a slice.
 func (document Document) IsSlice() bool {
 	return property.IsSlice(document.value)
 }
 
+// IsString returns TRUE if the document's value is a string.
 func (document Document) IsString() bool {
 	return property.IsString(document.value)
 }
 
+// NotNil returns TRUE if the document's value is not nil.
 func (document Document) NotNil() bool {
 	return !document.IsNil()
 }
@@ -95,6 +104,7 @@ func (document Document) Value() any {
 	return document.value.Raw()
 }
 
+// Clone returns a deep copy of the Document.
 func (document Document) Clone() Document {
 
 	return Document{
@@ -140,7 +150,7 @@ func (document Document) Get(key string) Document {
  * Conversion Methods
  ******************************************/
 
-// Array returns the array value of the current object
+// Slice returns the document's value as a slice.
 func (document Document) Slice() sliceof.Any {
 	return convert.SliceOfAny(document.value.Raw())
 }
@@ -303,8 +313,8 @@ func (document Document) String() string {
 	return result
 }
 
-// StringHTML returns the current object as an HTML string.
-// This value is filtered by blueMonday, so it is safe to use in HTML.
+// HTMLString returns the document's value as an HTML string.
+// The value is filtered by bluemonday, so it is safe to use in HTML.
 func (document Document) HTMLString() string {
 	result := document.rawString()
 	return bluemonday.UGCPolicy().Sanitize(result)
@@ -387,12 +397,14 @@ func (document *Document) SetValue(value property.Value) {
 	document.value = value
 }
 
+// WithOptions applies the provided options to the Document in place.
 func (document *Document) WithOptions(options ...DocumentOption) {
 	for _, option := range options {
 		option(document)
 	}
 }
 
+// AddOptions returns a copy of the Document with the provided options applied.
 func (document Document) AddOptions(options ...DocumentOption) Document {
 	for _, option := range options {
 		option(&document)

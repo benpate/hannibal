@@ -26,6 +26,7 @@ type OrderedCollectionPage struct {
 	OrderedItems []any   `json:"orderedItems,omitempty" bson:"orderedItems,omitempty"` // Identifies the items contained in a collection. The items might be ordered or unordered.
 }
 
+// NewOrderedCollectionPage returns a new OrderedCollectionPage with the provided ID and parent.
 func NewOrderedCollectionPage(pageID string, partOf string) OrderedCollectionPage {
 	return OrderedCollectionPage{
 		Context:      DefaultContext(),
@@ -36,6 +37,7 @@ func NewOrderedCollectionPage(pageID string, partOf string) OrderedCollectionPag
 	}
 }
 
+// UnmarshalJSON populates the OrderedCollectionPage from its JSON representation.
 func (c *OrderedCollectionPage) UnmarshalJSON(data []byte) error {
 
 	result := mapof.NewAny()
@@ -47,6 +49,7 @@ func (c *OrderedCollectionPage) UnmarshalJSON(data []byte) error {
 	return c.UnmarshalMap(result)
 }
 
+// UnmarshalMap populates the OrderedCollectionPage from a generic map representation.
 func (c *OrderedCollectionPage) UnmarshalMap(data mapof.Any) error {
 
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeOrderedCollectionPage {

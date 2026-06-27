@@ -8,8 +8,10 @@ import (
 	"github.com/benpate/hannibal/vocab"
 )
 
+// Context represents the JSON-LD @context of an ActivityStreams document, as an ordered list of entries.
 type Context []ContextEntry
 
+// NewContext returns a new Context built from the provided vocabulary strings.
 func NewContext(args ...string) Context {
 	result := make(Context, len(args))
 
@@ -25,6 +27,7 @@ func DefaultContext() Context {
 	return NewContext(vocab.NamespaceActivityStreams)
 }
 
+// Length returns the number of entries in the Context.
 func (c Context) Length() int {
 	if c == nil {
 		return 0
@@ -33,14 +36,17 @@ func (c Context) Length() int {
 	return len(c)
 }
 
+// IsEmpty returns TRUE if the Context has no entries.
 func (c Context) IsEmpty() bool {
 	return c.Length() == 0
 }
 
+// IsEmptyTail returns TRUE if the Context has one entry or fewer.
 func (c Context) IsEmptyTail() bool {
 	return c.Length() <= 1
 }
 
+// Head returns a pointer to the first entry in the Context, or nil if it is empty.
 func (c Context) Head() *ContextEntry {
 	if c.Length() == 0 {
 		return nil
@@ -49,6 +55,7 @@ func (c Context) Head() *ContextEntry {
 	return &(c[0])
 }
 
+// Tail returns the Context with its first entry removed.
 func (c Context) Tail() Context {
 	if c.Length() == 0 {
 		return c
@@ -66,6 +73,7 @@ func (c *Context) Add(vocabulary string) *ContextEntry {
 	return &((*c)[len(*c)-1])
 }
 
+// MarshalJSON encodes the Context as JSON (null, a single object, or an array of objects).
 func (c Context) MarshalJSON() ([]byte, error) {
 
 	const location = "writer.Context.MarshalJSON"
@@ -103,6 +111,7 @@ func (c Context) MarshalJSON() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// UnmarshalJSON decodes the Context from its JSON representation (a string, object, or array).
 func (c *Context) UnmarshalJSON(data []byte) error {
 
 	const location = "writer.Context.UnmarshalJSON"
