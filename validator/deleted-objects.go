@@ -36,15 +36,11 @@ func (v DeletedObject) Validate(request *http.Request, activity *streams.Documen
 		return ResultInvalid
 	}
 
-	// log.Trace().Str("objectID", objectID).Str("location", location).Msg("Validating DeletedObject")
-
 	// Try to retrieve the original document
 	txn := remote.Get(objectID).
 		Header("Accept", "application/activity+json")
 
 	if err := txn.Send(); err != nil {
-
-		// log.Trace().Err(err).Int("code", derp.ErrorCode(err)).Str("location", location).Msg("Received error code")
 
 		// If the document is marked "gone" or "not found",
 		// then this "delete" transaction is valid.
@@ -57,11 +53,6 @@ func (v DeletedObject) Validate(request *http.Request, activity *streams.Documen
 		derp.Report(derp.Wrap(err, location, "Error retrieving document, but it is not 'gone' or 'not found'"))
 		return ResultUnknown
 	}
-
-	// Log the server response
-	// log.Trace().Str("location", location).Msg("Delete is invalid / document still exists")
-	// body, err := io.ReadAll(txn.Response().Body)
-	// log.Trace().Err(err).Msg(string(body))
 
 	// Fall through means that the document still exists, so the "delete" transaction is invalid.
 	return ResultInvalid

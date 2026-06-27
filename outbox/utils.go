@@ -11,11 +11,6 @@ func canDebug() bool {
 	return canLog(zerolog.DebugLevel)
 }
 
-// canTrace returns TRUE if zerolog is configured to allow Trace logs
-// func canTrace() bool {
-//	return canLog(zerolog.TraceLevel)
-// }
-
 // canLog is a silly zerolog helper that returns TRUE
 // if the provided log level would be allowed
 // (based on the global log level).
