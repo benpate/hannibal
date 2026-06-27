@@ -54,6 +54,7 @@ func (client HashLookup) Load(url string, options ...any) (streams.Document, err
 	return streams.NilDocument(), derp.NotFound("ashash.Client.Load", "Hash value not found in document", baseURL, hash, result.Value())
 }
 
+// Save stores the Document in the underlying cache.
 func (client HashLookup) Save(document streams.Document) error {
 	return client.innerClient.Save(document)
 }

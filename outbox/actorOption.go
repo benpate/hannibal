@@ -16,13 +16,14 @@ func WithPublicKey(publicKeyID string) ActorOption {
 	}
 }
 
-// WithCliient is an ActorOption that sets the hanibal Client for an Actor
+// WithClient is an ActorOption that sets the Hannibal Client for an Actor.
 func WithClient(client streams.Client) ActorOption {
 	return func(a *Actor) {
 		a.client = client
 	}
 }
 
+// WithFollowers is an ActorOption that sets the Actor's followers iterator.
 func WithFollowers(followers iter.Seq[string]) ActorOption {
 	return func(a *Actor) {
 		a.followers = followers

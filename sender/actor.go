@@ -15,6 +15,7 @@ type Actor interface {
 	PrivateKey() (privateKeyID string, privateKey crypto.PrivateKey)
 }
 
+// NewActor returns a new Actor configured with the provided ID, public key ID, and private key.
 func NewActor(actorID string, publicKeyID string, privateKey crypto.PrivateKey) Actor {
 	return defaultActor{
 		actorID:     actorID,

@@ -104,5 +104,6 @@ func DigestSHA512(body []byte) string {
 	return base64.StdEncoding.EncodeToString(digest[:])
 }
 
-// TODO: Additional algorithms specified by https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest
-// unixsum, unixcksum, crc32c, sha-256 and sha-512, id-sha-256, id-sha-512
+// Additional digest algorithms are not yet supported: unixsum, unixcksum, crc32c,
+// sha-256 and sha-512, id-sha-256, id-sha-512.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Digest

@@ -6,8 +6,10 @@ import (
 	"github.com/benpate/re"
 )
 
+// Option is a function that configures a ReceiveConfig.
 type Option func(*ReceiveConfig)
 
+// WithValidators replaces the validator chain used to verify inbound activities.
 func WithValidators(validators ...Validator) Option {
 	return func(config *ReceiveConfig) {
 		config.Validators = validators

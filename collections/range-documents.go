@@ -6,6 +6,7 @@ import (
 	"github.com/benpate/hannibal/streams"
 )
 
+// RangeDocuments returns an iterator over every Document in the collection, following pagination.
 func RangeDocuments(collection streams.Document) iter.Seq[streams.Document] {
 
 	return func(yield func(streams.Document) bool) {

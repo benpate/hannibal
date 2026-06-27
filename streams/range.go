@@ -73,11 +73,12 @@ func (document Document) RangeAddressees() iter.Seq[string] {
 		document.BCC().RangeIDs(),
 		document.RangeMentions(),
 
-		// TODO: FEP-1b12: Group Federation: https://w3id.org/fep/1b12
-		// TODO: FEP-7888: Demystifying the context property: https://w3id.org/fep/7888
-		// TODO: FEP-7458: Using the replies collection: https://w3id.org/fep/7458
-		// TODO: FEP-171b: Conversation Containers: http://w3id.org/fep/171b
-		// TODO: FEP-f228: Backfilling conversations: https://w3id.org/fep/f228
+		// Additional addressee sources defined by these FEPs are not yet folded in:
+		// FEP-1b12 Group Federation (https://w3id.org/fep/1b12),
+		// FEP-7888 the context property (https://w3id.org/fep/7888),
+		// FEP-7458 the replies collection (https://w3id.org/fep/7458),
+		// FEP-171b Conversation Containers (http://w3id.org/fep/171b), and
+		// FEP-f228 Backfilling conversations (https://w3id.org/fep/f228).
 	)
 }
 

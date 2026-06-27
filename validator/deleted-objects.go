@@ -27,9 +27,7 @@ func (v DeletedObject) Validate(request *http.Request, activity *streams.Documen
 		return ResultUnknown
 	}
 
-	// Wait for ten minutes before checking.
-	// TODO: This job should be queued (or something) in the future.
-	// time.Sleep(10 * time.Minute)
+	// This check runs inline today; it may be moved onto a delayed queue in the future.
 
 	// Retrieve the objectID from the document
 	objectID := activity.Object().ID()

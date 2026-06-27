@@ -392,13 +392,12 @@ func (document Document) Content() string {
 // Name returns the document's Name property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-name
 func (document Document) Name() string {
-	// TODO: Re-Implement Language Maps
+	// Language maps are not yet resolved here; the raw string value is returned.
 	return document.Get(vocab.PropertyName).String()
 }
 
-// Duration returns the document's Duration property.
-// TODO: Implement Durations per
-// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-duration
+// Duration returns the document's Duration property. ISO 8601 duration parsing per
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-duration is not yet implemented.
 func (document Document) Duration() string {
 
 	return document.Get(vocab.PropertyDuration).String()
@@ -495,9 +494,8 @@ func (document Document) Subject() Document {
 	return document.Get(vocab.PropertySubject)
 }
 
-// Summary returns the document's Summary property.
+// Summary returns the document's Summary property. Language maps are not yet resolved here.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-summary
-// TODO: Implement Language Maps
 func (document Document) Summary() string {
 	return document.Get(vocab.PropertySummary).String()
 }

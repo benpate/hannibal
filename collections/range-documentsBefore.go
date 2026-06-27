@@ -7,6 +7,7 @@ import (
 	"github.com/benpate/hannibal/streams"
 )
 
+// RangeDocumentsBefore returns an iterator over Documents in the collection published before the given cursor.
 func RangeDocumentsBefore(iterator iter.Seq[streams.Document], limit int64) iter.Seq[streams.Document] {
 
 	return func(yield func(streams.Document) bool) {

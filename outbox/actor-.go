@@ -19,7 +19,7 @@ type Actor struct {
 	publicKeyID string
 	client      streams.Client
 	followers   iter.Seq[string]
-	// TODO: Restore Queue:: queue       *queue.Queue
+	// A queue field may be reintroduced here if outbox delivery moves back onto a task queue.
 }
 
 /******************************************
@@ -49,6 +49,7 @@ func (actor *Actor) With(options ...ActorOption) {
 	}
 }
 
+// ActorID returns the URL that identifies this Actor.
 func (actor *Actor) ActorID() string {
 	return actor.actorID
 }

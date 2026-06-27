@@ -1,4 +1,5 @@
-// Package iterator provides utilities for iterating through remote collections (represented as streams.Documents)
+// Package collections provides tools for traversing ActivityStreams collections,
+// represented as streams.Documents, including pagination.
 package collections
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/benpate/hannibal/streams"
 )
 
+// RangePages returns an iterator over every page of a paged collection.
 func RangePages(collection streams.Document) iter.Seq[streams.Document] {
 
 	const location = "hannibal.collections.Pages"

@@ -10,8 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// SendAccept sends an "Announce" message to the recipient
-// activity: The activity that is being announced
+// SendAnnounce sends an "Announce" activity for the provided object.
 func (actor *Actor) SendAnnounce(announceID string, object streams.Document) {
 
 	if canDebug() {

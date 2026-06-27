@@ -1,3 +1,5 @@
+// Command test-signatures is a manual harness for exercising Hannibal's HTTP
+// signature signing and verification against real-world requests.
 package main
 
 import (
