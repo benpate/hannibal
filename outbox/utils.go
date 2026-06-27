@@ -25,6 +25,7 @@ func canLog(level zerolog.Level) bool {
 	return zerolog.GlobalLevel() <= level
 }
 
+// makeIterator returns an iter.Seq that yields the provided values in order.
 func makeIterator[T any](values ...T) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, value := range values {
