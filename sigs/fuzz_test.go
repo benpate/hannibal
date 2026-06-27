@@ -46,3 +46,33 @@ func FuzzVerifyDigest(f *testing.F) {
 		_ = VerifyDigest(request, crypto.SHA256, crypto.SHA512)
 	})
 }
+
+// FuzzDecodePublicPEM ensures DecodePublicPEM never panics on an arbitrary PEM string.
+// The public key is fetched from a remote actor's profile, so it is attacker-controlled.
+func FuzzDecodePublicPEM(f *testing.F) {
+
+	f.Add("")
+	f.Add("not pem at all")
+	f.Add("-----BEGIN PUBLIC KEY-----\nAAAA\n-----END PUBLIC KEY-----")
+	f.Add("-----BEGIN RSA PUBLIC KEY-----\n\n-----END RSA PUBLIC KEY-----")
+	f.Add("-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----")
+
+	f.Fuzz(func(t *testing.T, input string) {
+		// Must not panic. A returned error is fine; a valid key is fine.
+		_, _ = DecodePublicPEM(input)
+	})
+}
+
+// FuzzDecodePrivatePEM ensures DecodePrivatePEM never panics on an arbitrary PEM string.
+func FuzzDecodePrivatePEM(f *testing.F) {
+
+	f.Add("")
+	f.Add("garbage")
+	f.Add("-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----")
+	f.Add("-----BEGIN RSA PRIVATE KEY-----\n\n-----END RSA PRIVATE KEY-----")
+
+	f.Fuzz(func(t *testing.T, input string) {
+		// Must not panic. A returned error is fine; a valid key is fine.
+		_, _ = DecodePrivatePEM(input)
+	})
+}
