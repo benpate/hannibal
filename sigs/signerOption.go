@@ -12,28 +12,28 @@ func SignerFields(fields ...string) SignerOption {
 	}
 }
 
-// SignerSignatureDigest sets the hashing algorithm to be used
-// when we sign a request.
+// SignerSignatureHash sets the hashing algorithm used when signing a request.
 func SignerSignatureHash(hash crypto.Hash) SignerOption {
 	return func(signer *Signer) {
 		signer.SignatureHash = hash
 	}
 }
 
-// SignerBodyDigests sets the digest algorithm to be used
-// when creating the "Digest" header.
+// SignerBodyDigest sets the digest algorithm used when creating the "Digest" header.
 func SignerBodyDigest(digest crypto.Hash) SignerOption {
 	return func(signer *Signer) {
 		signer.BodyDigest = digest
 	}
 }
 
+// SignerCreated sets the "created" timestamp (Unix epoch seconds) of the signature.
 func SignerCreated(created int64) SignerOption {
 	return func(signer *Signer) {
 		signer.Created = created
 	}
 }
 
+// SignerExpires sets the "expires" timestamp (Unix epoch seconds) of the signature.
 func SignerExpires(expires int64) SignerOption {
 	return func(signer *Signer) {
 		signer.Expires = expires

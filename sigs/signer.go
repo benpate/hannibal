@@ -54,7 +54,7 @@ func Sign(request *http.Request, publicKeyID string, privateKey crypto.PrivateKe
 	return signer.Sign(request)
 }
 
-// Use applies the given options to the Signer
+// With applies the given options to the Signer.
 func (signer *Signer) With(options ...SignerOption) {
 	for _, option := range options {
 		option(signer)

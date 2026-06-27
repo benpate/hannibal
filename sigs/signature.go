@@ -11,6 +11,7 @@ import (
 	"github.com/benpate/rosetta/list"
 )
 
+// Signature represents a parsed HTTP Signature header.
 // https://datatracker.ietf.org/doc/html/draft-cavage-http-signatures#section-2.1
 type Signature struct {
 	KeyID     string   // ID (URL) of the key used to create this signature
@@ -172,11 +173,12 @@ func (signature Signature) AlgorithmPrefix() string {
 	return list.Head(signature.Algorithm, '-')
 }
 
-// SignatureBytes returns the signature as a slice of bytes
+// Base64 returns the signature bytes encoded as a base64 string.
 func (signature Signature) Base64() string {
 	return base64.StdEncoding.EncodeToString(signature.Signature)
 }
 
+// CreatedString returns the "created" timestamp as a string, or "" if it is unset.
 func (signature Signature) CreatedString() string {
 	if signature.Created == 0 {
 		return ""
@@ -185,6 +187,7 @@ func (signature Signature) CreatedString() string {
 	return strconv.FormatInt(signature.Created, 10)
 }
 
+// ExpiresString returns the "expires" timestamp as a string, or "" if it is unset.
 func (signature Signature) ExpiresString() string {
 	if signature.Expires == 0 {
 		return ""
