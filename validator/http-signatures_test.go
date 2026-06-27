@@ -50,6 +50,23 @@ func TestHTTPSig_NoSignature(t *testing.T) {
 	require.Equal(t, ResultUnknown, v.Validate(request, &activity))
 }
 
+// TestHTTPSig_DefaultKeyFinder confirms that, when no key finder is supplied,
+// the validator falls back to its default finder, which loads the signing actor
+// from its origin server. Offline, that load fails, so a signed request whose
+// actor cannot be resolved is rejected as Invalid. This exercises the
+// defaultKeyFinder construction and its error path.
+func TestHTTPSig_DefaultKeyFinder(t *testing.T) {
+
+	actorID := "https://offline.example.com/users/alice"
+	request, _ := signedRequestForActor(t, actorID+"#main-key")
+
+	// Passing nil forces the validator to build and use defaultKeyFinder.
+	v := NewHTTPSig(nil)
+	activity := actorDocument(actorID)
+
+	require.Equal(t, ResultInvalid, v.Validate(request, &activity))
+}
+
 // TestHTTPSig_Valid confirms a correctly signed request whose signature actor
 // matches the activity actor is Valid.
 func TestHTTPSig_Valid(t *testing.T) {
