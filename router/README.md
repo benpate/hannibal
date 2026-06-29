@@ -1,51 +1,57 @@
-# Hannibal / inbox
+# Hannibal / router
 
-The Inbox library gives you: 1) an ActivityPub inbox handler that parses and validates incoming ActivityPub messages, and 2) a router that identifies messages by their type and object, and routes them to the correct business logic in your application
+The router package gives you two things: 1) `ReceiveRequest`, which parses and validates an incoming ActivityPub HTTP request, and 2) a `Router` that identifies an activity by its type and object type, then dispatches it to the matching handler in your application.
 
-``` golang
+```go
+// Create a Router whose handlers receive your own context type
+activityRouter := router.New[CustomContextType]()
 
-
-// Set up handlers for different kinds of activities and documents
-activityHandler := inbox.NewRouter[CustomContextType]()
-
-// Here's a handler to accept Create/Note messages
-activityHandler.Add(vocab.ActivityTypeCreate, vocab.ObjectTypeNote, func(context CustomContextType, activity streams.Document) error {
+// Handle Create/Note messages
+activityRouter.Add(vocab.ActivityTypeCreate, vocab.ObjectTypeNote, func(context CustomContextType, activity streams.Document) error {
 	// do something with the activity
+	return nil
 })
 
-// You can do wildcards too.  Here's a handler to accept 
-// Follow/Any messages
-activityHandler.Add(vocab.ActivityTypeFollow, vocab.Any, func(context CustomContextType, activity streams.Document) error {
-	// do something with the follow request.
-	// remember to send an "Accept" message back to the sender
+// Wildcards work too. Handle Follow/Any messages
+activityRouter.Add(vocab.ActivityTypeFollow, vocab.Any, func(context CustomContextType, activity streams.Document) error {
+	// handle the follow request (remember to send an "Accept" back)
+	return nil
 })
 
-// Here's a catch-all handler that receives any uncaught messages
-activityHandler.Add(vocab.Any, vocab.Any, func(context CustomContextType, activity streams.Document) error {
+// A catch-all handler for anything not matched above
+activityRouter.Add(vocab.Any, vocab.Any, func(context CustomContextType, activity streams.Document) error {
 	// do something with this activity
+	return nil
 })
 
-// Add routes to your web server
-myAppRouter.POST("/my/inbox",func (r *http.Request, w *http.Response) {
+// Wire it into your web server
+myAppRouter.POST("/my/inbox", func(w http.ResponseWriter, r *http.Request) {
 
-	// Parse and validate the posted activity
-	activity, err := pub.ReceiveRequest(r)
-	
-	// Handle errors however you like
+	// Parse and validate the inbound activity (verifies the HTTP Signature, etc.)
+	activity, err := router.ReceiveRequest(r, myClient)
 	if err != nil {
-		...
+		// handle the error however you like
+		return
 	}
 
-	context := // create custom "Context" value for this request
-	
-	// Pass the activity to the activityHandler, that will figure
-	// out what kind of activity/object we have and pass it to the 
-	// previously registered handler function
-	if err := activityHandler.Handle(context, actitity); err != nil {
-		// do something with the error
-	}
-	
-	// Success!
-}
+	// Build whatever context value this request needs
+	context := makeContext(r)
 
+	// Dispatch to the handler registered for this activity/object type
+	if err := activityRouter.Handle(context, activity); err != nil {
+		// handle the error
+	}
+})
 ```
+
+## Matching
+
+`Add(activityType, objectType, handler)` registers a handler for a specific activity type and object type. `Handle` looks for the most specific match first, falling back to wildcards (`vocab.Any`) for the object type, the activity type, or both — so a single `(vocab.Any, vocab.Any)` handler acts as a catch-all.
+
+## Receiving Requests
+
+`ReceiveRequest(request, client, options...)` reads the request body, parses it into a `streams.Document`, and runs the validator chain before returning. Options let you tune it:
+
+- `WithValidators(...)` — replace the validator chain (defaults to HTTP Signature verification). See [validator](../validator/) for the available checks.
+- `WithPublicKeyFinder(...)` — supply the key finder used to verify signatures.
+- `WithMaxBodySize(bytes)` — cap the request body size.

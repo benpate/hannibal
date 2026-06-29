@@ -1,23 +1,27 @@
-## Hannibal / unit
+## Hannibal / property
 
-This package wraps a number of common data values with conversions used in ActivityStreams.  This is important because JSON-LD allows any piece of data to be represented in multiple formats.  This wrapper allows safe access to indidividual values even when there are nil values  slices, or maps of values present.
+This package wraps common data values with the conversions used throughout ActivityStreams. JSON-LD allows the same piece of data to be represented in several shapes — a bare value, a single-element array, or a map keyed by `id` — and this wrapper gives you safe access to the underlying value no matter which shape it arrived in, even in the presence of `nil` values, slices, or nested maps.
 
 ### Usage
+
 ```go
 value := property.NewValue("http://foo.com")
 
-foo.Raw() // returns "foo"
+value.Raw() // returns "http://foo.com"
 
-// Traverse Arrays
-foo.Len() // returns 1
-foo.Head().Raw() // returns "http://foo.com"
-foo.Tail().Raw() // returns a nil value
+// Treat any value as an array
+value.Len()         // returns 1
+value.Head().Raw()  // returns "http://foo.com"
+value.Tail().IsNil() // returns true (nothing after the first element)
 
-// Represent maps
-foo.Map() // returns a map with "id"="http://foo.com"
-foo.Set("name", "Foo") // converts foo to a map and sets a new property
-foo.Get("name").Raw() // returns "Foo"
+// Treat any value as a map (JSON-LD represents a bare URL as {"id": "..."})
+value.Map()                  // returns map[string]any{"id": "http://foo.com"}
+
+// Set returns a new value with the property applied
+named := value.Set("name", "Foo")
+named.Get("name").Raw()      // returns "Foo"
 ```
 
 ## Interfaces
-Everything implements the `property.Value` interface, which provides several low-level manipulations for reading, writing, and transforming values.  You can implement this interface in other packages to use other custom types with the rest of the hannibal library.
+
+Everything implements the `property.Value` interface, which provides the low-level operations for reading, writing, and transforming values: `Get`, `Set`, `Head`, `Tail`, `Len`, `IsNil`, `Map`, and `Raw`. You can implement this interface in your own package to use custom types with the rest of the Hannibal library.
