@@ -1,8 +1,8 @@
-# Hannibal
+# 🐘 Hannibal
 
 <img src="https://github.com/benpate/hannibal/raw/main/meta/logo.jpg" style="width:100%; display:block; margin-bottom:20px;"  alt="Oil painting titled: Hannibal in the Alps, by R.B. Davis">
 
-[![GoDoc](https://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://pkg.go.dev/github.com/benpate/hannibal)
+[![Go Reference](https://pkg.go.dev/badge/github.com/benpate/hannibal.svg)](https://pkg.go.dev/github.com/benpate/hannibal)
 [![Version](https://img.shields.io/github/v/release/benpate/hannibal?include_prereleases&style=flat-square&color=brightgreen)](https://github.com/benpate/hannibal/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/benpate/hannibal/go.yml?style=flat-square)](https://github.com/benpate/hannibal/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/benpate/hannibal?style=flat-square)](https://goreportcard.com/report/github.com/benpate/hannibal)
@@ -10,7 +10,7 @@
 
 ## Triumphant ActivityPub for Go
 
-Hannibal is an experimental ActivityPub library for Go. It's goal is to be a robust, idiomatic, and thoroughly documented ActivityPub implementation fits into your application without any magic or drama.
+Hannibal is an experimental ActivityPub library for Go. Its goal is to be a robust, idiomatic, and thoroughly documented ActivityPub implementation that fits into your application without any magic or drama.
 
 ## PLEASE USE.. \*with caution
 
@@ -26,7 +26,7 @@ Like the ActivityPub spec itself, Hannibal is broken into several layers:
 
 https://www.w3.org/TR/activitypub/
 
-This is not an ActivityPub framework, but a simple library that easily plugs into your existing app. Add ActivityPub behaviors to your existing handlers, and send ActivityPub messages to
+This is not an ActivityPub framework, but a simple library that easily plugs into your existing app. Add ActivityPub behaviors to your existing handlers, and send ActivityPub messages to other servers.
 
 ### vocab - ActivityStreams Vocabulary
 
@@ -47,6 +47,10 @@ This package also includes a lightweight wrapper around generic data structures 
 https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures
 
 The `sigs` package creates and verifies HTTP signatures and Digests.
+
+## Image Credit
+
+The banner is *Hannibal in the Alps* by Richard Barrett Davis (1782–1854). The work is in the public domain.
 
 ## Pull Requests Welcome
 
