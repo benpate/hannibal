@@ -25,7 +25,7 @@ jobs:
       run: go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
 
     - name: Report Code Coverage
-      uses: codecov/codecov-action@e53489f4d376d79066609109e7a95a29eb3740b1 # v7.0.0
+      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
       with:
         fail_ci_if_error: false 
         flags: unittests
@@ -33,7 +33,7 @@ jobs:
         verbose: true
 
     - name: GolangCI-Lint
-      uses: golangci/golangci-lint-action@db582008a42febd596419635a5abc9d9815daa9c # v9.2.1
+      uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1
       with:
         version: latest
         skip-cache: true
