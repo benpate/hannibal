@@ -42,6 +42,12 @@ func (document Document) Actor() Document {
 	return document.Get(vocab.PropertyActor).LoadLink()
 }
 
+// ActorID returns just the ID of the document's Actor property.
+// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-actor
+func (document Document) ActorID() string {
+	return document.Get(vocab.PropertyActor).ID()
+}
+
 // Attachment returns the document's Attachment property.
 // https://www.w3.org/TR/activitystreams-vocabulary/#dfn-attachment
 func (document Document) Attachment() Document {
