@@ -5,7 +5,7 @@ import (
 )
 
 // Consumer returns a turbine queue.Consumer that processes
-// outbound ActivityPub actitities for this outbox.
+// outbound ActivityPub activities for this outbox.
 func Consumer(sender Sender) queue.Consumer {
 
 	return func(name string, args map[string]any) queue.Result {

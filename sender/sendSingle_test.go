@@ -7,7 +7,6 @@ import (
 	"iter"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"sync/atomic"
 	"testing"
 
@@ -18,14 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// TestMain enables delivery to non-public addresses for the whole package, since
-// these tests POST to loopback httptest servers that remote's SSRF guard would
-// otherwise block. Production keeps allowPrivateIPs = false.
-func TestMain(m *testing.M) {
-	allowPrivateIPs = true
-	os.Exit(m.Run())
-}
 
 // keyedActor is a test Actor that carries a real RSA private key, so that
 // outbound requests can actually be signed.
@@ -71,7 +62,10 @@ func newKeyedSender(t *testing.T) (Sender, string) {
 	}
 
 	q, _ := newRecordingQueue()
-	return New(keyedLocator{actor: actor}, q), actorID
+
+	// These tests POST to loopback httptest servers that remote's SSRF guard would
+	// otherwise block, so opt in to private-IP delivery. Production keeps this FALSE.
+	return New(keyedLocator{actor: actor}, q, AllowPrivateIPs(true)), actorID
 }
 
 // TestSendToSingleRecipient_Success confirms a deliverable activity is POSTed to

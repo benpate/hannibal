@@ -16,25 +16,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// allowPrivateIPs controls whether outbound deliveries may connect to non-public
-// (private/loopback) addresses. It is FALSE in production so that remote's SSRF
-// guard stays active; only tests that deliver to a loopback server set it TRUE.
-var allowPrivateIPs = false
-
 // Sender manages delivery of outbound activities from the outbox,
-// using the turbind Queue to deliver activities asynchronously.
-// This object can be used on its own, or it can be embedded in the
-// HTTPPoster object to automatically send activities when they are
-// POST-ed to the outbox.
+// using the turbine Queue to deliver activities asynchronously.
 type Sender struct {
-	queue   *queue.Queue
-	locator Locator
+	queue           *queue.Queue // Queue processes messages asynchronously
+	locator         Locator      // Locator resolves Actor IDs into Actor objects, and resolves recipient URIs into inbox URLs.
+	allowPrivateIPs bool         // If TRUE, outbound deliveries may connect to non-public (private/loopback) addresses.
 }
 
 // New returns a fully initialized Sender object
-func New(locator Locator, q *queue.Queue) Sender {
+func New(locator Locator, q *queue.Queue, options ...Option) Sender {
 
-	const location = "outbox2.Sender.New"
+	const location = "hannibal.sender.New"
 
 	// If we don't have an actual queue, then create one
 	if q == nil {
@@ -53,11 +46,18 @@ func New(locator Locator, q *queue.Queue) Sender {
 		q = queue.New()
 	}
 
-	// Return the Sender object
-	return Sender{
+	// Build the Sender object
+	sender := Sender{
 		queue:   q,
 		locator: locator,
 	}
+
+	// Apply any caller-provided options
+	for _, option := range options {
+		option(&sender)
+	}
+
+	return sender
 }
 
 // Send queues a new task to deliver the provided activity to all recipients.
@@ -65,7 +65,7 @@ func New(locator Locator, q *queue.Queue) Sender {
 // queue process in order for outbound activities to be sent.
 func (sender Sender) Send(activity mapof.Any) error {
 
-	const location = "outbox2.Sender.Send"
+	const location = "hannibal.sender.Send"
 
 	// NILCHECK: If the Outbox was not properly initialized with a queue, then report an error and return
 	if sender.queue == nil {
@@ -87,7 +87,8 @@ func (sender Sender) Send(activity mapof.Any) error {
 	return nil
 }
 
-// SendToAllRecipients sends a single ActivityPub activity from a the provided Actor to a single recipient's inbox URL.
+// SendToAllRecipients resolves every recipient of the provided ActivityPub activity into
+// inbox URLs, then enqueues a separate SendToSingleRecipient task for each one.
 func (sender *Sender) SendToAllRecipients(activity mapof.Any) queue.Result {
 
 	const location = "hannibal.sender.SendToAllRecipients"
@@ -135,11 +136,11 @@ func (sender *Sender) SendToAllRecipients(activity mapof.Any) queue.Result {
 		}
 	}
 
-	// Task Successed Successfully!
+	// Task Succeeded Successfully!
 	return queue.Success()
 }
 
-// SendToSingleRecipient sends a single ActivityPub activity from a the provided Actor to a single recipient's inbox URL.
+// SendToSingleRecipient sends a single ActivityPub activity from the provided Actor to a single recipient's inbox URL.
 func (sender *Sender) SendToSingleRecipient(args mapof.Any) queue.Result {
 
 	const location = "hannibal.sender.SendToSingleRecipient"
@@ -166,9 +167,9 @@ func (sender *Sender) SendToSingleRecipient(args mapof.Any) queue.Result {
 		JSON(activity)
 
 	// RULE: By default, remote refuses to connect to non-public (private/loopback)
-	// addresses to guard against SSRF. allowPrivateIPs stays FALSE in production;
-	// tests that deliver to a loopback server flip it on.
-	transaction.AllowPrivateIPs(allowPrivateIPs)
+	// addresses to guard against SSRF. sender.allowPrivateIPs stays FALSE in production;
+	// callers delivering to a local peer opt in via the AllowPrivateIPs option.
+	transaction.AllowPrivateIPs(sender.allowPrivateIPs)
 
 	// Enable debugging (if requested)
 	if canDebug() {

@@ -11,12 +11,12 @@ import (
 )
 
 // getRecipients retrieves the inbox URLs for all recipients of this activity.
-// It uses the Locator service to resole each URI in the to, cc, bto, and bcc fields to
+// It uses the Locator service to resolve each URI in the to, cc, bto, and bcc fields to
 // one or more inbox URLs.  For example, a URI may point to a list of followers, in which
 // case every follower's inbox URL will be included in the resulting iterator.
 func getRecipients(locator Locator, activity mapof.Any) (iter.Seq[string], error) {
 
-	const location = "hannibal.sender.Recipients"
+	const location = "hannibal.sender.getRecipients"
 
 	iterators := make([]iter.Seq[string], 0)
 	properties := []string{vocab.PropertyTo, vocab.PropertyCC, vocab.PropertyBTo, vocab.PropertyBCC}

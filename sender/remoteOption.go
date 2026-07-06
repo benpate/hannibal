@@ -18,7 +18,7 @@ func signRequest(publicKeyID string, privateKey crypto.PrivateKey) remote.Option
 
 			// Add a "Digest" header to the request and sign the outgoing request.
 			if err := sigs.Sign(request, publicKeyID, privateKey); err != nil {
-				derp.Report(derp.Wrap(err, "activitypub.RequestSignature", "Unable to sign HTTP request.  This is likely because of a problem with the actor's private key."))
+				derp.Report(derp.Wrap(err, "hannibal.sender.signRequest", "Unable to sign HTTP request.  This is likely because of a problem with the actor's private key."))
 			}
 
 			// If exists, write the Digest back into the transaction (for serialization, et al)
