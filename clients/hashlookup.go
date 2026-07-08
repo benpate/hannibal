@@ -67,7 +67,9 @@ func (client HashLookup) Delete(documentID string) error {
 // SetRootClient passes the top-level client down to the underlying client, so
 // stacked clients that make recursive calls resolve through the whole chain.
 func (client HashLookup) SetRootClient(rootClient streams.Client) {
-	client.innerClient.SetRootClient(rootClient)
+	if client.innerClient != nil {
+		client.innerClient.SetRootClient(rootClient)
+	}
 }
 
 // Verify that HashLookup satisfies the streams.Client interface.
