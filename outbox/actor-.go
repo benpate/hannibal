@@ -16,9 +16,10 @@ type Actor struct {
 	privateKey crypto.PrivateKey
 
 	// Optional values set via With() options
-	publicKeyID string
-	client      streams.Client
-	followers   iter.Seq[string]
+	publicKeyID     string
+	client          streams.Client
+	followers       iter.Seq[string]
+	allowPrivateIPs bool
 	// A queue field may be reintroduced here if outbox delivery moves back onto a task queue.
 }
 

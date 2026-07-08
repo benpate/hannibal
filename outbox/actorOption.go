@@ -29,3 +29,13 @@ func WithFollowers(followers iter.Seq[string]) ActorOption {
 		a.followers = followers
 	}
 }
+
+// WithAllowPrivateIPs is an ActorOption that permits (or forbids) outbound
+// delivery to non-public (private/loopback) addresses. It is FALSE by default so
+// that remote's SSRF guard stays active; callers delivering to a local peer (for
+// example, a dev instance federating with itself) opt in by passing TRUE.
+func WithAllowPrivateIPs(allowPrivateIPs bool) ActorOption {
+	return func(a *Actor) {
+		a.allowPrivateIPs = allowPrivateIPs
+	}
+}

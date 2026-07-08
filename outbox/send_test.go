@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"sync"
 	"testing"
 
@@ -17,14 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// TestMain enables delivery to non-public addresses for the whole package, since
-// these tests POST to loopback httptest servers that remote's SSRF guard would
-// otherwise block. Production keeps allowPrivateIPs = false.
-func TestMain(m *testing.M) {
-	allowPrivateIPs = true
-	os.Exit(m.Run())
-}
 
 // mockClient is a streams.Client that resolves any recipient URI to a document
 // whose inbox points at the configured inbox URL. This lets SendOne run fully
@@ -96,7 +87,10 @@ func newSendingActor(t *testing.T, recorder *inboxRecorder) Actor {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 	return NewActor("https://example.com/users/alice", privateKey,
-		WithClient(mockClient{inboxURL: recorder.server.URL}))
+		WithClient(mockClient{inboxURL: recorder.server.URL}),
+		// These tests POST to loopback httptest servers that remote's SSRF guard
+		// would otherwise block.
+		WithAllowPrivateIPs(true))
 }
 
 /******************************************
@@ -221,7 +215,10 @@ func TestSignRequest(t *testing.T) {
 	require.NoError(t, err)
 
 	actor := NewActor("https://example.com/users/alice", privateKey,
-		WithClient(mockClient{inboxURL: server.URL}))
+		WithClient(mockClient{inboxURL: server.URL}),
+		// This test POSTs to a loopback httptest server that remote's SSRF guard
+		// would otherwise block.
+		WithAllowPrivateIPs(true))
 
 	err = actor.SendOne("https://remote.example.com/users/bob", mapof.Any{
 		vocab.PropertyType: vocab.ActivityTypeCreate,
