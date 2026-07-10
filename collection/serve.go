@@ -7,6 +7,7 @@ import (
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal"
+	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/ranges"
@@ -32,6 +33,22 @@ func Serve(ctx echo.Context, collectionID string, countFunc CounterFunc, iterato
 
 	// Otherwise, return the OrderedCollection container
 	return serveOrderedCollection(ctx, collectionID, countFunc, iteratorFunc, config)
+}
+
+// ServeEmpty generates an empty OrderedCollection and returns it via HTTP.
+func ServeEmpty(ctx echo.Context, collectionID string) error {
+
+	// Make JSON-LD for an empty collection
+	result := streams.OrderedCollection{
+		Context:    streams.DefaultContext(),
+		Type:       vocab.CoreTypeOrderedCollection,
+		ID:         collectionID,
+		TotalItems: 0,
+	}
+
+	// Serve the empty record to the client
+	ctx.Response().Header().Set("Content-Type", "application/activity+json")
+	return ctx.JSON(http.StatusOK, result)
 }
 
 func serveOrderedCollection(ctx echo.Context, collectionID string, countFunc CounterFunc, iteratorFunc IteratorFunc, config Config) error {
