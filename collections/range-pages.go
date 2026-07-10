@@ -5,30 +5,24 @@ package collections
 import (
 	"iter"
 
-	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 )
 
 // RangePages returns an iterator over every page of a paged collection.
 func RangePages(collection streams.Document) iter.Seq[streams.Document] {
 
-	const location = "hannibal.collections.Pages"
-
 	return func(yield func(streams.Document) bool) {
-
-		var err error
 
 		// emptyPage is used to prevent WriteFreely-style infinite loops
 		var emptyPage bool
 
-		// If this is a collection header, then try to load the first page of results
+		// If this is a collection header, then move to the first page of results.
+		// LoadLink (not Load) is required because "first"/"next" may be either a URL
+		// string (which must be fetched) OR an inline/embedded page with no "id" (which
+		// must be used as-is). Calling Load() on an inline page returns NilDocument
+		// because it has no ID to fetch, which would silently drop the whole collection.
 		if firstPage := collection.First(); firstPage.NotNil() {
-			collection, err = firstPage.Load()
-
-			if err != nil {
-				derp.Report(derp.Wrap(err, location, "Unable to load first page", collection))
-				return
-			}
+			collection = firstPage.LoadLink()
 		}
 
 		// As long as we have a valid collection...
@@ -39,16 +33,9 @@ func RangePages(collection streams.Document) iter.Seq[streams.Document] {
 				return
 			}
 
-			// Look for the next page in the collection (if available)
-			collection = collection.Next()
-
-			// Try to load it and continue the loop.
-			collection, err = collection.Load()
-
-			if err != nil {
-				derp.Report(derp.Wrap(err, location, "Unable to load first page", collection))
-				return
-			}
+			// Move to the next page in the collection (if available), loading it from
+			// a URL when necessary. See the note above on why this is LoadLink, not Load.
+			collection = collection.Next().LoadLink()
 
 			// If this document is an empty page, then try to prevent
 			// WriteFreely-style infinite loops.
