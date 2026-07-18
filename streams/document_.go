@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/hannibal/metadata"
 	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/convert"
@@ -22,7 +23,7 @@ import (
 // `string`, `float`, `int` or `bool`.
 type Document struct {
 	value      property.Value
-	Metadata   Metadata
+	Metadata   metadata.Metadata
 	httpHeader http.Header
 	client     Client
 }
@@ -32,7 +33,7 @@ func NewDocument(value any, options ...DocumentOption) Document {
 
 	result := Document{
 		value:      property.NewValue(value),
-		Metadata:   NewMetadata(),
+		Metadata:   metadata.New(),
 		httpHeader: make(http.Header),
 		client:     NewDefaultClient(),
 	}
@@ -111,6 +112,7 @@ func (document Document) Clone() Document {
 		client:     document.client,
 		httpHeader: document.httpHeader.Clone(),
 		value:      document.value.Clone(),
+		Metadata:   document.Metadata.Clone(),
 	}
 }
 

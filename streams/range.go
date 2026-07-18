@@ -82,7 +82,9 @@ func (document Document) RangeAddressees() iter.Seq[string] {
 	)
 }
 
-// RangeInReplyTo returns an iterator over the IDs that the Document is in reply to.
+// RangeInReplyTo returns an iterator over the actors who should receive a reply to this Document:
+// the AUTHOR of the parent document (its attributedTo) followed by the parent's own addressees.
+// Yields nothing when the Document is not a reply, or the parent cannot be loaded.
 func (document Document) RangeInReplyTo() iter.Seq[string] {
 
 	return func(yield func(string) bool) {
@@ -98,6 +100,16 @@ func (document Document) RangeInReplyTo() iter.Seq[string] {
 		if err != nil {
 			derp.Report(derp.Wrap(err, "streams.Document.RangeInReplyTo", "Unable to load InReplyTo document", inReplyTo.ID()))
 			return // Nothing to yield
+		}
+
+		// The parent's AUTHOR is the primary target — a reply notifies the person being replied to,
+		// and only actors have inboxes. RangeAddressees reads `actor`/`to`/`cc`/mentions but NOT
+		// `attributedTo`, so without this a reply to a Note (whose author lives in attributedTo)
+		// would never reach that author.
+		if author := inReplyToDocument.AttributedTo().ID(); author != "" {
+			if !yield(author) {
+				return // Stop yielding
+			}
 		}
 
 		for address := range inReplyToDocument.RangeAddressees() {

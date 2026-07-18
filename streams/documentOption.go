@@ -1,6 +1,10 @@
 package streams
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/benpate/hannibal/metadata"
+)
 
 // DocumentOption is a function that configures a Document during construction.
 type DocumentOption func(*Document)
@@ -24,8 +28,8 @@ func WithHTTPHeader(httpHeader http.Header) DocumentOption {
 }
 
 // WithMetadata attaches metadata to the document
-func WithMetadata(metadata Metadata) DocumentOption {
+func WithMetadata(value metadata.Metadata) DocumentOption {
 	return func(doc *Document) {
-		doc.Metadata = metadata
+		doc.Metadata = value
 	}
 }

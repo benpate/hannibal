@@ -1,9 +1,19 @@
-package streams
+// Package metadata carries server-computed metadata about ActivityStream documents -- knowledge
+// that is ABOUT a document but never part of its wire value. It holds two layers: document facts
+// (category, relationships, response counts), which are the same for every viewer and are persisted
+// alongside cached documents; and per-viewer moderation Labels, which are attached at load time and
+// never persisted or serialized.
+package metadata
 
 import "github.com/benpate/hannibal/vocab"
 
-// Metadata contains structured metadata for each document, which is useful for collecting/querying records in a database
+// Metadata contains structured, server-computed metadata about a single document. Document facts
+// are shared by every viewer and persisted with the cached document. The Labels result is
+// per-viewer, attached at load time and never persisted or serialized.
 type Metadata struct {
+
+	// Document facts: identical for every viewer, persisted with the cached document.
+
 	HashedID         string `bson:"hashedId,omitempty"`         // HashedID is a unique identifier for this document, used to prevent duplicate records
 	DocumentCategory string `bson:"documentCategory,omitempty"` // High-level category of the document [Activity, Actor, Object, Collection]
 	RelationType     string `bson:"relationType,omitempty"`     // If this document is related to another document, this contains the type of relation [Reply, Announce, Like, Dislike]
@@ -12,11 +22,30 @@ type Metadata struct {
 	Announces        int64  `bson:"announces,omitempty"`        // Announces is the number of times this document has been announced / reposted
 	Likes            int64  `bson:"likes,omitempty"`            // Likes is the number of times this document has been liked
 	Dislikes         int64  `bson:"dislikes,omitempty"`         // Dislikes is the number of times this document has been disliked
+
+	// Labels is the current viewer's moderation verdict for this document. The single bson/json "-"
+	// tag keeps EVERYTHING inside it out of shared caches and off the wire, so fields added to
+	// Label later are covered automatically -- and a remote server can never spoof it, because the
+	// JSON parser fills only the document value, never Metadata.
+
+	Labels LabelSet `bson:"-" json:"-"`
 }
 
-// NewMetadata returns a fully initialized Metadata object
-func NewMetadata() Metadata {
+// New returns a fully initialized Metadata object.
+func New() Metadata {
 	return Metadata{}
+}
+
+// Clone returns a copy of this Metadata that shares no mutable state with the original.
+func (metadata Metadata) Clone() Metadata {
+	result := metadata
+	result.Labels = metadata.Labels.Clone()
+	return result
+}
+
+// IsRuleHidden returns TRUE if the current viewer's rules hide this document (a block or a mute).
+func (metadata Metadata) IsRuleHidden() bool {
+	return metadata.Labels.IsHidden()
 }
 
 // IsActor returns TRUE if this document is one of several "Actor" types [Application, Group, Organization, Person, Service]

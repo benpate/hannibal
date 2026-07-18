@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/benpate/hannibal/metadata"
 	"github.com/benpate/hannibal/property"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
@@ -46,10 +47,10 @@ func TestDocument_AddOptions(t *testing.T) {
 // in place.
 func TestDocument_WithOptions(t *testing.T) {
 
-	metadata := Metadata{DocumentCategory: vocab.DocumentCategoryObject}
+	meta := metadata.Metadata{DocumentCategory: vocab.DocumentCategoryObject}
 
 	doc := NewDocument(map[string]any{})
-	doc.WithOptions(WithMetadata(metadata))
+	doc.WithOptions(WithMetadata(meta))
 
 	assert.Equal(t, vocab.DocumentCategoryObject, doc.Metadata.DocumentCategory)
 }
@@ -107,6 +108,30 @@ func TestDocument_RangeInReplyTo(t *testing.T) {
 		}
 
 		assert.Contains(t, collected, "https://example.com/users/alice")
+	})
+
+	t.Run("yields the author (attributedTo) of the parent document", func(t *testing.T) {
+
+		// The parent Note carries its author in `attributedTo` (not in an addressee field) — the
+		// common shape for a reply target. RangeInReplyTo must still surface that author.
+		parentID := "https://example.com/notes/parent"
+		client := testClient{data: mapof.Any{
+			parentID: map[string]any{
+				vocab.PropertyID:           parentID,
+				vocab.PropertyAttributedTo: "https://example.com/users/bob",
+			},
+		}}
+
+		doc := NewDocument(map[string]any{
+			vocab.PropertyInReplyTo: parentID,
+		}, WithClient(client))
+
+		var collected []string
+		for address := range doc.RangeInReplyTo() {
+			collected = append(collected, address)
+		}
+
+		assert.Contains(t, collected, "https://example.com/users/bob")
 	})
 
 	t.Run("no inReplyTo -> yields nothing", func(t *testing.T) {

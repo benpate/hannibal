@@ -1,4 +1,4 @@
-package streams
+package metadata
 
 import (
 	"testing"
@@ -6,6 +6,32 @@ import (
 	"github.com/benpate/hannibal/vocab"
 	"github.com/stretchr/testify/assert"
 )
+
+// TestMetadata_IsRuleHidden confirms the Metadata delegate reflects its LabelSet, and that a
+// zero-value Metadata reads as visible.
+func TestMetadata_IsRuleHidden(t *testing.T) {
+
+	assert.False(t, New().IsRuleHidden())
+
+	hidden := Metadata{Labels: LabelSet{{Value: "Blocked", IsHidden: true}}}
+	assert.True(t, hidden.IsRuleHidden())
+
+	// An annotation-only set never hides.
+	labeled := Metadata{Labels: LabelSet{{Value: "Politics", IsHidden: false}}}
+	assert.False(t, labeled.IsRuleHidden())
+}
+
+// TestMetadata_Clone confirms a clone owns its own Labels slice.
+func TestMetadata_Clone(t *testing.T) {
+
+	original := Metadata{Labels: LabelSet{{Value: "Muted", IsHidden: true}}}
+	clone := original.Clone()
+	assert.Equal(t, original, clone)
+
+	// Writing through the clone must not reach the original.
+	clone.Labels[0].Value = "changed"
+	assert.Equal(t, "Muted", original.Labels[0].Value)
+}
 
 // TestMetadata_Categories confirms the IsActor/IsObject/IsCollection predicates
 // each match only their own DocumentCategory.
@@ -27,7 +53,7 @@ func TestMetadata_Categories(t *testing.T) {
 	assert.True(t, collection.IsCollection())
 
 	// A zero-value Metadata matches none of the categories.
-	empty := NewMetadata()
+	empty := New()
 	assert.False(t, empty.IsActor())
 	assert.False(t, empty.IsObject())
 	assert.False(t, empty.IsCollection())
