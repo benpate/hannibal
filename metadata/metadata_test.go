@@ -33,32 +33,6 @@ func TestMetadata_Clone(t *testing.T) {
 	assert.Equal(t, "Muted", original.Labels[0].Value)
 }
 
-// TestMetadata_Categories confirms the IsActor/IsObject/IsCollection predicates
-// each match only their own DocumentCategory.
-func TestMetadata_Categories(t *testing.T) {
-
-	actor := Metadata{DocumentCategory: vocab.DocumentCategoryActor}
-	assert.True(t, actor.IsActor())
-	assert.False(t, actor.IsObject())
-	assert.False(t, actor.IsCollection())
-
-	object := Metadata{DocumentCategory: vocab.DocumentCategoryObject}
-	assert.False(t, object.IsActor())
-	assert.True(t, object.IsObject())
-	assert.False(t, object.IsCollection())
-
-	collection := Metadata{DocumentCategory: vocab.DocumentCategoryCollection}
-	assert.False(t, collection.IsActor())
-	assert.False(t, collection.IsObject())
-	assert.True(t, collection.IsCollection())
-
-	// A zero-value Metadata matches none of the categories.
-	empty := New()
-	assert.False(t, empty.IsActor())
-	assert.False(t, empty.IsObject())
-	assert.False(t, empty.IsCollection())
-}
-
 // TestMetadata_HasCounts confirms each Has* predicate is true only when its
 // count is positive.
 func TestMetadata_HasCounts(t *testing.T) {
@@ -71,9 +45,6 @@ func TestMetadata_HasCounts(t *testing.T) {
 
 	assert.True(t, Metadata{Likes: 1}.HasLikes())
 	assert.False(t, Metadata{Likes: 0}.HasLikes())
-
-	assert.True(t, Metadata{Dislikes: 1}.HasDislikes())
-	assert.False(t, Metadata{Dislikes: 0}.HasDislikes())
 }
 
 // TestMetadata_HasRelationship confirms a relationship requires BOTH a type and
@@ -111,7 +82,6 @@ func TestMetadata_SetRelationCount(t *testing.T) {
 	check("Reply", vocab.RelationTypeReply, func(m Metadata) int64 { return m.Replies })
 	check("Announce", vocab.RelationTypeAnnounce, func(m Metadata) int64 { return m.Announces })
 	check("Like", vocab.RelationTypeLike, func(m Metadata) int64 { return m.Likes })
-	check("Dislike", vocab.RelationTypeDislike, func(m Metadata) int64 { return m.Dislikes })
 }
 
 // TestMetadata_SetRelationCount_Unknown confirms an unrecognized relation type
@@ -120,5 +90,9 @@ func TestMetadata_SetRelationCount_Unknown(t *testing.T) {
 
 	metadata := Metadata{}
 	assert.False(t, metadata.SetRelationCount("NotARealRelation", 99))
+
+	// Dislike counts were pruned in the 2026-07 housekeeping audit (no readers anywhere).
+	assert.False(t, metadata.SetRelationCount(vocab.RelationTypeDislike, 99))
+
 	assert.Equal(t, Metadata{}, metadata)
 }

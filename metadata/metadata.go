@@ -21,7 +21,6 @@ type Metadata struct {
 	Replies          int64  `bson:"replies,omitempty"`          // Replies is the number of replies to this document
 	Announces        int64  `bson:"announces,omitempty"`        // Announces is the number of times this document has been announced / reposted
 	Likes            int64  `bson:"likes,omitempty"`            // Likes is the number of times this document has been liked
-	Dislikes         int64  `bson:"dislikes,omitempty"`         // Dislikes is the number of times this document has been disliked
 
 	// Labels is the current viewer's moderation verdict for this document. The single bson/json "-"
 	// tag keeps EVERYTHING inside it out of shared caches and off the wire, so fields added to
@@ -48,21 +47,6 @@ func (metadata Metadata) IsRuleHidden() bool {
 	return metadata.Labels.IsHidden()
 }
 
-// IsActor returns TRUE if this document is one of several "Actor" types [Application, Group, Organization, Person, Service]
-func (metadata Metadata) IsActor() bool {
-	return metadata.DocumentCategory == vocab.DocumentCategoryActor
-}
-
-// IsObject returns TRUE if this document is one of several "Object" types [Image, Video, Audio, Document, and others]
-func (metadata Metadata) IsObject() bool {
-	return metadata.DocumentCategory == vocab.DocumentCategoryObject
-}
-
-// IsCollection returns TRUE if this document is one of several "Collection" types [Collection, CollectionPage, OrderedCollection, OrderedCollectionPage]
-func (metadata Metadata) IsCollection() bool {
-	return metadata.DocumentCategory == vocab.DocumentCategoryCollection
-}
-
 // HasReplies returns TRUE if this document has one or more Replies
 func (metadata Metadata) HasReplies() bool {
 	return metadata.Replies > 0
@@ -76,11 +60,6 @@ func (metadata Metadata) HasAnnounces() bool {
 // HasLikes returns TRUE if this document has one or more Likes
 func (metadata Metadata) HasLikes() bool {
 	return metadata.Likes > 0
-}
-
-// HasDislikes returns TRUE if this document has one or more Dislikes
-func (metadata Metadata) HasDislikes() bool {
-	return metadata.Dislikes > 0
 }
 
 // HasRelationship returns TRUE if this document has a relationship
@@ -117,12 +96,6 @@ func (metadata *Metadata) SetRelationCount(relationType string, count int64) boo
 	case vocab.RelationTypeLike:
 		if metadata.Likes != count {
 			metadata.Likes = count
-			return true
-		}
-
-	case vocab.RelationTypeDislike:
-		if metadata.Dislikes != count {
-			metadata.Dislikes = count
 			return true
 		}
 	}
