@@ -8,6 +8,10 @@ import "slices"
 //
 // By convention hidden entries sort before annotations, so Reason() can name the headline verdict
 // -- but correctness always flows through these methods, never through element position.
+//
+// BOUNDARY: a LabelSet is the VIEW -- lossy display data, safe to hand to templates and clients
+// because it can never say more than display text. The decision object it derives from lives in
+// the application layer, and that derivation is one-way by design.
 type LabelSet []Label
 
 // IsHidden returns TRUE if any matched rule hides this document (a block or a mute).
