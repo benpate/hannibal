@@ -32,8 +32,11 @@ func ReceiveRequest(request *http.Request, client streams.Client, options ...Opt
 	// Try to retrieve the object from the buffer
 	activity = streams.NilDocument(streams.WithClient(client))
 
+	// A body that will not parse is a malformed request from the peer, not a server fault, so it
+	// returns 400 Bad Request. json.Unmarshal errors are otherwise codeless and would surface as a
+	// generic 500 -- turning any empty/junk POST from a crawler or fuzzer into an internal error.
 	if err := json.Unmarshal(body, &activity); err != nil {
-		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub activity")
+		return streams.NilDocument(), derp.Wrap(err, location, "Error unmarshalling JSON body into ActivityPub activity", derp.WithBadRequest())
 	}
 
 	// Log the request

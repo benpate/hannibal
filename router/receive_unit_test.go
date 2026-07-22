@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/validator"
 	"github.com/benpate/hannibal/vocab"
@@ -115,16 +116,28 @@ func TestReceiveRequest_Rejected(t *testing.T) {
 	assert.True(t, activity.IsNil())
 }
 
-// TestReceiveRequest_BadJSON confirms a malformed body is rejected.
+// TestReceiveRequest_BadJSON confirms a malformed or empty body is rejected as a 400 Bad Request
+// (a peer's junk POST is a client error), not a codeless error that surfaces as a generic 500.
 func TestReceiveRequest_BadJSON(t *testing.T) {
 
-	request := newActivityRequest(`{ this is not valid json `)
 	client := streams.NewDefaultClient()
 
-	_, err := ReceiveRequest(request, client,
-		WithValidators(stubValidator{validator.ResultValid}))
+	check := func(name string, body string) {
+		t.Run(name, func(t *testing.T) {
+			request := newActivityRequest(body)
 
-	require.Error(t, err)
+			_, err := ReceiveRequest(request, client,
+				WithValidators(stubValidator{validator.ResultValid}))
+
+			require.Error(t, err)
+			assert.Equal(t, http.StatusBadRequest, derp.ErrorCode(err))
+		})
+	}
+
+	check("empty body", ``)
+	check("not json", `not json at all`)
+	check("truncated json", `{ this is not valid json `)
+	check("malformed json", `{"@#$%"}`)
 }
 
 /******************************************
