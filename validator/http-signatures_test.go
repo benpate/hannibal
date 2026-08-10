@@ -7,9 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
-	"github.com/benpate/hannibal"
 	"github.com/benpate/hannibal/sigs"
 	"github.com/benpate/hannibal/streams"
 	"github.com/stretchr/testify/require"
@@ -27,8 +25,8 @@ func signedRequestForActor(t *testing.T, keyID string) (*http.Request, sigs.Publ
 
 	request := httptest.NewRequest(http.MethodPost, "https://example.com/inbox",
 		bytes.NewReader([]byte(`{"hello":"world"}`)))
-	request.Header.Set("Date", hannibal.TimeFormat(time.Now()))
 
+	// Sign supplies the "Date" header itself when it is absent.
 	require.NoError(t, sigs.Sign(request, keyID, privateKey))
 
 	keyFinder := func(id string) (string, error) {

@@ -1,19 +1,15 @@
 package outbox
 
 import (
-	"time"
-
-	"github.com/benpate/hannibal"
+	"github.com/benpate/hannibal/datetime"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/rs/zerolog/log"
 )
 
-// SendDelete sends an "Delete" message to the recipient
-// actor: The Actor that is sending the request
-// activity: The activity that has been deleted
-// recipient: The ActivityStream profile of the message recipient
+// SendDelete announces that a document has been deleted, to the Actor's
+// followers and the document's addressees.
 func (actor *Actor) SendDelete(document streams.Document) {
 
 	if canDebug() {
@@ -25,7 +21,7 @@ func (actor *Actor) SendDelete(document streams.Document) {
 		vocab.PropertyType:      vocab.ActivityTypeDelete,
 		vocab.PropertyActor:     actor.actorID,
 		vocab.PropertyObject:    document.Object().Map(),
-		vocab.PropertyPublished: hannibal.TimeFormat(time.Now()),
+		vocab.PropertyPublished: datetime.Now(),
 	}
 
 	actor.Send(message, document.RangeAddressees(), actor.followers)

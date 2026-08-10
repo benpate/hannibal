@@ -1,19 +1,15 @@
 package outbox
 
 import (
-	"time"
-
-	"github.com/benpate/hannibal"
+	"github.com/benpate/hannibal/datetime"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/rs/zerolog/log"
 )
 
-// SendUpdate sends an "Update" message to the recipient
-// actor: The Actor that is sending the request
-// activity: The activity that has been updated
-// recipient: The ActivityStream profile of the message recipient
+// SendUpdate announces that a document has been updated, to the Actor's
+// followers and the document's addressees.
 func (actor *Actor) SendUpdate(document streams.Document) {
 
 	if canDebug() {
@@ -25,7 +21,7 @@ func (actor *Actor) SendUpdate(document streams.Document) {
 		vocab.PropertyType:      vocab.ActivityTypeUpdate,
 		vocab.PropertyActor:     actor.actorID,
 		vocab.PropertyObject:    document.Map(),
-		vocab.PropertyPublished: hannibal.TimeFormat(time.Now()),
+		vocab.PropertyPublished: datetime.Now(),
 	}
 
 	actor.Send(

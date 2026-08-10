@@ -1,17 +1,15 @@
 package outbox
 
 import (
-	"time"
-
-	"github.com/benpate/hannibal"
+	"github.com/benpate/hannibal/datetime"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/rs/zerolog/log"
 )
 
-// SendLike sends an "Like" message to the recipient
-// activity: The activity that is being announced
+// SendLike announces that the Actor has liked an object, to the Actor's
+// followers and the object's addressees.
 func (actor *Actor) SendLike(likeID string, object streams.Document) {
 
 	if canDebug() {
@@ -24,7 +22,7 @@ func (actor *Actor) SendLike(likeID string, object streams.Document) {
 		vocab.PropertyID:        likeID,
 		vocab.PropertyActor:     actor.actorID,
 		vocab.PropertyObject:    object.Map(),
-		vocab.PropertyPublished: hannibal.TimeFormat(time.Now()),
+		vocab.PropertyPublished: datetime.Now(),
 	}
 
 	actor.Send(message, actor.followers, object.RangeAddressees())

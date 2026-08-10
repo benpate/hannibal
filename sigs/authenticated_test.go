@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benpate/hannibal"
 	"github.com/benpate/remote"
 	"github.com/stretchr/testify/require"
 )
@@ -58,7 +57,7 @@ func TestWithSigner(t *testing.T) {
 	// Build an outbound request and run it through the middleware's ModifyRequest.
 	request, err := http.NewRequest("POST", "https://example.com/inbox", bytes.NewReader([]byte(`{"hello":"world"}`)))
 	require.Nil(t, err)
-	request.Header.Set("Date", hannibal.TimeFormat(time.Now()))
+	request.Header.Set("Date", dateHeader(time.Now()))
 
 	option := WithSigner(signer)
 	require.NotNil(t, option.ModifyRequest)

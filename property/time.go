@@ -3,7 +3,7 @@ package property
 import (
 	"time"
 
-	"github.com/benpate/hannibal"
+	"github.com/benpate/hannibal/datetime"
 )
 
 // Time is a property Value that wraps a timestamp.
@@ -51,9 +51,12 @@ func (value Time) IsNil() bool {
 	return time.Time(value).IsZero()
 }
 
-// String returs the string representation of the value
+// String returns the string representation of the value
 func (value Time) String() string {
-	return hannibal.TimeFormat(time.Time(value))
+
+	// Timestamps serialize as AS2-conformant date-times, which returns an empty
+	// string for a zero time. https://www.w3.org/TR/activitystreams-core/#dates
+	return datetime.Format(time.Time(value))
 }
 
 // Map returns the value as a map[string]any

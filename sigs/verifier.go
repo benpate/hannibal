@@ -87,7 +87,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 		// This is okay because the sender may not include the (date) in the signature.
 		if dateString := request.Header.Get(FieldDate); dateString != "" {
 
-			date, err := time.Parse(http.TimeFormat, request.Header.Get(FieldDate))
+			date, err := parseDateHeader(dateString)
 
 			if err != nil {
 				return Signature{}, derp.Wrap(err, location, "Invalid Date header.  Must match 'Mon, 02 Jan 2006 15:04:05 GMT'")

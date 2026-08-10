@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/benpate/hannibal/vocab"
 	"github.com/stretchr/testify/require"
@@ -23,15 +22,6 @@ func TestIsActivityPubContentType(t *testing.T) {
 	require.False(t, IsActivityPubContentType("application/xml"))
 	require.False(t, IsActivityPubContentType("application/xml; whocares=notme"))
 	require.False(t, IsActivityPubContentType("image/webp"))
-}
-
-// TestTimeFormat confirms TimeFormat renders a time in the W3C/HTTP format,
-// normalized to UTC regardless of the input location.
-func TestTimeFormat(t *testing.T) {
-
-	// A fixed instant expressed in a non-UTC zone must format as its UTC equivalent.
-	instant := time.Date(2026, time.January, 2, 15, 4, 5, 0, time.FixedZone("MST", -7*60*60))
-	require.Equal(t, "Fri, 02 Jan 2026 22:04:05 GMT", TimeFormat(instant))
 }
 
 // TestIsActivityPubRequest confirms the request helpers read the "Accept" header.

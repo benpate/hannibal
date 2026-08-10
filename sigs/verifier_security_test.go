@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benpate/hannibal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +35,7 @@ func newSignedRequest(t *testing.T, body string, publicKeyID string, privateKey 
 	request, err := http.NewRequest("POST", "https://example.com/inbox?x=1", bytes.NewReader([]byte(body)))
 	require.Nil(t, err)
 	request.Header.Set("Content-Type", "application/activity+json")
-	request.Header.Set("Date", hannibal.TimeFormat(time.Now()))
+	request.Header.Set("Date", dateHeader(time.Now()))
 
 	err = Sign(request, publicKeyID, privateKey, options...)
 	require.Nil(t, err)
@@ -219,7 +218,7 @@ func TestVerify_Reject_ExpiredDateHeader(t *testing.T) {
 
 	// Backdate the request well beyond the default 12-hour window. The signature
 	// covers the date, so we must re-sign after changing it.
-	request.Header.Set("Date", hannibal.TimeFormat(time.Now().Add(-48*time.Hour)))
+	request.Header.Set("Date", dateHeader(time.Now().Add(-48*time.Hour)))
 	require.Nil(t, Sign(request, "rsa-key", privateKey))
 
 	_, err = Verify(request, rsaKeyFinder(privateKey))
@@ -300,7 +299,7 @@ func TestVerify_Reject_NoSignatureHeader(t *testing.T) {
 
 	request, err := http.NewRequest("GET", "https://example.com/inbox", nil)
 	require.Nil(t, err)
-	request.Header.Set("Date", hannibal.TimeFormat(time.Now()))
+	request.Header.Set("Date", dateHeader(time.Now()))
 
 	_, err = Verify(request, rsaKeyFinder(privateKey))
 	require.NotNil(t, err, "a request with no signature must be rejected")

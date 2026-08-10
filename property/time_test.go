@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benpate/hannibal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,13 +29,17 @@ func TestTime(t *testing.T) {
 	// Raw round-trips to the underlying time.Time.
 	assert.True(t, when.Equal(value.Raw().(time.Time)))
 
-	// String uses the shared W3C/HTTP time format -- compare against the same
-	// helper the type itself uses so the two can never drift apart.
-	assert.Equal(t, hannibal.TimeFormat(when), value.String())
+	// String emits an AS2-conformant date-time. This asserts the literal value
+	// rather than round-tripping through datetime.Format, so a change to the
+	// format shows up here instead of silently agreeing with itself.
+	assert.Equal(t, "2024-01-22T15:04:05Z", value.String())
 }
 
 // TestTime_IsNil confirms Time reports nil only for the zero time.
 func TestTime_IsNil(t *testing.T) {
+
+	// A nil Time must serialize to an empty string, not a Unix-epoch timestamp.
 	assert.True(t, Time(time.Time{}).IsNil())
+	assert.Equal(t, "", Time(time.Time{}).String())
 	assert.False(t, Time(time.Now()).IsNil())
 }

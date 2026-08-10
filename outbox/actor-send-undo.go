@@ -1,19 +1,15 @@
 package outbox
 
 import (
-	"time"
-
-	"github.com/benpate/hannibal"
+	"github.com/benpate/hannibal/datetime"
 	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/rs/zerolog/log"
 )
 
-// SendUndo sends an "Undo" message to the recipient
-// actor: The Actor that is sending the request
-// activity: The activity that has been undone
-// recipient: The ActivityStream profile of the message recipient
+// SendUndo announces that a previously sent activity has been undone, to that
+// activity's original addressees.
 func (actor *Actor) SendUndo(activity streams.Document) {
 
 	if canDebug() {
@@ -26,7 +22,7 @@ func (actor *Actor) SendUndo(activity streams.Document) {
 		vocab.PropertyType:      vocab.ActivityTypeUndo,
 		vocab.PropertyActor:     actor.actorID,
 		vocab.PropertyObject:    activity.Map(),
-		vocab.PropertyPublished: hannibal.TimeFormat(time.Now()),
+		vocab.PropertyPublished: datetime.Now(),
 	}
 
 	actor.Send(message, activity.RangeAddressees())
