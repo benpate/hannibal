@@ -7,7 +7,6 @@ import (
 
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal"
-	"github.com/benpate/hannibal/streams"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/ranges"
@@ -38,17 +37,37 @@ func Serve(ctx echo.Context, collectionID string, countFunc CounterFunc, iterato
 // ServeEmpty generates an empty OrderedCollection and returns it via HTTP.
 func ServeEmpty(ctx echo.Context, collectionID string) error {
 
-	// Make JSON-LD for an empty collection
-	result := streams.OrderedCollection{
-		Context:    streams.DefaultContext(),
-		Type:       vocab.CoreTypeOrderedCollection,
-		ID:         collectionID,
-		TotalItems: 0,
+	// An empty collection is just a summary whose count is zero.  This deliberately does NOT
+	// marshal a streams.OrderedCollection: that struct tags TotalItems as `omitempty`, so the
+	// zero this function exists to report is exactly the value that would be dropped.
+	return ServeSummary(ctx, collectionID, 0)
+}
+
+// ServeSummary generates an OrderedCollection that publishes its SIZE but not its MEMBERS, and
+// returns it via HTTP: `id`, `type`, and `totalItems`, with no `first` link and no `orderedItems`.
+func ServeSummary(ctx echo.Context, collectionID string, totalItems int64, options ...Option) error {
+
+	// Use this for a collection whose contents are deliberately not disclosed -- most commonly an
+	// actor's `followers` or `following`, which ActivityPub §5.3/§5.4 permit a server to filter "on
+	// privileges of an authenticated user or as appropriate when no authentication is given."
+	//
+	// The absence of `first` is the meaningful signal, not an oversight: Mastodon reads a collection
+	// with a count but no first page as one the actor has chosen to hide, and says so, rather than
+	// reporting that the actor has no followers. Publishing the count is what separates a deliberate
+	// privacy choice from a broken endpoint -- a consumer that sees no `totalItems` at all cannot tell
+	// "zero" from "unknown", and will leave a previously-cached count in place forever.
+
+	result := mapof.Any{
+		vocab.AtContext:          vocab.ContextTypeActivityStreams,
+		vocab.PropertyType:       vocab.CoreTypeOrderedCollection,
+		vocab.PropertyID:         collectionID,
+		vocab.PropertyTotalItems: totalItems,
 	}
 
-	// Serve the empty record to the client
-	ctx.Response().Header().Set("Content-Type", "application/activity+json")
-	return ctx.JSON(http.StatusOK, result)
+	NewConfig(options...).Apply(&result)
+
+	ctx.Response().Header().Set(echo.HeaderContentType, vocab.ContentTypeActivityPub)
+	return serveJSON(ctx, http.StatusOK, result)
 }
 
 func serveOrderedCollection(ctx echo.Context, collectionID string, countFunc CounterFunc, iteratorFunc IteratorFunc, config Config) error {
