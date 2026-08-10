@@ -76,10 +76,8 @@ func (value Slice) Raw() any {
 	return []any(value)
 }
 
-// Clone returns a deep copy of the value
+// Clone returns a deep copy of the value. Nested containers are cloned too, so no container in
+// the result is shared with the original.
 func (value Slice) Clone() Value {
-	result := make([]any, len(value))
-	copy(result, value)
-
-	return Slice(result)
+	return Slice(cloneSlice(value))
 }

@@ -53,15 +53,10 @@ func (value Map) Raw() any {
 	return map[string]any(value)
 }
 
-// Clone returns a copy of this value.
+// Clone returns a deep copy of this value. Nested containers are cloned too, so no container in
+// the result is shared with the original.
 func (value Map) Clone() Value {
-	result := make(map[string]any)
-
-	for key, value := range value {
-		result[key] = value
-	}
-
-	return Map(result)
+	return Map(cloneMap(value))
 }
 
 /******************************************
