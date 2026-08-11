@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestLabelSet_Empty confirms a nil/zero set reads as clean.
@@ -57,6 +58,7 @@ func TestLabelSet_Clone(t *testing.T) {
 	original := LabelSet{{Value: "Muted", IsHidden: true}}
 	clone := original.Clone()
 	assert.Equal(t, original, clone)
+	require.Equal(t, 1, len(clone), "clone should have exactly one Label")
 
 	// Writing through the clone must not reach the original.
 	clone[0].Value = "changed"
