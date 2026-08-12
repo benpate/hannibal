@@ -1,0 +1,25 @@
+# .gitleaksignore -- fingerprints reviewed and accepted on 2026-08-12.
+#
+# Every entry below was inspected and confirmed to be test data, a placeholder, or a
+# value in deleted history that is not a live credential. Fingerprints are
+# `commit:file:rule:line`, so an entry stops matching if the secret moves or changes --
+# a genuinely new leak in one of these files will still be reported.
+#
+# Add to this file only after confirming a finding is safe. If a real credential is
+# ever committed, rotate it: removing the file does not remove it from history.
+
+# sigs/fuzz_test.go
+# Test fixture: generated RSA key for signature fuzzing
+b6b9a903ab90601ff5da3dbd48edfa348d62ab6f:sigs/fuzz_test.go:private-key:71
+
+# sigs/ietf_test.go
+# Test fixture: RSA key from the IETF HTTP Signatures spec examples
+29e83dd93d5ebc12da3cedbe9beb7f0dc8ef9032:sigs/ietf_test.go:private-key:126
+
+# sigs/verifier_test.go
+# Test fixture: generated RSA key for verifier tests
+f2b2707ee5110bdd353afd152ff8939c426f88f8:sigs/verifier_test.go:private-key:111
+
+# sigs/x_dinochiesa_test.go
+# Test fixture: RSA key from a third-party interop test vector
+e94203f83caa4be2894f41014819931cc00768b6:sigs/x_dinochiesa_test.go:private-key:91
