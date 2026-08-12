@@ -15,6 +15,7 @@ func TestIsActivityPubContentType(t *testing.T) {
 	require.True(t, IsActivityPubContentType("application/json; whocares=notme"))
 	require.True(t, IsActivityPubContentType("application/activity+json"))
 	require.True(t, IsActivityPubContentType("application/activity+json; charset=utf-8"))
+	require.True(t, IsActivityPubContentType("APPLICATION/ACTIVITY+JSON"))
 	require.True(t, IsActivityPubContentType("application/ld+json"))
 	require.True(t, IsActivityPubContentType("application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\""))
 
@@ -22,6 +23,114 @@ func TestIsActivityPubContentType(t *testing.T) {
 	require.False(t, IsActivityPubContentType("application/xml"))
 	require.False(t, IsActivityPubContentType("application/xml; whocares=notme"))
 	require.False(t, IsActivityPubContentType("image/webp"))
+
+	// A LIST of media types is not a content type. This used to return TRUE by silently reading
+	// only the first entry, which is how an "Accept" header could be mistaken for one.
+	require.False(t, IsActivityPubContentType("application/activity+json, text/html"))
+}
+
+// TestAcceptsActivityPub covers the answer selected by a range of real "Accept" headers.
+func TestAcceptsActivityPub(t *testing.T) {
+
+	// Rows are named for the client they represent: the regressions worth catching are interop
+	// regressions, not parser regressions.
+	const as2Profile = `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`
+
+	table := []struct {
+		name   string
+		accept string
+		expect bool
+	}{
+		// Defaults. ActivityPub is never the answer to an unasked question.
+		{"absent header", "", false},
+		{"curl default", "*/*", false},
+		{"type wildcard", "text/*", false},
+		{"unrecognized only", "application/xml", false},
+		{"unrelated type wildcard", "image/*", false},
+		{"garbage", "this is not a media type", false},
+
+		// Wildcards never select ActivityPub. Only the three exact media types do, so a client that
+		// shrugs is not answered with an ActivityStreams document.
+		{"application wildcard does not select activitypub", "application/*", false},
+		{"leading wildcard wins the tie by client order", "*/*, application/activity+json", false},
+		{"wildcard quality is honored", "text/*;q=1.0, application/activity+json;q=0.5", false},
+		{"wildcard cannot rescue a refused representation", "text/html;q=0, */*", false},
+		{"wildcard refusal does not override a specific accept", "*/*;q=0, text/html", false},
+
+		// Browsers.
+		{"chrome", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8", false},
+		{"html only", "text/html", false},
+
+		// Federated peers.
+		{"mastodon", "application/activity+json, " + as2Profile, true},
+		{"activity+json alone", vocab.ContentTypeActivityPub, true},
+		{"ld+json with profile", as2Profile, true},
+		{"ld+json bare", vocab.ContentTypeJSONLD, true},
+		{"bare json", vocab.ContentTypeJSON, true},
+
+		// The two situations the old predicate got wrong. These are the regression tests.
+		{"q-values reorder the list", "text/html;q=0.9, application/activity+json;q=1.0", true},
+		{"unsupported type listed first", "application/xrd+xml, application/activity+json", true},
+
+		// Ordering at equal quality follows the order the client listed.
+		{"html first at equal quality", "text/html, application/activity+json", false},
+		{"activitypub first at equal quality", "application/activity+json, text/html", true},
+		{"activitypub ahead of wildcard", "application/activity+json, */*", true},
+
+		// Quality edge cases.
+		{"html refused outright", "text/html;q=0, application/activity+json", true},
+		{"everything refused", "text/html;q=0, application/activity+json;q=0", false},
+		{"html wins on quality", "text/html;q=1.0, application/activity+json;q=0.9", false},
+		{"malformed quality is discarded", "application/activity+json;q=bogus", false},
+		{"malformed parameter still selects", "text/html;;", false},
+
+		// A quoted parameter value may contain a comma; splitting inside it would lose the entry.
+		{"comma inside a quoted profile", `application/ld+json; profile="https://example.com/a,b"`, true},
+
+		// Whitespace and casing, which clients are inconsistent about.
+		{"padded entries", "  text/html ;  q=0.5 ,  application/activity+json  ", true},
+		{"uppercase media type", "APPLICATION/ACTIVITY+JSON", true},
+	}
+
+	for _, test := range table {
+		t.Run(test.name, func(t *testing.T) {
+			require.Equal(t, test.expect, acceptsActivityPub(test.accept), "Accept: %q", test.accept)
+		})
+	}
+}
+
+// TestSplitAcceptHeader covers the splitter's contract directly.
+func TestSplitAcceptHeader(t *testing.T) {
+
+	// AcceptsActivityPub cannot see a mis-split: a torn fragment still yields a usable media type at
+	// the default quality, so it ties with the entry it came from and resolves back to the same answer.
+	table := []struct {
+		name   string
+		header string
+		expect []string
+	}{
+		{"empty", "", []string{""}},
+		{"single entry", "text/html", []string{"text/html"}},
+		{"two entries", "text/html, application/activity+json", []string{"text/html", " application/activity+json"}},
+		{"comma inside a quoted value", `application/ld+json; profile="a,b"`, []string{`application/ld+json; profile="a,b"`}},
+
+		// An escaped quote must not close the quoted string -- otherwise the following comma reads
+		// as a separator and the entry is torn in half.
+		{"escaped quote then comma", `text/html; x="a\"b,c"`, []string{`text/html; x="a\"b,c"`}},
+
+		// A backslash as the final byte has nothing to escape. This covers the bounds guard, which
+		// would otherwise read past the end of the string.
+		{"trailing backslash inside quotes", `text/html; x="a\`, []string{`text/html; x="a\`}},
+
+		{"empty entries are preserved", ",,", []string{"", "", ""}},
+		{"trailing comma", "text/html,", []string{"text/html", ""}},
+	}
+
+	for _, test := range table {
+		t.Run(test.name, func(t *testing.T) {
+			require.Equal(t, test.expect, splitAcceptHeader(test.header), "header: %q", test.header)
+		})
+	}
 }
 
 // TestIsActivityPubRequest confirms the request helpers read the "Accept" header.
@@ -37,6 +146,12 @@ func TestIsActivityPubRequest(t *testing.T) {
 	t.Run("html accept -> false", func(t *testing.T) {
 		request := httptest.NewRequest(http.MethodGet, "https://example.com/", nil)
 		request.Header.Set("Accept", "text/html")
+		require.False(t, IsActivityPubRequest(request))
+		require.True(t, NotActivityPubRequest(request))
+	})
+
+	t.Run("no accept header -> false", func(t *testing.T) {
+		request := httptest.NewRequest(http.MethodGet, "https://example.com/", nil)
 		require.False(t, IsActivityPubRequest(request))
 		require.True(t, NotActivityPubRequest(request))
 	})

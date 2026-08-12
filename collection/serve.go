@@ -186,7 +186,7 @@ func activityValue(activity mapof.Any) any {
 
 func serveJSON(ctx echo.Context, statusCode int, data any) error {
 
-	if hannibal.IsActivityPubContentType(ctx.Request().Header.Get("Accept")) {
+	if hannibal.IsActivityPubRequest(ctx.Request()) {
 		return ctx.JSON(statusCode, data)
 	}
 
