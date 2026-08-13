@@ -14,15 +14,18 @@ import (
 // https://docs.joinmastodon.org/spec/security/
 type HTTPSig struct {
 	keyFinder sigs.PublicKeyFinder
+	options   []sigs.VerifierOption
 }
 
 // NewHTTPSig returns a fully initialized HTTPSig validator. The provided
 // keyFinder is OPTIONAL: if it is nil, the validator uses its default behavior
-// of loading the signing Actor's public key from the inbound document.
-func NewHTTPSig(keyFinder sigs.PublicKeyFinder) HTTPSig {
+// of loading the signing Actor's public key from the inbound document. Any
+// options are passed through to sigs.Verify on every request.
+func NewHTTPSig(keyFinder sigs.PublicKeyFinder, options ...sigs.VerifierOption) HTTPSig {
 
 	return HTTPSig{
 		keyFinder: keyFinder,
+		options:   options,
 	}
 }
 
@@ -43,7 +46,7 @@ func (validator HTTPSig) Validate(request *http.Request, activity *streams.Docum
 	}
 
 	// Verify the request using the Actor's public key
-	signature, err := sigs.Verify(request, keyFinder)
+	signature, err := sigs.Verify(request, keyFinder, validator.options...)
 
 	if err != nil {
 		log.Trace().Err(err).Msg("Hannibal Inbox: Error verifying HTTP Signature")

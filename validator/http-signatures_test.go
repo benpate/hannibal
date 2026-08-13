@@ -133,3 +133,60 @@ func TestHTTPSig_WrongKey(t *testing.T) {
 
 	require.Equal(t, ResultInvalid, v.Validate(request, &activity))
 }
+
+// TestHTTPSig_OptionsReachVerifier confirms that options given to NewHTTPSig are actually forwarded
+// to sigs.Verify, rather than being accepted and quietly dropped.
+func TestHTTPSig_OptionsReachVerifier(t *testing.T) {
+
+	actorID := "https://example.com/users/alice"
+	request, keyFinder := signedRequestForActor(t, actorID+"#main-key")
+
+	// VerifierFields demands a header that this request does not sign, so a validator that honors the
+	// option must reject a request that it would otherwise accept.
+	v := NewHTTPSig(keyFinder, sigs.VerifierFields("(request-target)", "host", "date", "digest", "x-not-signed"))
+	activity := actorDocument(actorID)
+
+	require.Equal(t, ResultInvalid, v.Validate(request, &activity))
+}
+
+// TestHTTPSig_RefreshKeyRepairsRotation is the whole point of forwarding options: a peer that has
+// rotated its key is accepted through the validator, without the caller re-implementing the retry.
+func TestHTTPSig_RefreshKeyRepairsRotation(t *testing.T) {
+
+	actorID := "https://example.com/users/alice"
+	request, rotatedFinder := signedRequestForActor(t, actorID+"#main-key")
+
+	// The primary finder is holding a stale key, as a cache would be after the peer rotated
+	staleKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	staleFinder := func(string) (string, error) {
+		return sigs.EncodePublicPEM(staleKey), nil
+	}
+
+	v := NewHTTPSig(staleFinder, sigs.WithRefreshKey(rotatedFinder))
+	activity := actorDocument(actorID)
+
+	require.Equal(t, ResultValid, v.Validate(request, &activity))
+}
+
+// TestHTTPSig_RefreshKeyStillChecksActor confirms the two rules compose in the right order: a
+// refreshed key gets a signature verified, and the actor-match rule then rejects it anyway.
+func TestHTTPSig_RefreshKeyStillChecksActor(t *testing.T) {
+
+	// This is the rule that Emissary had to duplicate while the retry lived downstream. A refresh
+	// that skipped it would let alice's rotated key authenticate an activity attributed to eve.
+	request, rotatedFinder := signedRequestForActor(t, "https://example.com/users/alice#main-key")
+
+	staleKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	staleFinder := func(string) (string, error) {
+		return sigs.EncodePublicPEM(staleKey), nil
+	}
+
+	v := NewHTTPSig(staleFinder, sigs.WithRefreshKey(rotatedFinder))
+	activity := actorDocument("https://example.com/users/eve")
+
+	require.Equal(t, ResultInvalid, v.Validate(request, &activity))
+}

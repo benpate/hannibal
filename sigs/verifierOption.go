@@ -55,6 +55,21 @@ func VerifierIgnoreTimeout() VerifierOption {
 	}
 }
 
+// WithRefreshKey supplies a fallback finder that is consulted ONLY when a
+// signature fails to verify against the key the primary finder returned. A
+// caller that caches Actor documents uses this to notice that a peer has
+// rotated its key, without re-fetching on every request.
+func WithRefreshKey(refresh PublicKeyFinder) VerifierOption {
+
+	// The refresh deliberately fires on a FAILURE rather than on a timer, so a peer that rotates is
+	// repaired on its first rejected delivery instead of after a fixed window of bounced traffic.
+	// The caller is responsible for bounding it: a sender can provoke this lookup at will, naming any
+	// keyID host they like, so an unbounded refresh is an amplifier.
+	return func(verifier *Verifier) {
+		verifier.RefreshKey = refresh
+	}
+}
+
 // VerifierIgnoreBodyDigest sets the verifier to ignore
 // the "Digest" header.  This is useful for testing
 // but should not be used in production.
