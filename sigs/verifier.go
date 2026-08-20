@@ -18,10 +18,11 @@ import (
 // Verifier contains all of the settings necessary to verify a request
 type Verifier struct {
 	Fields          []string
-	BodyDigests     []crypto.Hash // List of algorithms to accept from remote servers when they create a Digest header.  Default is SHA256 and SHA512
-	SignatureHashes []crypto.Hash // Digest algorithm used to create the signature.  Default is SHA256, SHA512
-	Timeout         int           // Number of seconds before signatures are expired. Default is 43200 seconds (12 hours).
-	CheckDigest     bool          // If true, then the verifier will check the Digest header.  Default is true.
+	BodyDigests     []crypto.Hash   // List of algorithms to accept from remote servers when they create a Digest header.  Default is SHA256 and SHA512
+	SignatureHashes []crypto.Hash   // Digest algorithm used to create the signature.  Default is SHA256, SHA512
+	Timeout         int             // Number of seconds before signatures are expired. Default is 43200 seconds (12 hours).
+	CheckDigest     bool            // If true, then the verifier will check the Digest header.  Default is true.
+	RefreshKey      PublicKeyFinder // If present, this is consulted when a signature fails, to detect a rotated key.  Default is nil.
 }
 
 // NewVerifier returns a fully initialized Verifier
@@ -138,11 +139,56 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 		Interface("signature", signature).
 		Msg("Hannibal sigs: Parsed Signature")
 
+	// Verify the signature against the key we were given
+	err = verifier.verifyWithKey(request, signature, certificate)
+
+	if err == nil {
+		return signature, nil
+	}
+
+	// RULE: Without a RefreshKey function, a failed verification is final.
+	if verifier.RefreshKey == nil {
+		return signature, err
+	}
+
+	// A failure here MAY mean that the remote server has rotated its key and the caller is holding a
+	// stale copy.  Everything that could fail for another reason -- a bad date, a bad digest, an
+	// unparseable signature, an unreachable key -- has already returned above, so reaching this point
+	// is what makes the extra lookup worth its cost.
+	refreshed, refreshErr := verifier.RefreshKey(signature.KeyID)
+
+	// RULE: A refresh that fails tells us nothing that the first attempt did not, so the original
+	// error stands.  The refresh error is dropped on purpose: for a forged keyID this path fails as a
+	// matter of course, and reporting it would let a sender fill the caller's log.
+	if refreshErr != nil {
+		return signature, err
+	}
+
+	// RULE: An unchanged key means the signature is simply bad.  Repeating the same check against the
+	// same key would only produce the same answer, one crypto operation later.
+	if refreshed == certificate {
+		return signature, err
+	}
+
+	// The remote HAS rotated.  Verify once more, against the key they are using now.
+	if err := verifier.verifyWithKey(request, signature, refreshed); err != nil {
+		return signature, derp.Wrap(err, location, "Signature is invalid, including against the refreshed key", signature.KeyID)
+	}
+
+	return signature, nil
+}
+
+// verifyWithKey decodes a single PEM certificate and tries the Signature against each of the
+// Verifier's hash algorithms, returning nil if any one of them matches.
+func (verifier *Verifier) verifyWithKey(request *http.Request, signature Signature, certificate string) error {
+
+	const location = "hannibal.sigs.Verify"
+
 	// Decode the PEM certificate into a public key
 	publicKey, err := DecodePublicPEM(certificate)
 
 	if err != nil {
-		return signature, derp.Wrap(err, location, "Unable to decode public key", certificate)
+		return derp.Wrap(err, location, "Unable to decode public key", certificate)
 	}
 
 	log.Trace().
@@ -150,14 +196,15 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 		Str("pem", certificate).
 		Msg("Hannibal sigs: Decoded Public Key")
 
-	// Recreate the plaintext and digest used to make the Signature
+	// Recreate the plaintext and digest used to make the Signature.  This reads HEADERS only, so it is
+	// safe to call a second time -- unlike the body Digest, which is checked once, further up.
 	plaintext := makePlaintext(request, signature, signature.Headers...)
 
 	// Try each hash in order
 	for _, hash := range verifier.SignatureHashes {
 		if err := verifyHashAndSignature(plaintext, hash, publicKey, signature.Signature); err == nil {
 			log.Trace().Str("loc", location).Msg("Hannibal.sigs: Found valid signature")
-			return signature, nil
+			return nil
 		} else if canTrace() {
 			log.Trace().Msg(".......")
 			log.Trace().Str("loc", location).Str("hash", hash.String()).Err(err).Msg("Hannibal.sigs: Error validating signature")
@@ -165,7 +212,7 @@ func (verifier *Verifier) Verify(request *http.Request, keyFinder PublicKeyFinde
 		}
 	}
 
-	return signature, derp.Forbidden(location, "No valid signatures found")
+	return derp.Forbidden(location, "No valid signatures found")
 }
 
 /******************************************
