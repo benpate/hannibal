@@ -76,6 +76,8 @@ func HasSignature(request *http.Request) bool {
 // ParseSignature parses a string into an HTTP Signature
 func ParseSignature(value string) (Signature, error) {
 
+	const location = "hannibal.sigs.ParseSignature"
+
 	result := NewSignature()
 
 	// Split the signature into a list of key=value pairs
@@ -101,7 +103,7 @@ func ParseSignature(value string) (Signature, error) {
 		case "signature":
 			decoded, err := base64.StdEncoding.DecodeString(value)
 			if err != nil {
-				return Signature{}, derp.Wrap(err, "sigs.ParseSignature", "Unable to decode signature", value)
+				return Signature{}, derp.Wrap(err, location, "Unable to decode signature", value)
 			}
 			result.Signature = decoded
 
@@ -115,15 +117,15 @@ func ParseSignature(value string) (Signature, error) {
 
 	// RULE: Required Fields
 	if result.KeyID == "" {
-		return Signature{}, derp.BadRequest("sigs.ParseSignature", "Field 'keyId' is required.")
+		return Signature{}, derp.BadRequest(location, "Field 'keyId' is required.")
 	}
 
 	if len(result.Headers) == 0 {
-		return Signature{}, derp.BadRequest("sigs.ParseSignature", "Field 'headers' is required.")
+		return Signature{}, derp.BadRequest(location, "Field 'headers' is required.")
 	}
 
 	if len(result.Signature) == 0 {
-		return Signature{}, derp.BadRequest("sigs.ParseSignature", "Field 'signature' is required.")
+		return Signature{}, derp.BadRequest(location, "Field 'signature' is required.")
 	}
 
 	return result, nil

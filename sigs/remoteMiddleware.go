@@ -10,13 +10,15 @@ import (
 // WithSigner is a remote.Option that signs an outbound HTTP request
 func WithSigner(signer Signer) remote.Option {
 
+	const location = "hannibal.sigs.WithSigner"
+
 	return remote.Option{
 
 		ModifyRequest: func(txn *remote.Transaction, request *http.Request) *http.Response {
 
 			// Sign the outbound request
 			if err := signer.Sign(request); err != nil {
-				derp.Report(derp.Wrap(err, "hannibal.sigs.WithSigner", "Error signing request"))
+				derp.Report(derp.Wrap(err, location, "Error signing request"))
 			}
 
 			// If exists, write the Digest back into the transaction (for serialization, et al)

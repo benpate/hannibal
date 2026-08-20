@@ -25,6 +25,8 @@ func (document Document) MarshalJSON() ([]byte, error) {
 // Document's value
 func (document *Document) UnmarshalJSON(bytes []byte) error {
 
+	const location = "hannibal.streams.Document.UnmarshalJSON"
+
 	// Guard against a zero-value Document, whose value is a nil interface.
 	// json.Unmarshal into &Document{} is the idiomatic call path, so this must
 	// not panic on document.value.Raw().
@@ -34,7 +36,7 @@ func (document *Document) UnmarshalJSON(bytes []byte) error {
 
 	value := document.value.Raw()
 	if err := json.Unmarshal(bytes, &value); err != nil {
-		return derp.Wrap(err, "streams.Document.UnmarshalJSON", "Error unmarshalling JSON into Document")
+		return derp.Wrap(err, location, "Error unmarshalling JSON into Document")
 	}
 
 	document.value = property.NewValue(value)

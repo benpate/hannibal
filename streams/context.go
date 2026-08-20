@@ -76,7 +76,7 @@ func (c *Context) Add(vocabulary string) *ContextEntry {
 // MarshalJSON encodes the Context as JSON (null, a single object, or an array of objects).
 func (c Context) MarshalJSON() ([]byte, error) {
 
-	const location = "writer.Context.MarshalJSON"
+	const location = "hannibal.streams.Context.MarshalJSON"
 
 	switch len(c) {
 
@@ -114,7 +114,7 @@ func (c Context) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes the Context from its JSON representation (a string, object, or array).
 func (c *Context) UnmarshalJSON(data []byte) error {
 
-	const location = "writer.Context.UnmarshalJSON"
+	const location = "hannibal.streams.Context.UnmarshalJSON"
 
 	// If the data is empty, then this object is empty, too
 	if len(data) == 0 {

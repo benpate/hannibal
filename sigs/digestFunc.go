@@ -19,10 +19,12 @@ type DigestFunc func(body []byte) string
 // silently falling back to SHA-256 (which getHashByName does).
 func getDigestFuncByName(name string) (DigestFunc, error) {
 
+	const location = "hannibal.sigs.getDigestFuncByName"
+
 	hash, ok := lookupHashByName(name)
 
 	if !ok {
-		return nil, derp.BadRequest("sigs.getDigestFuncByName", "Unknown digest algorithm", name)
+		return nil, derp.BadRequest(location, "Unknown digest algorithm", name)
 	}
 
 	return getDigestFunc(hash)
@@ -33,6 +35,8 @@ func getDigestFuncByName(name string) (DigestFunc, error) {
 // Unrecognized digest names will return an error.
 func getDigestFunc(algorithm crypto.Hash) (DigestFunc, error) {
 
+	const location = "hannibal.sigs.getDigestFunc"
+
 	switch algorithm {
 
 	case crypto.SHA256:
@@ -42,7 +46,7 @@ func getDigestFunc(algorithm crypto.Hash) (DigestFunc, error) {
 		return DigestSHA512, nil
 	}
 
-	return nil, derp.BadRequest("sigs.getDigestFunc", "Unknown algorithm", algorithm)
+	return nil, derp.BadRequest(location, "Unknown algorithm", algorithm)
 }
 
 // getDigestName returns the name of a given crypto.Hash value

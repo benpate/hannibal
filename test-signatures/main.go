@@ -59,6 +59,8 @@ func main() {
 
 func keyFinder() sigs.PublicKeyFinder {
 
+	const location = "main.keyFinder"
+
 	return func(keyID string) (string, error) {
 
 		hashClient := clients.NewHashLookup(streams.NewDefaultClient())
@@ -66,7 +68,7 @@ func keyFinder() sigs.PublicKeyFinder {
 		document, err := hashClient.Load(keyID)
 
 		if err != nil {
-			return "", derp.Wrap(err, "hannibal.validator.HTTPSig.keyFinder", "Error retrieving Actor from ActivityPub document", keyID)
+			return "", derp.Wrap(err, location, "Error retrieving Actor from ActivityPub document", keyID)
 		}
 
 		publicKeyPEM := document.PublicKeyPEM()

@@ -38,10 +38,12 @@ func NewCollection(collectionID string) Collection {
 // UnmarshalJSON populates the Collection from its JSON representation.
 func (c *Collection) UnmarshalJSON(data []byte) error {
 
+	const location = "hannibal.streams.Collection.UnmarshalJSON"
+
 	result := make(map[string]any)
 
 	if err := json.Unmarshal(data, &result); err != nil {
-		return derp.Wrap(err, "activitystreams.Collection.UnmarshalJSON", "Error unmarshalling JSON", string(data))
+		return derp.Wrap(err, location, "Error unmarshalling JSON", string(data))
 	}
 
 	return c.UnmarshalMap(result)
@@ -50,8 +52,10 @@ func (c *Collection) UnmarshalJSON(data []byte) error {
 // UnmarshalMap populates the Collection from a generic map representation.
 func (c *Collection) UnmarshalMap(data mapof.Any) error {
 
+	const location = "hannibal.streams.Collection.UnmarshalMap"
+
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeCollection {
-		return derp.Internal("activitystreams.Collection.UnmarshalMap", "Invalid type", dataType)
+		return derp.Internal(location, "Invalid type", dataType)
 	}
 
 	c.Type = vocab.CoreTypeCollection

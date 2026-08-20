@@ -35,10 +35,12 @@ func NewOrderedCollection(collectionID string) OrderedCollection {
 // UnmarshalJSON populates the OrderedCollection from its JSON representation.
 func (c *OrderedCollection) UnmarshalJSON(data []byte) error {
 
+	const location = "hannibal.streams.OrderedCollection.UnmarshalJSON"
+
 	result := mapof.NewAny()
 
 	if err := json.Unmarshal(data, &result); err != nil {
-		return derp.Wrap(err, "activitystreams.OrderedCollection.UnmarshalJSON", "Error unmarshalling JSON", string(data))
+		return derp.Wrap(err, location, "Error unmarshalling JSON", string(data))
 	}
 
 	return c.UnmarshalMap(result)
@@ -47,8 +49,10 @@ func (c *OrderedCollection) UnmarshalJSON(data []byte) error {
 // UnmarshalMap populates the OrderedCollection from a generic map representation.
 func (c *OrderedCollection) UnmarshalMap(data mapof.Any) error {
 
+	const location = "hannibal.streams.OrderedCollection.UnmarshalMap"
+
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeOrderedCollection {
-		return derp.Internal("activitystreams.OrderedCollection.UnmarshalMap", "Invalid type", dataType)
+		return derp.Internal(location, "Invalid type", dataType)
 	}
 
 	c.Type = vocab.CoreTypeOrderedCollection

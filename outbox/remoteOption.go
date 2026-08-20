@@ -11,13 +11,15 @@ import (
 // SignRequest is a middleware for the remote package that adds an HTTP Signature to a request.
 func SignRequest(actor Actor) remote.Option {
 
+	const location = "hannibal.outbox.SignRequest"
+
 	return remote.Option{
 
 		ModifyRequest: func(txn *remote.Transaction, request *http.Request) *http.Response {
 
 			// Add a "Digest" header to the request and sign the outgoing request.
 			if err := sigs.Sign(request, actor.publicKeyID, actor.privateKey); err != nil {
-				derp.Report(derp.Wrap(err, "activitypub.RequestSignature", "Error signing HTTP request.  This is likely because of a problem with the actor's private key."))
+				derp.Report(derp.Wrap(err, location, "Error signing HTTP request.  This is likely because of a problem with the actor's private key."))
 			}
 
 			// If exists, write the Digest back into the transaction (for serialization, et al)

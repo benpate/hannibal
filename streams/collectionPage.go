@@ -41,10 +41,12 @@ func NewCollectionPage(pageID string) CollectionPage {
 // UnmarshalJSON populates the CollectionPage from its JSON representation.
 func (c *CollectionPage) UnmarshalJSON(data []byte) error {
 
+	const location = "hannibal.streams.CollectionPage.UnmarshalJSON"
+
 	result := mapof.NewAny()
 
 	if err := json.Unmarshal(data, &result); err != nil {
-		return derp.Wrap(err, "activitystreams.CollectionPage.UnmarshalJSON", "Error unmarshalling JSON", string(data))
+		return derp.Wrap(err, location, "Error unmarshalling JSON", string(data))
 	}
 
 	return c.UnmarshalMap(result)
@@ -53,8 +55,10 @@ func (c *CollectionPage) UnmarshalJSON(data []byte) error {
 // UnmarshalMap populates the CollectionPage from a generic map representation.
 func (c *CollectionPage) UnmarshalMap(data mapof.Any) error {
 
+	const location = "hannibal.streams.CollectionPage.UnmarshalMap"
+
 	if dataType := data.GetString("type"); dataType != vocab.CoreTypeCollectionPage {
-		return derp.Internal("activitystreams.CollectionPage.UnmarshalMap", "Invalid type", dataType)
+		return derp.Internal(location, "Invalid type", dataType)
 	}
 
 	c.Type = vocab.CoreTypeCollectionPage

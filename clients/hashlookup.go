@@ -23,6 +23,8 @@ func NewHashLookup(innerClient streams.Client) HashLookup {
 // inside it (if required)
 func (client HashLookup) Load(url string, options ...any) (streams.Document, error) {
 
+	const location = "hannibal.clients.HashLookup.Load"
+
 	// Try to find a hash in the URL
 	baseURL, hash, found := strings.Cut(url, "#")
 
@@ -51,7 +53,7 @@ func (client HashLookup) Load(url string, options ...any) (streams.Document, err
 	}
 
 	// Not found.
-	return streams.NilDocument(), derp.NotFound("ashash.Client.Load", "Hash value not found in document", baseURL, hash, result.Value())
+	return streams.NilDocument(), derp.NotFound(location, "Hash value not found in document", baseURL, hash, result.Value())
 }
 
 // Save stores the Document in the underlying cache.

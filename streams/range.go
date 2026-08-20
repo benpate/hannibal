@@ -87,6 +87,8 @@ func (document Document) RangeAddressees() iter.Seq[string] {
 // Yields nothing when the Document is not a reply, or the parent cannot be loaded.
 func (document Document) RangeInReplyTo() iter.Seq[string] {
 
+	const location = "hannibal.streams.Document.RangeInReplyTo"
+
 	return func(yield func(string) bool) {
 
 		inReplyTo := document.InReplyTo()
@@ -98,7 +100,7 @@ func (document Document) RangeInReplyTo() iter.Seq[string] {
 		inReplyToDocument, err := inReplyTo.Load()
 
 		if err != nil {
-			derp.Report(derp.Wrap(err, "streams.Document.RangeInReplyTo", "Unable to load InReplyTo document", inReplyTo.ID()))
+			derp.Report(derp.Wrap(err, location, "Unable to load InReplyTo document", inReplyTo.ID()))
 			return // Nothing to yield
 		}
 

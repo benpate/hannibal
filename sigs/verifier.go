@@ -41,9 +41,11 @@ func NewVerifier(options ...VerifierOption) Verifier {
 // syntactic sugar for NewVerifier(options...).Verify(request)
 func Verify(request *http.Request, keyFinder PublicKeyFinder, options ...VerifierOption) (Signature, error) {
 
+	const location = "hannibal.sigs.Verify"
+
 	// RULE: Request cannot be nil
 	if request == nil {
-		return Signature{}, derp.Internal("hannibal.sigs.Verify", "Request cannot be nil")
+		return Signature{}, derp.Internal(location, "Request cannot be nil")
 	}
 
 	verifier := NewVerifier()

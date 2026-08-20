@@ -24,11 +24,13 @@ func NewMockVerifier(keyID string, success bool) MockVerifier {
 // Verify verifies the given http.Request
 func (mock *MockVerifier) Verify(request *http.Request, keyFinder PublicKeyFinder) (Signature, error) {
 
+	const location = "hannibal.sigs.MockVerifier.Verify"
+
 	if mock.Success {
 		signature := NewSignature()
 		signature.KeyID = mock.KeyID
 		return signature, nil
 	}
 
-	return NewSignature(), derp.Forbidden("hannibal.sigs.MockVerifier.Verify", "MockVerifier is configured to fail")
+	return NewSignature(), derp.Forbidden(location, "MockVerifier is configured to fail")
 }

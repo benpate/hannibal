@@ -63,11 +63,13 @@ func (signer *Signer) With(options ...SignerOption) {
 // Sign generates a signature and applies it to the given http.Request
 func (signer *Signer) Sign(request *http.Request) error {
 
+	const location = "hannibal.sigs.Sign"
+
 	// Try to generate a signature
 	signature, err := signer.MakeSignature(request)
 
 	if err != nil {
-		return derp.Wrap(err, "hannibal.sigs.Sign", "Error getting signature")
+		return derp.Wrap(err, location, "Error getting signature")
 	}
 
 	signature.Created = signer.Created

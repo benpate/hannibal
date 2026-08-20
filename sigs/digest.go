@@ -16,15 +16,17 @@ import (
 // http.Request, then adds the digest to the Request's header.
 func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc) error {
 
+	const location = "hannibal.sigs.ApplyDigest"
+
 	if request == nil {
-		return derp.Internal("sigs.ApplyDigest", "Request cannot be nil")
+		return derp.Internal(location, "Request cannot be nil")
 	}
 
 	// Retrieve the request body (in a replayable manner), capped to guard against an oversized body
 	body, err := re.ReadRequestBody(request, re.DefaultMaximum)
 
 	if err != nil {
-		return derp.Wrap(err, "sigs.ApplyDigest", "Unable to read request body")
+		return derp.Wrap(err, location, "Unable to read request body")
 	}
 
 	if len(body) == 0 {
@@ -43,16 +45,18 @@ func ApplyDigest(request *http.Request, digestName string, digestFunc DigestFunc
 // matches the contents of the http.Request body.
 func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 
+	const location = "hannibal.sigs.VerifyDigest"
+
 	// NILCHECK: Request cannot be nil
 	if request == nil {
-		return derp.Internal("sigs.VerifyDigest", "Request cannot be nil")
+		return derp.Internal(location, "Request cannot be nil")
 	}
 
 	// Retrieve the request body (in a replayable manner), capped to guard against an oversized body
 	body, err := re.ReadRequestBody(request, re.DefaultMaximum)
 
 	if err != nil {
-		return derp.Wrap(err, "sigs.VerifyDigest", "Unable to read request body")
+		return derp.Wrap(err, location, "Unable to read request body")
 	}
 
 	// Retrieve the digest(s) included in the HTTP Request
@@ -99,7 +103,7 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 
 		// If the values DON'T MATCH, then fail immediately.
 		// We don't want bad actors "digest shopping"
-		return derp.Forbidden("sigs.VerifyDigest", "Digest verification failed", digestValue)
+		return derp.Forbidden(location, "Digest verification failed", digestValue)
 	}
 
 	// If we have found at least one digest that matches, then success!
@@ -109,5 +113,5 @@ func VerifyDigest(request *http.Request, allowedHashes ...crypto.Hash) error {
 	}
 
 	// Otherwise, the digest hash does not meet our minimum requirements.  Fail.
-	return derp.Forbidden("sigs.VerifyDigest", "No matching digest found")
+	return derp.Forbidden(location, "No matching digest found")
 }
