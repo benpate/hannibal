@@ -160,3 +160,114 @@ func TestRangeDocuments_EarlyStop(t *testing.T) {
 
 	assert.Equal(t, []string{"https://example.com/1", "https://example.com/2"}, got)
 }
+
+// cyclicCollection builds a collection whose "next" chain is a cycle of two
+// NON-empty pages -- the shape the empty-page check cannot catch.
+func cyclicCollection() streams.Document {
+
+	const pageA = "https://example.com/replies?page=a"
+	const pageB = "https://example.com/replies?page=b"
+
+	// Two non-empty pages that point at each other forever
+	client := mapClient{documents: map[string]map[string]any{
+		pageA: {
+			vocab.PropertyID:    pageA,
+			vocab.PropertyType:  vocab.CoreTypeCollectionPage,
+			vocab.PropertyNext:  pageB,
+			vocab.PropertyItems: []any{map[string]any{vocab.PropertyID: "https://example.com/reply/1"}},
+		},
+		pageB: {
+			vocab.PropertyID:    pageB,
+			vocab.PropertyType:  vocab.CoreTypeCollectionPage,
+			vocab.PropertyNext:  pageA,
+			vocab.PropertyItems: []any{map[string]any{vocab.PropertyID: "https://example.com/reply/2"}},
+		},
+	}}
+
+	return streams.NewDocument(map[string]any{
+		vocab.PropertyID:    "https://example.com/replies",
+		vocab.PropertyType:  vocab.CoreTypeCollection,
+		vocab.PropertyFirst: pageA,
+	}, streams.WithClient(client))
+}
+
+// TestRangePages_NextCycle confirms the default page cap terminates a collection
+// whose "next" chain is a cycle of NON-empty pages.  Without the cap this test
+// never returns.
+func TestRangePages_NextCycle(t *testing.T) {
+
+	pages := 0
+	for range RangePages(cyclicCollection()) {
+		pages++
+	}
+
+	assert.Equal(t, defaultMaxPages, pages)
+}
+
+// TestRangePages_WithMaxPages confirms WithMaxPages overrides the default page cap.
+func TestRangePages_WithMaxPages(t *testing.T) {
+
+	pages := 0
+	for range RangePages(cyclicCollection(), WithMaxPages(7)) {
+		pages++
+	}
+
+	assert.Equal(t, 7, pages)
+}
+
+// TestRangePages_WithMaxPages_LessThanOne pins the documented edge: a cap below
+// one yields no pages at all.
+func TestRangePages_WithMaxPages_LessThanOne(t *testing.T) {
+
+	pages := 0
+	for range RangePages(cyclicCollection(), WithMaxPages(0)) {
+		pages++
+	}
+
+	assert.Equal(t, 0, pages)
+}
+
+// TestRangeDocuments_WithMaxPages confirms RangeDocuments forwards traversal
+// options through to RangePages (one item per page in the cyclic fixture).
+func TestRangeDocuments_WithMaxPages(t *testing.T) {
+
+	documents := 0
+	for range RangeDocuments(cyclicCollection(), WithMaxPages(5)) {
+		documents++
+	}
+
+	assert.Equal(t, 5, documents)
+}
+
+// TestRangeDocuments_WithMaxDocuments confirms the document cap truncates
+// mid-page: a single page of three items yields only two.
+func TestRangeDocuments_WithMaxDocuments(t *testing.T) {
+
+	collection := inlineCollection(
+		"https://example.com/1",
+		"https://example.com/2",
+		"https://example.com/3",
+	)
+
+	got := collectIDs(RangeDocuments(collection, WithMaxDocuments(2)))
+	assert.Equal(t, []string{"https://example.com/1", "https://example.com/2"}, got)
+}
+
+// TestRangeDocuments_WithMaxDocuments_LessThanOne pins the documented edge: a cap
+// below one yields no documents at all.
+func TestRangeDocuments_WithMaxDocuments_LessThanOne(t *testing.T) {
+	assert.Empty(t, collectIDs(RangeDocuments(inlineCollection("https://example.com/1"), WithMaxDocuments(0))))
+}
+
+// TestRangeDocuments_DefaultMaxDocuments confirms the default document cap binds
+// when the page cap is raised out of the way (one item per page in the cyclic
+// fixture, so documents and pages count together).
+func TestRangeDocuments_DefaultMaxDocuments(t *testing.T) {
+
+	documents := 0
+	for range RangeDocuments(cyclicCollection(), WithMaxPages(defaultMaxDocuments*2)) {
+		documents++
+	}
+
+	assert.Equal(t, defaultMaxDocuments, documents)
+}
