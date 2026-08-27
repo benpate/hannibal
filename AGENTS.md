@@ -1,0 +1,55 @@
+# hannibal — Notes for AI Agents
+
+Hannibal is a Go ActivityPub library, layered roughly like the spec itself: [streams](streams/) and [property](property/) wrap JSON-LD data, [vocab](vocab/) holds the vocabulary constants, [sigs](sigs/) signs and verifies HTTP requests, [router](router/) and [validator](validator/) receive inbound activities, [outbox](outbox/) and [sender](sender/) deliver outbound ones, [collection](collection/) serves and [collections](collections/) traverses AS2 collections, and [clients](clients/) provides stackable `streams.Client` implementations. See [README.md](README.md) for the overview; [datetime/AGENTS.md](datetime/AGENTS.md) has its own notes.
+
+## streams.Document shares live data — Map() and Object() are not clones
+
+- **For a map-backed Document, `Map()` returns the LIVE underlying `map[string]any`, not a copy.** `Object().Map()` on an embedded object is the same live map, so mutations write through to every Document sharing that value. A string-reference document instead yields a fresh `{"id": ...}` map, and writes to that map go nowhere — callers that mutate must set the result back onto the parent. Use `Clone()` when you need an independent copy.
+- **`Map()` options delete keys from the map they return.** `OptionStripContext` and `OptionStripRecipients` call `delete()` on the result — which for a map-backed document is the shared original. `Clone()` first if the source document must survive intact.
+- **`Get()` on an embedded map returns a sub-Document over the same underlying containers.** Mutating through a sub-document writes through to the parent; this write-through behavior is relied on by callers, so don't "fix" it.
+
+## SetProperty silently no-ops unless the value is already a map
+
+`SetProperty` has a value receiver and discards the `property.Value` returned by `Set`. `property.Map.Set` mutates in place so it works; `String.Set` and `Nil.Set` return a NEW value that is thrown away, so setting a property on a string- or nil-backed Document does nothing, with no error. The pointer-receiver mutators (`SetString`, `Append`, `AppendString`) reassign `document.value` and are safe on any shape.
+
+## Property access can silently hit the network
+
+`Document.Get(key)` on a string-valued document treats the string as a document ID and LOADS it over HTTP through the injected `streams.Client` for every key except `id`. Innocent-looking accessor chains like `activity.Object().AttributedTo().Name()` can therefore perform remote fetches. `RangeInReplyTo` loads the parent document inside the iterator, and the `DeletedObject` validator issues a GET during inbound validation. Always inject a caching client (`streams.WithClient`) where repeated access is possible; stacked clients must have `SetRootClient` wired so recursive loads re-enter the top of the stack.
+
+## Reading text: String() and HTMLString() both sanitize
+
+`Document.String()` runs bluemonday `StrictPolicy` (strips ALL HTML) then unescapes entities; `HTMLString()` runs `UGCPolicy`. The unsanitized string is only reachable via the unexported `rawString` or the raw `Value()`. Federated content must go through one of the sanitizing accessors — never add an exported raw-string accessor.
+
+## Inbound requests fail closed, with deliberate status codes
+
+- **Malformed JSON in `router.ReceiveRequest` returns 400, not 500.** The `derp.WithBadRequest()` option on that `json.Unmarshal` wrap is load-bearing: unmarshal errors are codeless and would otherwise default to 500 for every junk POST from a crawler. `MaxBodySize` caps the body and errors rather than truncating.
+- **The validator chain fails closed.** `ResultInvalid` rejects, `ResultValid` accepts, `ResultUnknown` continues to the next validator — and if every validator returns Unknown, validation FAILS. An unsigned request gets `ResultUnknown` from `HTTPSig`, so unsigned inbound activities are rejected unless another validator vouches for them. Validation failure surfaces as 401 Unauthorized.
+- **`HTTPSig` enforces two identity checks:** the verified signature's actor must equal the activity's `actor`, and the default key finder only accepts a key whose `id` the signing actor actually publishes. Both checks prevent signing with someone else's key; don't weaken either.
+
+## RangeInReplyTo yields the parent's attributedTo first
+
+`RangeAddressees` reads `actor`/`to`/`cc`/`bto`/`bcc`/mentions but NOT `attributedTo`, so without the explicit author yield at the top of `RangeInReplyTo` a reply to a Note (whose author lives in `attributedTo`) would never reach that author. The author-then-addressees order is deliberate; don't simplify it down to `RangeAddressees` alone.
+
+## collections traversal guards — all are load-bearing
+
+A collection's `next` chain and `items` arrays are remote-controlled data, so three guards bound a traversal and none subsumes another. In `RangePages`: the empty-page flag catches WriteFreely-style loops of EMPTY pages, and the page cap (`defaultMaxPages`, override via `WithMaxPages`) catches cycles of NON-empty pages the flag cannot see. In `RangeDocuments`: the document cap (`defaultMaxDocuments`, override via `WithMaxDocuments`) bounds total yields, because the page cap alone still admits a server stuffing each page with an enormous `items` array. Wrappers over `RangePages` (e.g. `RangeDocuments`) must forward `options...` — a missing spread silently drops a caller's caps.
+
+## SSRF guard: AllowPrivateIPs is a per-instance opt-in, never a global
+
+Both delivery paths inherit `remote`'s default refusal to connect to private/loopback addresses. The opt-outs are per-instance functional options — `outbox.WithAllowPrivateIPs(bool)` on the Actor and `sender.AllowPrivateIPs(bool)` on the Sender — and default FALSE. Do not reintroduce a package-level flag; tests that deliver to `httptest` loopback servers pass the option instead. The `DeletedObject` validator's outbound GET (to a URL taken from an untrusted inbound activity) deliberately keeps the guard active.
+
+## outbox and sender are two outbound paths with different semantics
+
+- **`outbox.Actor` delivers inline and synchronously.** `Send` filters out empty, `as:Public`, and self recipients, and swallows per-recipient failures via `derp.Report` (fire-and-forget). `SendOne` bypasses those filters — an external delivery loop built directly on `SendOne` must re-implement them or it will attempt deliveries to the Public URI.
+- **`sender.Sender` only ENQUEUES; the turbine `Consumer` does the HTTP.** `Send` and `SendToAllRecipients` publish queue tasks — without a connected consumer nothing is ever delivered. Retry policy lives in `SendToSingleRecipient`: HTTP 429 requeues after the Retry-After interval, other 4xx is a permanent `Failure` (no retry), everything else is a retryable `Error`.
+- **`SendToAllRecipients` strips `bto`/`bcc` before fan-out** (per the AP spec); `outbox` builders like `SendCreate` embed `document.Map()` — the live map — into the wire message.
+
+## Timestamp formats: AS2 in datetime, HTTP Date in sigs
+
+AS2 properties use RFC3339 via the [datetime](datetime/) package; the IMF-fixdate formatter for the HTTP `Date` header is unexported inside [sigs](sigs/) ON PURPOSE, so document-building code can never grab the wrong one. Don't export it or add an HTTP date helper to datetime. Details in [datetime/AGENTS.md](datetime/AGENTS.md).
+
+## property package coercion rules worth knowing
+
+- **Every scalar behaves as a one-element list:** `Head()` returns itself, `Tail()` returns `Nil`, `Len()` is 1. `Map.Len()` is also 1 — a map is one entity, not a count of its keys.
+- **A bare string is treated as an object reference:** `String.Get` answers only `id` (returning itself); setting any property on a String promotes it to `Map{"id": old}`.
+- **Empty means nil:** `String("")` and a zero-length `Map` report `IsNil()`, and `Document.Get` returns `NilDocument` for nil values — so a property stored as `""` reads back as missing.
