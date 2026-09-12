@@ -16,6 +16,12 @@ Hannibal is a Go ActivityPub library, layered roughly like the spec itself: [str
 
 `Document.Get(key)` on a string-valued document treats the string as a document ID and LOADS it over HTTP through the injected `streams.Client` for every key except `id`. Innocent-looking accessor chains like `activity.Object().AttributedTo().Name()` can therefore perform remote fetches. `RangeInReplyTo` loads the parent document inside the iterator, and the `DeletedObject` validator issues a GET during inbound validation. Always inject a caching client (`streams.WithClient`) where repeated access is possible; stacked clients must have `SetRootClient` wired so recursive loads re-enter the top of the stack.
 
+## A client wrapper that re-loads a different URL MUST spread its options
+
+Any `streams.Client` whose `Load(id string, options ...any)` turns around and loads a *different* URL has to write `innerClient.Load(otherURL, options...)`. Passing `options` without the spread hands the whole slice down as a single `any`, so the next layer's `NewLoadConfig(options...)` sees one `[]any` element instead of the caller's actual options — and silently drops them. It compiles, and it only misbehaves when an option needed to reach a layer below a wrapper that re-resolves the URL.
+
+This cost hours once. Inbox signature verification failed with `crypto/rsa: verification error` against a rotated key, because `PublicKeyFinder` loaded the fragmented key id (`…#main-key`) with `WithWriteOnly()` to bypass the cache, and the fragment-resolving wrapper called `Load(baseURL, options)` with no spread — so the cache layer never saw `WithWriteOnly`, served the stale key, and nothing anywhere reported a problem. The fragment-resolving and hashtag wrappers are the ones to watch, because key lookups are exactly what load a fragmented URL. When reviewing any wrapper in this family, grep for `.Load([^)]*options)` without the `...`; that pattern is almost always a bug.
+
 ## Reading text: String() and HTMLString() both sanitize
 
 `Document.String()` runs bluemonday `StrictPolicy` (strips ALL HTML) then unescapes entities; `HTMLString()` runs `UGCPolicy`. The unsanitized string is only reachable via the unexported `rawString` or the raw `Value()`. Federated content must go through one of the sanitizing accessors — never add an exported raw-string accessor.

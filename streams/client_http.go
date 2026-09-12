@@ -1,6 +1,8 @@
 package streams
 
 import (
+	"slices"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
@@ -28,10 +30,14 @@ func (client DefaultClient) Load(url string, options ...any) (Document, error) {
 
 	result := make(map[string]any)
 
+	// Collect options from both the client and the method call. Concat always allocates;
+	// append would write per-call options into the backing array this client shares.
+	remoteOptions := slices.Concat(client.options, remote.Options(options...))
+
 	// Try to load-and-parse the value from the remote server
 	transaction := remote.Get(url).
 		Accept(vocab.ContentTypeActivityPub).
-		With(client.options...).
+		With(remoteOptions...).
 		Result(&result)
 
 	if err := transaction.Send(); err != nil {
