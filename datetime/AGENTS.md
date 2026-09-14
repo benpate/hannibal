@@ -21,7 +21,7 @@ The HTTP formatter used to be an exported `hannibal.TimeFormat` at the repo root
 
 **Zero time → `""`.** An absent `published` is well-defined in AS2; a `published` of 1970-01-01 is a false claim about the object.
 
-**Year outside `[1, 9999]` → `""`.** RFC3339 fixes the year at four digits. Go will happily render more: `math.MaxInt64` seconds becomes `"292277026596-12-04T15:30:07Z"`, which no conformant parser accepts. Sentinel timestamps reach this code in practice — that guard is load-bearing.
+**Year outside `[1, 9999]` → `""`.** RFC3339 fixes the year at four digits. Go will happily render more: `math.MaxInt64` seconds becomes `"292277026596-12-04T15:30:07Z"`, which no conformant parser accepts. Sentinel timestamps reach this code in practice — that guard is important.
 
 **UTC normalization is deliberate.** Both `Z` and a numeric offset are legal RFC3339, but pinning to UTC keeps output stable regardless of the host's local zone. Without it the tests are machine-dependent.
 

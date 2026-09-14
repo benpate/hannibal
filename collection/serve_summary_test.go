@@ -30,7 +30,7 @@ func TestServeSummary_PublishesCountNotMembers(t *testing.T) {
 	assert.Equal(t, vocab.CoreTypeOrderedCollection, body[vocab.PropertyType])
 	assert.EqualValues(t, 42, body[vocab.PropertyTotalItems])
 
-	// The absence of `first` is load-bearing -- it is what marks the collection as hidden
+	// The absence of `first` is important -- it is what marks the collection as hidden
 	// rather than empty. The rest must not leak members by any route.
 	assert.NotContains(t, body, vocab.PropertyFirst)
 	assert.NotContains(t, body, vocab.PropertyOrderedItems)

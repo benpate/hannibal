@@ -28,7 +28,7 @@ This cost hours once. Inbox signature verification failed with `crypto/rsa: veri
 
 ## Inbound requests fail closed, with deliberate status codes
 
-- **Malformed JSON in `router.ReceiveRequest` returns 400, not 500.** The `derp.WithBadRequest()` option on that `json.Unmarshal` wrap is load-bearing: unmarshal errors are codeless and would otherwise default to 500 for every junk POST from a crawler. `MaxBodySize` caps the body and errors rather than truncating.
+- **Malformed JSON in `router.ReceiveRequest` returns 400, not 500.** The `derp.WithBadRequest()` option on that `json.Unmarshal` wrap is important: unmarshal errors are codeless and would otherwise default to 500 for every junk POST from a crawler. `MaxBodySize` caps the body and errors rather than truncating.
 - **The validator chain fails closed.** `ResultInvalid` rejects, `ResultValid` accepts, `ResultUnknown` continues to the next validator — and if every validator returns Unknown, validation FAILS. An unsigned request gets `ResultUnknown` from `HTTPSig`, so unsigned inbound activities are rejected unless another validator vouches for them. Validation failure surfaces as 401 Unauthorized.
 - **`HTTPSig` enforces two identity checks:** the verified signature's actor must equal the activity's `actor`, and the default key finder only accepts a key whose `id` the signing actor actually publishes. Both checks prevent signing with someone else's key; don't weaken either.
 
@@ -36,7 +36,7 @@ This cost hours once. Inbox signature verification failed with `crypto/rsa: veri
 
 `RangeAddressees` reads `actor`/`to`/`cc`/`bto`/`bcc`/mentions but NOT `attributedTo`, so without the explicit author yield at the top of `RangeInReplyTo` a reply to a Note (whose author lives in `attributedTo`) would never reach that author. The author-then-addressees order is deliberate; don't simplify it down to `RangeAddressees` alone.
 
-## collections traversal guards — all are load-bearing
+## collections traversal guards — all are important
 
 A collection's `next` chain and `items` arrays are remote-controlled data, so three guards bound a traversal and none subsumes another. In `RangePages`: the empty-page flag catches WriteFreely-style loops of EMPTY pages, and the page cap (`defaultMaxPages`, override via `WithMaxPages`) catches cycles of NON-empty pages the flag cannot see. In `RangeDocuments`: the document cap (`defaultMaxDocuments`, override via `WithMaxDocuments`) bounds total yields, because the page cap alone still admits a server stuffing each page with an enormous `items` array. Wrappers over `RangePages` (e.g. `RangeDocuments`) must forward `options...` — a missing spread silently drops a caller's caps.
 
