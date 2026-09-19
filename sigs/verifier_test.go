@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/benpate/derp"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -162,4 +163,57 @@ func getTestKeys() (crypto.PrivateKey, crypto.PublicKey) {
 	}
 
 	return privateKey, publicKey
+}
+
+// countingReporter records how many errors derp.Report hands to it.
+type countingReporter struct {
+	count int
+}
+
+// Report counts one reported error.
+func (reporter *countingReporter) Report(_ error) {
+	reporter.count++
+}
+
+// TestVerifyHashAndSignature_ReportsOnlyAtTrace pins the report gate to zerolog's GLOBAL level.
+func TestVerifyHashAndSignature_ReportsOnlyAtTrace(t *testing.T) {
+
+	// Gating on log.Logger's own level instead makes this report fire at EVERY level, because
+	// zerolog.New hardcodes the package logger to TraceLevel and callers only set the global one.
+	originalLevel := zerolog.GlobalLevel()
+	originalPlugins := derp.Plugins
+	defer func() {
+		zerolog.SetGlobalLevel(originalLevel)
+		derp.Plugins = originalPlugins
+	}()
+
+	// Sign one message, so that verifying a different one always fails
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.Nil(t, err)
+
+	digest := sha256.Sum256([]byte("this is the message"))
+	signature, err := makeSignedDigest(digest[:], crypto.SHA256, privateKey)
+	require.Nil(t, err)
+
+	testCases := []struct {
+		level    zerolog.Level
+		expected int
+	}{
+		{zerolog.DebugLevel, 0},
+		{zerolog.InfoLevel, 0},
+		{zerolog.Disabled, 0},
+		{zerolog.TraceLevel, 1},
+	}
+
+	for _, testCase := range testCases {
+
+		reporter := &countingReporter{}
+		derp.Plugins = derp.ReporterList{reporter}
+		zerolog.SetGlobalLevel(testCase.level)
+
+		err := verifyHashAndSignature("a different message", crypto.SHA256, &privateKey.PublicKey, signature)
+
+		require.NotNil(t, err)
+		require.Equal(t, testCase.expected, reporter.count, testCase.level.String())
+	}
 }

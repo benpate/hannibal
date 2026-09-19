@@ -11,7 +11,6 @@ import (
 
 	"github.com/benpate/derp"
 	"github.com/benpate/rosetta/slice"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -234,7 +233,7 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 	}
 
 	// Logging here.. wrapping it in an "if" because the base64 encoding is "expensive"
-	if log.Logger.GetLevel() == zerolog.TraceLevel {
+	if canTrace() {
 		log.Trace().
 			Str("plaintext", plaintext).
 			Int("hash", int(hash)).
@@ -247,7 +246,9 @@ func verifyHashAndSignature(plaintext string, hash crypto.Hash, publicKey crypto
 	if err := verifySignature(publicKey, hash, digest, signature); err != nil {
 		err = derp.Wrap(err, location, "Signature is invalid")
 
-		if log.Logger.GetLevel() == zerolog.TraceLevel {
+		// A signature that fails one hash is routine -- the caller tries the next one, and only
+		// gives up after all of them -- so this is a trace aid, never a production error report.
+		if canTrace() {
 			derp.Report(err)
 		}
 
