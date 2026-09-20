@@ -205,23 +205,34 @@ func TestConsumer(t *testing.T) {
 	consumer := Consumer(sender)
 
 	// A known "all recipients" task is handled (success for a valid actor).
-	allResult := consumer(OutboxSendToAllRecipients, mapof.Any{
-		vocab.PropertyActor: "https://test.actor.social",
-		vocab.PropertyTo:    "https://test.actor.social/",
+	allResult := consumer.Run(queue.Task{
+		Name: OutboxSendToAllRecipients,
+		Arguments: mapof.Any{
+			vocab.PropertyActor: "https://test.actor.social",
+			vocab.PropertyTo:    "https://test.actor.social/",
+		},
 	})
 	assert.Equal(t, queue.ResultStatusSuccess, allResult.Status)
 
 	// A "single recipient" task is also routed to the sender. With an unknown
 	// actor it Fails, but the point here is that the Consumer dispatched it (not
 	// Ignored) -- proving the route is wired.
-	singleResult := consumer(OutboxSendToSingleRecipient, mapof.Any{
-		"actor":    "https://unknown.example.com/actor",
-		"inbox":    "https://example.com/inbox",
-		"activity": mapof.Any{},
+	singleResult := consumer.Run(queue.Task{
+		Name: OutboxSendToSingleRecipient,
+		Arguments: mapof.Any{
+			"actor":    "https://unknown.example.com/actor",
+			"inbox":    "https://example.com/inbox",
+			"activity": mapof.Any{},
+		},
 	})
 	assert.NotEqual(t, queue.ResultStatusIgnored, singleResult.Status)
 
 	// An unknown task name is ignored (left for other consumers).
-	ignored := consumer("Some:OtherTask", mapof.Any{})
+	ignored := consumer.Run(queue.Task{Name: "Some:OtherTask", Arguments: mapof.Any{}})
 	assert.Equal(t, queue.ResultStatusIgnored, ignored.Status)
+
+	// The lifecycle hooks are required by the interface, and this consumer has nothing to say
+	assert.Nil(t, consumer.OnSuccess(queue.Task{}))
+	assert.Nil(t, consumer.OnError(queue.Task{}, nil))
+	assert.Nil(t, consumer.OnFailure(queue.Task{}, nil))
 }
