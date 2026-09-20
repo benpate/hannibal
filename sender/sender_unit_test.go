@@ -231,7 +231,10 @@ func TestConsumer(t *testing.T) {
 	ignored := consumer.Run(queue.Task{Name: "Some:OtherTask", Arguments: mapof.Any{}})
 	assert.Equal(t, queue.ResultStatusIgnored, ignored.Status)
 
-	// The lifecycle hooks are required by the interface, and this consumer has nothing to say
+	// The lifecycle hooks are required by the interface, and this consumer has nothing to say.
+	// OnPublish returning nil is what lets an outbound activity onto the queue at all -- a
+	// non-nil error here would reject every send before it was ever stored.
+	assert.Nil(t, consumer.OnPublish(&queue.Task{}))
 	assert.Nil(t, consumer.OnSuccess(queue.Task{}))
 	assert.Nil(t, consumer.OnError(queue.Task{}, nil))
 	assert.Nil(t, consumer.OnFailure(queue.Task{}, nil))

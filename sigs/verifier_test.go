@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/benpate/derp"
+	"github.com/benpate/derp/plugins"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
@@ -180,11 +181,12 @@ func TestVerifyHashAndSignature_ReportsOnlyAtTrace(t *testing.T) {
 
 	// Gating on log.Logger's own level instead makes this report fire at EVERY level, because
 	// zerolog.New hardcodes the package logger to TraceLevel and callers only set the global one.
+	// RULE: derp.Plugins carries a mutex, so it is swapped through SetPlugins and restored to
+	// derp's own default (plugins.JSON), never copied by value.
 	originalLevel := zerolog.GlobalLevel()
-	originalPlugins := derp.Plugins
 	defer func() {
 		zerolog.SetGlobalLevel(originalLevel)
-		derp.Plugins = originalPlugins
+		derp.SetPlugins(plugins.JSON{})
 	}()
 
 	// Sign one message, so that verifying a different one always fails
@@ -208,7 +210,7 @@ func TestVerifyHashAndSignature_ReportsOnlyAtTrace(t *testing.T) {
 	for _, testCase := range testCases {
 
 		reporter := &countingReporter{}
-		derp.Plugins = derp.ReporterList{reporter}
+		derp.SetPlugins(reporter)
 		zerolog.SetGlobalLevel(testCase.level)
 
 		err := verifyHashAndSignature("a different message", crypto.SHA256, &privateKey.PublicKey, signature)
