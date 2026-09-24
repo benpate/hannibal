@@ -13,7 +13,6 @@ import (
 	"github.com/benpate/rosetta/mapof"
 	"github.com/benpate/rosetta/sliceof"
 	"github.com/benpate/uri"
-	"github.com/microcosm-cc/bluemonday"
 )
 
 // Document represents a single ActivityStream document
@@ -310,7 +309,7 @@ func (document Document) MapKeys() sliceof.String {
 // This value is filtered by blueMonday, so it is safe to use in HTML.
 func (document Document) String() string {
 	result := document.rawString()
-	result = bluemonday.StrictPolicy().Sanitize(result)
+	result = strictPolicy.Sanitize(result)
 	result = html.UnescapeString(result)
 	return result
 }
@@ -319,7 +318,7 @@ func (document Document) String() string {
 // The value is filtered by bluemonday, so it is safe to use in HTML.
 func (document Document) HTMLString() string {
 	result := document.rawString()
-	return bluemonday.UGCPolicy().Sanitize(result)
+	return ugcPolicy.Sanitize(result)
 }
 
 // String returns the current object as a string value

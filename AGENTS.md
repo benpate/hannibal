@@ -24,7 +24,7 @@ This cost hours once. Inbox signature verification failed with `crypto/rsa: veri
 
 ## Reading text: String() and HTMLString() both sanitize
 
-`Document.String()` runs bluemonday `StrictPolicy` (strips ALL HTML) then unescapes entities; `HTMLString()` runs `UGCPolicy`. The unsanitized string is only reachable via the unexported `rawString` or the raw `Value()`. Federated content must go through one of the sanitizing accessors — never add an exported raw-string accessor.
+`Document.String()` runs bluemonday `StrictPolicy` (strips ALL HTML) then unescapes entities; `HTMLString()` runs `UGCPolicy`. Both policies are built once and shared by every Document ([sanitize.go](streams/sanitize.go)), because building one per call cost up to 2,000 allocations per accessor; never call `AllowAttrs` or any other mutator on them — a caller that needs different rules builds its own policy. The unsanitized string is only reachable via the unexported `rawString` or the raw `Value()`. Federated content must go through one of the sanitizing accessors — never add an exported raw-string accessor.
 
 ## Inbound requests fail closed, with deliberate status codes
 
