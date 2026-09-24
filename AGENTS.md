@@ -22,6 +22,13 @@ Any `streams.Client` whose `Load(id string, options ...any)` turns around and lo
 
 This cost hours once. Inbox signature verification failed with `crypto/rsa: verification error` against a rotated key, because `PublicKeyFinder` loaded the fragmented key id (`…#main-key`) with `WithWriteOnly()` to bypass the cache, and the fragment-resolving wrapper called `Load(baseURL, options)` with no spread — so the cache layer never saw `WithWriteOnly`, served the stale key, and nothing anywhere reported a problem. The fragment-resolving and hashtag wrappers are the ones to watch, because key lookups are exactly what load a fragmented URL. When reviewing any wrapper in this family, grep for `.Load([^)]*options)` without the `...`; that pattern is almost always a bug.
 
+## Carpool riders get copies, and options load alone
+
+- **Every caller that shares a Carpool Load gets its own `Clone()`, rebound to its own root client.** A `streams.Document` carries the client stack that produced it, so handing one document to every rider would make follow-up loads sign as the first caller, and would share live maps between goroutines (see the `Map()` rule above).
+- **The grouping key is the signer plus the URL.** A remote server can refuse one signer and answer another, so a Load signed as Alice must never be handed to Bob, even though the cache below may later serve Alice's copy to Bob. Pass the identity the stack actually signs as.
+- **A Load with any options never joins another.** Options are opaque `any` values, so `WithWriteOnly` joining a plain read would receive a cached copy, which is the stale-key failure described above. Keep the bypass when adding options.
+- **A Carpool is shared by every stack in a process, and covers only that process.** Build one at startup and pass it in. Several servers each have their own, so it reduces duplicate work but cannot make concurrent writes safe.
+
 ## Reading text: String() and HTMLString() both sanitize
 
 `Document.String()` runs bluemonday `StrictPolicy` (strips ALL HTML) then unescapes entities; `HTMLString()` runs `UGCPolicy`. Both policies are built once and shared by every Document ([sanitize.go](streams/sanitize.go)), because building one per call cost up to 2,000 allocations per accessor; never call `AllowAttrs` or any other mutator on them — a caller that needs different rules builds its own policy. The unsanitized string is only reachable via the unexported `rawString` or the raw `Value()`. Federated content must go through one of the sanitizing accessors — never add an exported raw-string accessor.
