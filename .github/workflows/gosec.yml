@@ -1,4 +1,4 @@
-name: Nilaway
+name: Gosec
 permissions:
   contents: read
 
@@ -13,23 +13,21 @@ env:
 
 jobs:
 
-  nilaway:
+  gosec:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
         go-version-file: go.mod
 
-    # Pin nilaway to an explicit version (it publishes only pseudo-versions,
-    # no semver tags) so the installed tool is predictable, not @latest.
-    - name: Install NilAway
-      run: go install go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260918162853-acb8859b9031
+    - name: Install Gosec
+      run: go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
 
-    - name: Nil panic checks
-      run: nilaway ./...
+    # Suppressions live inline as `// #nosec <rule> -- <reason>`, never in a config file, so
+    # the justification sits beside the code a reviewer is reading.  See go-hardening.
+    - name: Security lint
+      run: gosec ./...
