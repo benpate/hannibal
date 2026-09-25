@@ -17,7 +17,7 @@ const EndpointOAuthAuthorization = "oauthAuthorizationEndpoint"
 
 // EndpointOAuthToken is the "oauthTokenEndpoint" endpoint property.
 // https://www.w3.org/TR/activitypub/#oauthTokenEndpoint
-const EndpointOAuthToken = "oauthTokenEndpoint"
+const EndpointOAuthToken = "oauthTokenEndpoint" // #nosec G101 -- a JSON-LD property name, not a credential
 
 // EndpointOAuthMigration is the "oauthMigrationEndpoint" endpoint property.
 // Proposed account migration extension
