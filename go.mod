@@ -6,7 +6,7 @@ require (
 	github.com/benpate/derp v0.43.0
 	github.com/benpate/re v0.6.0
 	github.com/benpate/remote v0.25.0
-	github.com/benpate/rosetta v0.40.0
+	github.com/benpate/rosetta v0.42.0
 	github.com/benpate/turbine v0.10.0
 	github.com/benpate/uri v0.7.0
 	github.com/labstack/echo/v4 v4.15.4
