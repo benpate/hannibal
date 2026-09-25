@@ -4,9 +4,14 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	"io"
 	"iter"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -202,4 +207,124 @@ func TestSignRequest(t *testing.T) {
 	t.Cleanup(func() { _ = response.Body.Close() })
 
 	assert.True(t, verified.Load(), "the signed request must verify against the signing key")
+}
+
+// capturedRequest records what a test inbox received
+type capturedRequest struct {
+	mu       sync.Mutex
+	count    int
+	body     []byte
+	digest   string
+	verified bool
+}
+
+// captureInbox starts a local inbox that records each request's body and digest, and verifies its signature
+func captureInbox(t *testing.T, sender Sender) (*httptest.Server, *capturedRequest) {
+	t.Helper()
+
+	publicKeyPEM := sigs.EncodePublicPEM(sender.locator.(keyedLocator).actor.privateKey.(*rsa.PrivateKey))
+	captured := &capturedRequest{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Verify the signature (which also checks the digest) before the body is read
+		_, verifyErr := sigs.Verify(r, func(string) (string, error) { return publicKeyPEM, nil })
+		body, readErr := io.ReadAll(r.Body)
+
+		captured.mu.Lock()
+		captured.count++
+		captured.body = body
+		captured.digest = r.Header.Get("Digest")
+		captured.verified = (verifyErr == nil) && (readErr == nil)
+		captured.mu.Unlock()
+
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(server.Close)
+
+	return server, captured
+}
+
+// sha256Digest returns the Digest header value for the provided body
+func sha256Digest(body []byte) string {
+	sum := sha256.Sum256(body)
+	return "SHA-256=" + base64.StdEncoding.EncodeToString(sum[:])
+}
+
+// TestSendToSingleRecipient_Body confirms a serialized body is POSTed byte-for-byte, with a matching digest and signature
+func TestSendToSingleRecipient_Body(t *testing.T) {
+
+	sender, actorID := newKeyedSender(t)
+	server, captured := captureInbox(t, sender)
+
+	// Deliberately not in the order json.Marshal would produce, so a re-serialization would show
+	body := `{"type":"Create","actor":"` + actorID + `","id":"https://example.com/1"}`
+
+	result := sender.SendToSingleRecipient(mapof.Any{
+		"actor": actorID,
+		"inbox": server.URL,
+		"body":  body,
+	})
+
+	require.Equal(t, queue.ResultStatusSuccess, result.Status)
+	assert.Equal(t, body, string(captured.body), "the body must be sent exactly as queued")
+	assert.Equal(t, sha256Digest([]byte(body)), captured.digest, "the digest must cover the exact bytes sent")
+	assert.True(t, captured.verified, "the signature must verify against the sent request")
+}
+
+// TestSendToSingleRecipient_LegacyActivity confirms a task queued before "body" existed still serializes its activity
+func TestSendToSingleRecipient_LegacyActivity(t *testing.T) {
+
+	sender, actorID := newKeyedSender(t)
+	server, captured := captureInbox(t, sender)
+
+	activity := mapof.Any{"type": "Create", "actor": actorID}
+
+	result := sender.SendToSingleRecipient(mapof.Any{
+		"actor":    actorID,
+		"inbox":    server.URL,
+		"activity": activity,
+	})
+
+	require.Equal(t, queue.ResultStatusSuccess, result.Status)
+
+	expected, err := json.Marshal(activity)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(expected), string(captured.body))
+	assert.Equal(t, sha256Digest(captured.body), captured.digest)
+	assert.True(t, captured.verified)
+}
+
+// TestSendToSingleRecipient_BodyWins confirms the body is sent when a task carries both a body and an activity
+func TestSendToSingleRecipient_BodyWins(t *testing.T) {
+
+	sender, actorID := newKeyedSender(t)
+	server, captured := captureInbox(t, sender)
+
+	body := `{"type":"Create","actor":"` + actorID + `"}`
+
+	result := sender.SendToSingleRecipient(mapof.Any{
+		"actor":    actorID,
+		"inbox":    server.URL,
+		"body":     body,
+		"activity": mapof.Any{"type": "Delete", "actor": actorID},
+	})
+
+	require.Equal(t, queue.ResultStatusSuccess, result.Status)
+	assert.Equal(t, body, string(captured.body))
+}
+
+// TestSendToSingleRecipient_NothingToSend confirms a task with neither a body nor an activity fails without POSTing
+func TestSendToSingleRecipient_NothingToSend(t *testing.T) {
+
+	sender, actorID := newKeyedSender(t)
+	server, captured := captureInbox(t, sender)
+
+	result := sender.SendToSingleRecipient(mapof.Any{
+		"actor": actorID,
+		"inbox": server.URL,
+	})
+
+	assert.Equal(t, queue.ResultStatusFailure, result.Status)
+	assert.Zero(t, captured.count, "nothing may be sent to the recipient")
 }

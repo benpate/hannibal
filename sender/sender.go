@@ -5,6 +5,8 @@
 package sender
 
 import (
+	"encoding/json"
+
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/vocab"
 	"github.com/benpate/remote"
@@ -115,6 +117,15 @@ func (sender *Sender) SendToAllRecipients(activity mapof.Any) queue.Result {
 	activity.Remove(vocab.PropertyBCC)
 	activity.Remove(vocab.PropertyBTo)
 
+	// Serialize the activity once, so every recipient's task shares the same string
+	serialized, err := json.Marshal(activity)
+
+	if err != nil {
+		return queue.Failure(derp.Wrap(err, location, "Unable to serialize outbound activity"))
+	}
+
+	body := string(serialized)
+
 	// Enqueue additional tasks to send this Activity to each recipient's inboxURL
 	for recipient := range recipients {
 
@@ -126,9 +137,9 @@ func (sender *Sender) SendToAllRecipients(activity mapof.Any) queue.Result {
 		log.Debug().Str("actorID", actorID).Str("recipient", recipient).Msg("Queueing outbound activity")
 
 		task := queue.NewTask(OutboxSendToSingleRecipient, mapof.Any{
-			"actor":    actor.ActorID(),
-			"inbox":    recipient,
-			"activity": activity,
+			"actor": actor.ActorID(),
+			"inbox": recipient,
+			"body":  body,
 		})
 
 		if err := sender.queue.Publish(task); err != nil {
@@ -148,7 +159,6 @@ func (sender *Sender) SendToSingleRecipient(args mapof.Any) queue.Result {
 	// Collect arguments
 	actorID := convert.String(args["actor"])
 	inboxURL := convert.String(args["inbox"])
-	activity := convert.MapOfAny(args["activity"])
 
 	log.Debug().Str("actorID", actorID).Str("inboxURL", inboxURL).Msg("Sending outbound activity")
 
@@ -163,8 +173,12 @@ func (sender *Sender) SendToSingleRecipient(args mapof.Any) queue.Result {
 	transaction := remote.Post(inboxURL).
 		Accept(vocab.ContentTypeActivityPub).
 		ContentType(vocab.ContentTypeActivityPub).
-		With(signRequest(actor.PrivateKey())).
-		JSON(activity)
+		With(signRequest(actor.PrivateKey()))
+
+	// RULE: A task must carry something to deliver, either as "body" or as a legacy "activity"
+	if !withRequestBody(transaction, args) {
+		return queue.Failure(derp.Internal(location, "Task has neither a body nor an activity to send", "inboxURL: "+inboxURL))
+	}
 
 	// RULE: By default, remote refuses to connect to non-public (private/loopback)
 	// addresses to guard against SSRF. sender.allowPrivateIPs stays FALSE in production;
@@ -197,4 +211,25 @@ func (sender *Sender) SendToSingleRecipient(args mapof.Any) queue.Result {
 
 	// No error means the transaction was successful.  Woot woot!
 	return queue.Success()
+}
+
+// withRequestBody sets the transaction's body from the task arguments,
+// returning FALSE when the task carries nothing to send.
+func withRequestBody(transaction *remote.Transaction, args mapof.Any) bool {
+
+	// Send the pre-serialized body exactly as the producer wrote it
+	if body := convert.String(args["body"]); body != "" {
+		transaction.Body(body)
+		return true
+	}
+
+	// Tasks queued before the "body" argument existed carry the activity map instead
+	activity := convert.MapOfAny(args["activity"])
+
+	if len(activity) == 0 {
+		return false
+	}
+
+	transaction.JSON(activity)
+	return true
 }

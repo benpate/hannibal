@@ -1,6 +1,7 @@
 package sender
 
 import (
+	"encoding/json"
 	"iter"
 	"sync"
 	"testing"
@@ -143,11 +144,40 @@ func TestSendToAllRecipients_StripsBccBto(t *testing.T) {
 	result := sender.SendToAllRecipients(activity)
 	require.Equal(t, queue.ResultStatusSuccess, result.Status)
 
-	// Inspect the enqueued activity -- BCC/BTo must be gone.
+	// Inspect the enqueued body -- BCC/BTo must be gone.
 	require.NotEmpty(t, recorder.tasks)
-	sentActivity := recorder.tasks[0].Arguments.GetMap("activity")
+	sentActivity := mapof.NewAny()
+	require.NoError(t, json.Unmarshal([]byte(recorder.tasks[0].Arguments.GetString("body")), &sentActivity))
+	assert.Equal(t, "https://test.actor.social", sentActivity.GetString(vocab.PropertyActor))
 	assert.NotContains(t, sentActivity, vocab.PropertyBCC)
 	assert.NotContains(t, sentActivity, vocab.PropertyBTo)
+}
+
+// TestSendToAllRecipients_Body confirms every recipient's task carries the same serialized body, and no activity map.
+func TestSendToAllRecipients_Body(t *testing.T) {
+
+	q, recorder := newRecordingQueue()
+	sender := New(testLocator{}, q)
+
+	activity := mapof.Any{
+		vocab.PropertyActor: "https://test.actor.social",
+		vocab.PropertyType:  vocab.ActivityTypeCreate,
+		// "followers" resolves to three distinct inbox URLs via testLocator.
+		vocab.PropertyTo: "https://test.actor.social/followers",
+	}
+
+	result := sender.SendToAllRecipients(activity)
+	require.Equal(t, queue.ResultStatusSuccess, result.Status)
+	require.Len(t, recorder.tasks, 3)
+
+	// Every task carries the same bytes, which decode back to the activity
+	expected, err := json.Marshal(activity)
+	require.NoError(t, err)
+
+	for _, task := range recorder.tasks {
+		assert.Equal(t, string(expected), task.Arguments.GetString("body"))
+		assert.NotContains(t, task.Arguments, "activity")
+	}
 }
 
 // TestSendToAllRecipients_ActorNotFound confirms an unknown sending actor yields
