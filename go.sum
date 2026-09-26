@@ -1,7 +1,7 @@
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
-github.com/benpate/derp v0.43.0 h1:gWILwEoxyV/Ox+8TB0SPVd1fFWswWZvySNKlTdSwGrs=
-github.com/benpate/derp v0.43.0/go.mod h1:S+BfAuBBh12eVaAGCQhut2w1i5aQQdWOmKQo40IgqjM=
+github.com/benpate/derp v0.44.0 h1:BEu0hEBBxqFJI/Gv/4McsDYaWJunj5ujVTOvU3FUQDM=
+github.com/benpate/derp v0.44.0/go.mod h1:S+BfAuBBh12eVaAGCQhut2w1i5aQQdWOmKQo40IgqjM=
 github.com/benpate/exp v0.11.0 h1:jqYbvPzpzQalPHULcv/3jeDwLHPFZ/2WCNBsDtWbr0E=
 github.com/benpate/exp v0.11.0/go.mod h1:q7Dxl2If5y3jK4qbpxQ/mw7QUF6Hih24KiarA/Nch3w=
 github.com/benpate/re v0.6.0 h1:njGUGsocHAI+csR9uIZhlFHcXbhJvwUQHMZbXyiJ0IQ=
@@ -10,10 +10,10 @@ github.com/benpate/remote v0.25.0 h1:aWljgEAoOtWbE9gf5b1CqNhdBzzRbMUPftYZ3k/D18k
 github.com/benpate/remote v0.25.0/go.mod h1:lRVk9/bYRsrgAWFNubiuuBQiuh/RGVxkIR7v6wB+9zw=
 github.com/benpate/rosetta v0.42.0 h1:NoGUqcwZ111/+mZHDAFUaRWCyix3se8YTUu4Mz+fWR0=
 github.com/benpate/rosetta v0.42.0/go.mod h1:h3hUfcvQG7xDEH54ehE3tgFWN1reWNCp3/vM7dsWJT8=
-github.com/benpate/turbine v0.10.0 h1:YScU7l8mSQRtMIEfGrUyj02f37aIfrahqsnKXJ35Nbs=
-github.com/benpate/turbine v0.10.0/go.mod h1:hW7ruwphfnYsZq0fVTH7M5kVvZfA/5xVIwJVK8RXRkI=
-github.com/benpate/uri v0.7.0 h1:IwUIIqVJmFGWoQZl6czpRLV9GzKj/n2D/qWFezOaZbc=
-github.com/benpate/uri v0.7.0/go.mod h1:tlRTl+cKSK7cQkB4OkUDDiOsnYZ7dS7FzaVCJ6DOzrQ=
+github.com/benpate/turbine v0.11.0 h1:iTRWuC7ptM063Bv34ub/ND4IBFC9YKFRansOAZE/doA=
+github.com/benpate/turbine v0.11.0/go.mod h1:hW7ruwphfnYsZq0fVTH7M5kVvZfA/5xVIwJVK8RXRkI=
+github.com/benpate/uri v0.8.0 h1:/YAuU7EsUR3AJGu/4Ol3CsCuNia88ghgRnQiF6bAIWA=
+github.com/benpate/uri v0.8.0/go.mod h1:tlRTl+cKSK7cQkB4OkUDDiOsnYZ7dS7FzaVCJ6DOzrQ=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gorilla/css v1.0.1 h1:ntNaBIghp6JmvWnxbZKANoLyuXTPZ4cAMlo6RyhlbO8=
