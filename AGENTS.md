@@ -14,7 +14,7 @@ Hannibal is a Go ActivityPub library, layered roughly like the spec itself: [str
 
 ## Property access can silently hit the network
 
-`Document.Get(key)` on a string-valued document treats the string as a document ID and LOADS it over HTTP through the injected `streams.Client` for every key except `id`. Innocent-looking accessor chains like `activity.Object().AttributedTo().Name()` can therefore perform remote fetches. `RangeInReplyTo` loads the parent document inside the iterator, and the `DeletedObject` validator issues a GET during inbound validation. Always inject a caching client (`streams.WithClient`) where repeated access is possible; stacked clients must have `SetRootClient` wired so recursive loads re-enter the top of the stack.
+`Document.Get(key)` on a string-valued document treats the string as a document ID and LOADS it over HTTP through the injected `streams.Client` for every key except `id`. Innocent-looking accessor chains like `activity.Object().AttributedTo().Name()` can therefore perform remote fetches. `RangeInReplyTo` loads the parent document inside the iterator, and the `DeletedObject` validator issues a GET during inbound validation. Always inject a caching client (`streams.WithClient`) where repeated access is possible; stacked clients must have `SetRootClient` wired so recursive loads re-enter the top of the stack. A string is loaded only when `uri.IsValidURL` accepts it, and it rejects `https://remote.example/…` while accepting `https://example.com/…`, so a test that counts hidden loads must use a host it accepts, or its count can never fail.
 
 ## A client wrapper that re-loads a different URL MUST spread its options
 
@@ -28,6 +28,17 @@ This cost hours once. Inbox signature verification failed with `crypto/rsa: veri
 - **The grouping key is the signer plus the URL.** A remote server can refuse one signer and answer another, so a Load signed as Alice must never be handed to Bob, even though the cache below may later serve Alice's copy to Bob. Pass the identity the stack actually signs as.
 - **A Load with any options never joins another.** Options are opaque `any` values, so `WithWriteOnly` joining a plain read would receive a cached copy, which is the stale-key failure described above. Keep the bypass when adding options.
 - **A Carpool is shared by every stack in a process, and covers only that process.** Build one at startup and pass it in. Several servers each have their own, so it reduces duplicate work but cannot make concurrent writes safe.
+
+## OptionsClient carries options into the loads a document makes on its own
+
+`streams.NewOptionsClient(inner, options...)` is how options reach hidden loads. Bind a document to it with `WithClient`, and every getter that loads a bare-URL value, and every document those loads return, carries the options, because `Load` rebinds each result to the client. Binding decides which loads use it; `SetRootClient` does not. Four rules keep it safe:
+
+- **The constructor never calls `inner.SetRootClient`.** Every stack layer's `New` does, but a binding usually wraps the top of a stack that is already serving other loads, and re-rooting it would send all of them through one document's options.
+- **`SetRootClient` passes the call on, like every other layer.** Used as a layer inside a stack, an `OptionsClient` that swallowed it would leave the layers below with an older root, and documents they return would load around the cache, the rules, and the Carpool.
+- **Never build a new layer on top of a document's binding.** That layer's constructor would call `SetRootClient` on the binding, which would pass it into the live stack.
+- **Options are combined with `slices.Concat`, never `append`.** Every document bound to one client shares its slice, and an append writes into spare capacity that concurrent loads also use. `TestOptionsClient_ConcurrentLoadsDoNotShareOptions` catches it under `-race`.
+
+Anything bound through it skips the Carpool: its options make every load carry options, and a Load with options loads alone (above). Emissary's normalizer relies on that to keep nested loads from waiting on their own leader.
 
 ## Reading text: String() and HTMLString() both sanitize
 
