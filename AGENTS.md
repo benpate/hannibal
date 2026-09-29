@@ -42,7 +42,7 @@ Anything bound through it skips the Carpool: its options make every load carry o
 
 ## Metadata.NoStore is internal policy, and only server code may set it
 
-`metadata.Metadata.NoStore` tells every cache never to write the document. It is set by code, never by data: like `Labels`, it carries `bson:"-" json:"-"`, so no stored copy and no remote document can set it, and `TestDocument_UnmarshalJSON_CannotSetNoStore` pins that. Never serialize it or read it from a document's value, because a remote that could set it could keep its own documents out of every cache, which defeats cooldowns that need a cached copy. It is unrelated to the `Cache-Control` header.
+`metadata.Metadata.NoStore` tells every cache never to write the document. It is set by code, never by data: like `Labels`, it carries `bson:"-" json:"-"`, so no stored copy and no remote document can set it, and `TestDocument_UnmarshalJSON_CannotSetNoStore` pins that. Never serialize it or read it from a document's value, because a remote that could set it could keep its own documents out of every cache, which defeats cooldowns that need a cached copy. It is unrelated to the `Cache-Control` header. Set it with `streams.WithNoStore()`, and apply that after any `WithMetadata`: `WithMetadata` replaces all of a document's metadata, so it silently drops `NoStore`, `WithLabels`, `WithRelation`, or `WithDocumentCategory` applied before it (`TestWithMetadata_ReplacesFieldOptions` pins the order).
 
 ## Reading text: String() and HTMLString() both sanitize
 

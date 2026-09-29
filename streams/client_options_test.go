@@ -1,6 +1,7 @@
 package streams
 
 import (
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -87,6 +88,33 @@ func TestOptionsClient_ImplicitLoadsCarryOptions(t *testing.T) {
 	require.Equal(t, []any{"bound"}, inner.optionsFor("https://example.com/alice/header"))
 }
 
+// TestOptionsClient_SelfReferenceDoesNotAccumulate confirms that a document naming itself, walked
+// many times through its own getters, neither piles up options nor nests another client per hop.
+func TestOptionsClient_SelfReferenceDoesNotAccumulate(t *testing.T) {
+
+	const url = "https://example.com/loop"
+
+	inner := newRecordingClient()
+	inner.documents[url] = map[string]any{
+		vocab.PropertyID:           url,
+		vocab.PropertyType:         vocab.ObjectTypeNote,
+		vocab.PropertyAttributedTo: url,
+	}
+
+	client := NewOptionsClient(inner, "bound")
+
+	document, err := client.Load(url)
+	require.NoError(t, err)
+
+	for range 1000 {
+		document = document.AttributedTo()
+	}
+
+	require.Equal(t, url, document.ID())
+	require.Equal(t, []any{"bound"}, inner.optionsFor(url))
+	require.Equal(t, client, document.Client())
+}
+
 // TestOptionsClient_StackedClients confirms that wrapping one OptionsClient in another passes both
 // sets of options, the inner client's first, and binds results to the outer client.
 func TestOptionsClient_StackedClients(t *testing.T) {
@@ -132,7 +160,7 @@ func TestOptionsClient_ConcurrentLoadsDoNotShareOptions(t *testing.T) {
 
 	for index := range 50 {
 		done.Go(func() {
-			url := "https://example.com/note/" + string(rune('A'+index))
+			url := "https://example.com/note/" + strconv.Itoa(index)
 			_, err := client.Load(url, url)
 			assert.NoError(t, err)
 		})
@@ -141,7 +169,7 @@ func TestOptionsClient_ConcurrentLoadsDoNotShareOptions(t *testing.T) {
 	done.Wait()
 
 	for index := range 50 {
-		url := "https://example.com/note/" + string(rune('A'+index))
+		url := "https://example.com/note/" + strconv.Itoa(index)
 		require.Equal(t, []any{"bound", url}, inner.optionsFor(url))
 	}
 }
