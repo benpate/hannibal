@@ -1,10 +1,14 @@
 package metadata
 
 import (
+	"encoding/json"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/benpate/hannibal/vocab"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestMetadata_IsRuleHidden confirms the Metadata delegate reflects its LabelSet, and that a
@@ -31,6 +35,29 @@ func TestMetadata_Clone(t *testing.T) {
 	// Writing through the clone must not reach the original.
 	clone.Labels[0].Value = "changed"
 	assert.Equal(t, "Muted", original.Labels[0].Value)
+}
+
+// TestMetadata_Clone_KeepsNoStore confirms that a clone carries the NoStore policy.
+func TestMetadata_Clone_KeepsNoStore(t *testing.T) {
+	assert.True(t, Metadata{NoStore: true}.Clone().NoStore)
+}
+
+// TestMetadata_NoStore_NeverSerialized confirms that NoStore is left out of JSON and BSON, so no
+// stored copy or remote document can carry it.
+func TestMetadata_NoStore_NeverSerialized(t *testing.T) {
+
+	field, found := reflect.TypeFor[Metadata]().FieldByName("NoStore")
+	require.True(t, found)
+	assert.Equal(t, "-", field.Tag.Get("bson"))
+	assert.Equal(t, "-", field.Tag.Get("json"))
+
+	encoded, err := json.Marshal(Metadata{NoStore: true})
+	require.NoError(t, err)
+	assert.NotContains(t, strings.ToLower(string(encoded)), "nostore")
+
+	var decoded Metadata
+	require.NoError(t, json.Unmarshal([]byte(`{"NoStore":true,"noStore":true}`), &decoded))
+	assert.False(t, decoded.NoStore)
 }
 
 // TestMetadata_HasCounts confirms each Has* predicate is true only when its

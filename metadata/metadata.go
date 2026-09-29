@@ -1,15 +1,15 @@
 // Package metadata carries server-computed metadata about ActivityStream documents -- knowledge
 // that is ABOUT a document but never part of its wire value. It holds two layers: document facts
 // (category, relationships, response counts), which are the same for every viewer and are persisted
-// alongside cached documents; and per-viewer moderation Labels, which are attached at load time and
-// never persisted or serialized.
+// alongside cached documents; and per-load values (moderation Labels, the NoStore policy), which are
+// attached at load time and never persisted or serialized.
 package metadata
 
 import "github.com/benpate/hannibal/vocab"
 
 // Metadata contains structured, server-computed metadata about a single document. Document facts
-// are shared by every viewer and persisted with the cached document. The Labels result is
-// per-viewer, attached at load time and never persisted or serialized.
+// are shared by every viewer and persisted with the cached document. Labels and NoStore are
+// per-load, attached at load time and never persisted or serialized.
 type Metadata struct {
 
 	// Document facts: identical for every viewer, persisted with the cached document.
@@ -28,6 +28,12 @@ type Metadata struct {
 	// JSON parser fills only the document value, never Metadata.
 
 	Labels LabelSet `bson:"-" json:"-"`
+
+	// NoStore is an internal policy, set only by server code: a document that carries it must never
+	// be written to any cache. Like Labels, it is never persisted or serialized, so no stored copy or
+	// remote document can carry it.
+
+	NoStore bool `bson:"-" json:"-"`
 }
 
 // New returns a fully initialized Metadata object.

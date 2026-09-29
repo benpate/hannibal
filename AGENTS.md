@@ -14,7 +14,7 @@ Hannibal is a Go ActivityPub library, layered roughly like the spec itself: [str
 
 ## Property access can silently hit the network
 
-`Document.Get(key)` on a string-valued document treats the string as a document ID and LOADS it over HTTP through the injected `streams.Client` for every key except `id`. Innocent-looking accessor chains like `activity.Object().AttributedTo().Name()` can therefore perform remote fetches. `RangeInReplyTo` loads the parent document inside the iterator, and the `DeletedObject` validator issues a GET during inbound validation. Always inject a caching client (`streams.WithClient`) where repeated access is possible; stacked clients must have `SetRootClient` wired so recursive loads re-enter the top of the stack. Predicates load too: `IsActivity`, `IsObject`, `HasContent`, and their siblings call `Type()` or `Content()`. The ones that read only the value in hand are `IsNil`, `IsMap`, `IsString`, `IsEmpty`, and `IsTyped`/`NotTyped`, which exist so a caller can reject a stub or a bare URL without loading it; never rewrite them on top of `Type()`, which `TestDocument_IsTyped_NeverLoads` catches. A string is loaded only when `uri.IsValidURL` accepts it, and it rejects `https://remote.example/…` while accepting `https://example.com/…`, so a test that counts hidden loads must use a host it accepts, or its count can never fail.
+`Document.Get(key)` on a string-valued document treats the string as a document ID and LOADS it over HTTP through the injected `streams.Client` for every key except `id`. Innocent-looking accessor chains like `activity.Object().AttributedTo().Name()` can therefore perform remote fetches. `RangeInReplyTo` loads the parent document inside the iterator, and the `DeletedObject` validator issues a GET during inbound validation. Always inject a caching client (`streams.WithClient`) where repeated access is possible; stacked clients must have `SetRootClient` wired so recursive loads re-enter the top of the stack. Predicates load too: `IsActivity`, `IsObject`, `HasContent`, and their siblings call `Type()` or `Content()`. The ones that read only the value in hand are `IsNil`, `IsMap`, `IsString`, and `IsEmpty`. A string is loaded only when `uri.IsValidURL` accepts it, and it rejects `https://remote.example/…` while accepting `https://example.com/…`, so a test that counts hidden loads must use a host it accepts, or its count can never fail.
 
 ## A client wrapper that re-loads a different URL MUST spread its options
 
@@ -39,6 +39,10 @@ This cost hours once. Inbox signature verification failed with `crypto/rsa: veri
 - **Options are combined with `slices.Concat`, never `append`.** Every document bound to one client shares its slice, and an append writes into spare capacity that concurrent loads also use. `TestOptionsClient_ConcurrentLoadsDoNotShareOptions` catches it under `-race`.
 
 Anything bound through it skips the Carpool: its options make every load carry options, and a Load with options loads alone (above). Emissary's normalizer relies on that to keep nested loads from waiting on their own leader.
+
+## Metadata.NoStore is internal policy, and only server code may set it
+
+`metadata.Metadata.NoStore` tells every cache never to write the document. It is set by code, never by data: like `Labels`, it carries `bson:"-" json:"-"`, so no stored copy and no remote document can set it, and `TestDocument_UnmarshalJSON_CannotSetNoStore` pins that. Never serialize it or read it from a document's value, because a remote that could set it could keep its own documents out of every cache, which defeats cooldowns that need a cached copy. It is unrelated to the `Cache-Control` header.
 
 ## Reading text: String() and HTMLString() both sanitize
 

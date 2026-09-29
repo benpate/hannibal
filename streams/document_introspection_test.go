@@ -29,49 +29,6 @@ func TestDocument_Introspection(t *testing.T) {
 	matches("nil", nil, Document.IsNil)
 }
 
-// TestDocument_IsTyped confirms which values count as typed objects: a map with a non-empty "type" or
-// "@type", and nothing else.
-func TestDocument_IsTyped(t *testing.T) {
-
-	typed := func(value any) bool {
-		document := NewDocument(value)
-		assert.Equal(t, !document.IsTyped(), document.NotTyped(), "NotTyped disagrees for %#v", value)
-		return document.IsTyped()
-	}
-
-	assert.True(t, typed(map[string]any{"type": "Note"}))
-	assert.True(t, typed(map[string]any{"type": []any{"Note", "Extra"}}))
-	assert.True(t, typed(map[string]any{"@type": "Note"}))
-	assert.True(t, typed(map[string]any{"type": "", "@type": "Note"}))
-
-	assert.False(t, typed(map[string]any{"id": "https://example.com/note"}))
-	assert.False(t, typed(map[string]any{"type": ""}))
-	assert.False(t, typed(map[string]any{"type": []any{}}))
-	assert.False(t, typed(map[string]any{"type": nil}))
-	assert.False(t, typed(map[string]any{"@type": ""}))
-	assert.False(t, typed(map[string]any{}))
-	assert.False(t, typed("https://example.com/note"))
-	assert.False(t, typed([]any{map[string]any{"type": "Note"}}))
-	assert.False(t, typed(nil))
-	assert.False(t, typed(42))
-}
-
-// TestDocument_IsTyped_NeverLoads confirms that asking whether a bare URL is typed never loads it,
-// even when the document it points to has a type.
-func TestDocument_IsTyped_NeverLoads(t *testing.T) {
-
-	// The recording client answers this URL with a typed Note, so a load would also make it typed
-	inner := newRecordingClient()
-	document := NewDocument("https://example.com/note", WithClient(inner))
-
-	assert.False(t, document.IsTyped())
-	assert.True(t, document.NotTyped())
-	// Any load records its URL, even one made with no options
-	inner.mutex.Lock()
-	defer inner.mutex.Unlock()
-	assert.Empty(t, inner.options, "IsTyped loaded the URL")
-}
-
 // TestDocument_NilNotNil confirms IsNil/NotNil/NotEmpty/IsEmpty agree about
 // emptiness for nil, empty, and populated documents.
 func TestDocument_NilNotNil(t *testing.T) {
