@@ -95,6 +95,30 @@ func (document Document) NotNil() bool {
 	return !document.IsNil()
 }
 
+// IsTyped returns TRUE if the document's own value is an object with a non-empty "type" or "@type".
+// It never loads anything, so a bare URL is not typed, whatever it points to.
+func (document Document) IsTyped() bool {
+
+	// RULE: Read the value in hand, never Type().  On a bare-URL string Type() loads the URL,
+	// and callers use this to decide what to do with a document without loading it (see AGENTS.md).
+	if !document.IsMap() {
+		return false
+	}
+
+	// Try the ActivityPub "type" property first, as Type() does
+	if !document.value.Get(vocab.PropertyType).IsNil() {
+		return true
+	}
+
+	// Then the JSON-LD "@type" property
+	return !document.value.Get(vocab.PropertyType_Alternate).IsNil()
+}
+
+// NotTyped returns TRUE if the document's own value is not an object with a non-empty "type" or "@type".
+func (document Document) NotTyped() bool {
+	return !document.IsTyped()
+}
+
 /******************************************
  * Getter Methods
  ******************************************/
