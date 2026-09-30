@@ -62,14 +62,28 @@ func (document Document) NotObject() bool {
 // (create, update, delete, etc); otherwise it returns the document itself.
 func (document Document) UnwrapActivity() Document {
 
-	// If this is an "Activity" type, the dig deeper into the object
-	// to find the actual document.
-	// This is recursive because it's possible to have a deep tree
-	// such as Announce > Create > Document. Looking at you, Lemmy...
+	// If this document is actually an "Activity" type, then dig deeper
+	// into its "object" property to find the actual object
 	if document.IsActivity() {
-		return document.Object().UnwrapActivity()
+
+		object := document.Object()
+
+		// If the inner object is also an activity, its ok to go
+		// one step deeper.  This accomodates situations like
+		// Lemmy, that sends an Announce > Create > Document
+		if object.IsActivity() {
+
+			// But DO NOT make this recursive. Unbounded crawling allows
+			// a malicious server to send an infinitely recursive object
+			// that can crash the server.
+			return object.Object()
+		}
+
+		// Order's up!
+		return object
 	}
 
+	// Here 'ya go.
 	return document
 }
 
