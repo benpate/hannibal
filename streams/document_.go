@@ -95,6 +95,15 @@ func (document Document) NotNil() bool {
 	return !document.IsNil()
 }
 
+// IsSameOrigin returns TRUE if this document's id shares an origin (scheme, host, and port) with the
+// given URL.  It compares the id, not the ActivityStreams "origin" property that Origin returns.
+func (document Document) IsSameOrigin(url string) bool {
+
+	// NOTE: An id with no origin, such as a missing id or a urn:uuid, matches nothing, so a caller
+	// can never be vouched for by a value that names no host.
+	return uri.IsSameOrigin(document.ID(), url)
+}
+
 /******************************************
  * Getter Methods
  ******************************************/

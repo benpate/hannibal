@@ -7,6 +7,7 @@ import (
 	"github.com/benpate/derp"
 	"github.com/benpate/hannibal/metadata"
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/uri"
 	"github.com/stretchr/testify/require"
 )
 
@@ -209,5 +210,28 @@ func FuzzOptionsClientLoad(f *testing.F) {
 		// ID() sanitizes its value as HTML, so compare the raw id the inner client returned
 		require.Equal(t, client, result.Client())
 		require.Equal(t, url, result.Get(vocab.PropertyID).rawString())
+	})
+}
+
+// FuzzDocumentIsSameOrigin confirms that IsSameOrigin never panics, never matches an id with no
+// origin, and gives the same answer with its two sides swapped.
+func FuzzDocumentIsSameOrigin(f *testing.F) {
+
+	f.Add("https://example.com/notes/1", "https://example.com/users/alice")
+	f.Add("https://example.com/notes/1", "https://evil.com/users/alice")
+	f.Add("urn:uuid:550e8400-e29b-41d4-a716-446655440000", "https://example.com/")
+	f.Add("https://user@example.com/a", "https://example.com/a")
+	f.Add("https://example.com<!-- -->/a", "https://example.com/a")
+	f.Add("", "")
+
+	f.Fuzz(func(t *testing.T, id string, url string) {
+
+		if !NewDocument(map[string]any{vocab.PropertyID: id}).IsSameOrigin(url) {
+			return
+		}
+
+		// A match needs an origin on both sides, and holds in either direction
+		require.NotEmpty(t, uri.Host(url))
+		require.True(t, NewDocument(map[string]any{vocab.PropertyID: url}).IsSameOrigin(NewDocument(map[string]any{vocab.PropertyID: id}).ID()))
 	})
 }
