@@ -58,8 +58,8 @@ func (document Document) NotObject() bool {
 	return !document.IsObject()
 }
 
-// UnwrapActivity returns the activity's Object if this document is an activity
-// (create, update, delete, etc); otherwise it returns the document itself.
+// UnwrapActivity returns the object inside an activity (create, update, announce, etc), looking
+// at most two activities deep. Any other document is returned as it is.
 func (document Document) UnwrapActivity() Document {
 
 	// If this document is actually an "Activity" type, then dig deeper
@@ -68,14 +68,12 @@ func (document Document) UnwrapActivity() Document {
 
 		object := document.Object()
 
-		// If the inner object is also an activity, its ok to go
-		// one step deeper.  This accomodates situations like
-		// Lemmy, that sends an Announce > Create > Document
+		// If the inner object is also an activity, it's OK to go one step deeper.
+		// This accommodates servers like Lemmy, which send Announce > Create > Page
 		if object.IsActivity() {
 
-			// But DO NOT make this recursive. Unbounded crawling allows
-			// a malicious server to send an infinitely recursive object
-			// that can crash the server.
+			// RULE: Never recurse. A remote server can send activities that contain
+			// themselves, and an unbounded walk would overflow the stack.
 			return object.Object()
 		}
 

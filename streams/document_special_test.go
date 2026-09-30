@@ -3,9 +3,12 @@ package streams
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/benpate/hannibal/vocab"
+	"github.com/benpate/rosetta/mapof"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestDocument_TypeDetection confirms the Is/Not type-category predicates and
@@ -57,11 +60,25 @@ func TestDocument_TypeDetection(t *testing.T) {
 	})
 }
 
-// TestDocument_UnwrapActivity confirms that nested activities are unwrapped down
-// to the innermost object, while a non-activity document is returned unchanged.
+// TestDocument_UnwrapActivity confirms that activities unwrap to the object inside them, at most
+// two activities deep, while a non-activity document is returned unchanged.
 func TestDocument_UnwrapActivity(t *testing.T) {
 
-	t.Run("nested activities unwrap to innermost object", func(t *testing.T) {
+	t.Run("an activity unwraps to its object", func(t *testing.T) {
+		doc := NewDocument(map[string]any{
+			vocab.PropertyType: vocab.ActivityTypeCreate,
+			vocab.PropertyObject: map[string]any{
+				vocab.PropertyType: vocab.ObjectTypeNote,
+				vocab.PropertyID:   "urn:note",
+			},
+		})
+
+		unwrapped := doc.UnwrapActivity()
+		assert.Equal(t, vocab.ObjectTypeNote, unwrapped.Type())
+		assert.Equal(t, "urn:note", unwrapped.ID())
+	})
+
+	t.Run("an Announce of a Create unwraps to the object", func(t *testing.T) {
 		// Announce > Create > Note, as produced by some servers (e.g. Lemmy).
 		doc := NewDocument(map[string]any{
 			vocab.PropertyType: vocab.ActivityTypeAnnounce,
@@ -79,6 +96,24 @@ func TestDocument_UnwrapActivity(t *testing.T) {
 		assert.Equal(t, "urn:note", unwrapped.ID())
 	})
 
+	t.Run("unwrapping stops two activities deep", func(t *testing.T) {
+		doc := NewDocument(map[string]any{
+			vocab.PropertyType: vocab.ActivityTypeAnnounce,
+			vocab.PropertyObject: map[string]any{
+				vocab.PropertyType: vocab.ActivityTypeUndo,
+				vocab.PropertyObject: map[string]any{
+					vocab.PropertyType:   vocab.ActivityTypeLike,
+					vocab.PropertyID:     "urn:like",
+					vocab.PropertyObject: "urn:note",
+				},
+			},
+		})
+
+		unwrapped := doc.UnwrapActivity()
+		assert.Equal(t, vocab.ActivityTypeLike, unwrapped.Type())
+		assert.Equal(t, "urn:like", unwrapped.ID())
+	})
+
 	t.Run("non-activity returns itself", func(t *testing.T) {
 		doc := NewDocument(map[string]any{
 			vocab.PropertyType: vocab.ObjectTypeNote,
@@ -86,6 +121,79 @@ func TestDocument_UnwrapActivity(t *testing.T) {
 		})
 		assert.Equal(t, "urn:note", doc.UnwrapActivity().ID())
 	})
+}
+
+// TestDocument_UnwrapActivity_Loaded confirms that activities loaded by URL unwrap the same way,
+// and that activities which contain themselves return instead of recursing.
+func TestDocument_UnwrapActivity_Loaded(t *testing.T) {
+
+	const (
+		announceURL = "https://social.example.com/activities/announce"
+		createURL   = "https://social.example.com/activities/create"
+		pageURL     = "https://social.example.com/pages/1"
+		selfURL     = "https://social.example.com/activities/self"
+		loopAURL    = "https://social.example.com/activities/a"
+		loopBURL    = "https://social.example.com/activities/b"
+		cycleURL    = "https://social.example.com/activities/cycle-announce"
+		cycleInner  = "https://social.example.com/activities/cycle-create"
+	)
+
+	client := testClient{data: mapof.Any{
+		announceURL: map[string]any{vocab.PropertyID: announceURL, vocab.PropertyType: vocab.ActivityTypeAnnounce, vocab.PropertyObject: createURL},
+		createURL:   map[string]any{vocab.PropertyID: createURL, vocab.PropertyType: vocab.ActivityTypeCreate, vocab.PropertyObject: pageURL},
+		pageURL:     map[string]any{vocab.PropertyID: pageURL, vocab.PropertyType: vocab.ObjectTypePage},
+		selfURL:     map[string]any{vocab.PropertyID: selfURL, vocab.PropertyType: vocab.ActivityTypeCreate, vocab.PropertyObject: selfURL},
+		loopAURL:    map[string]any{vocab.PropertyID: loopAURL, vocab.PropertyType: vocab.ActivityTypeCreate, vocab.PropertyObject: loopBURL},
+		loopBURL:    map[string]any{vocab.PropertyID: loopBURL, vocab.PropertyType: vocab.ActivityTypeCreate, vocab.PropertyObject: loopAURL},
+		cycleURL:    map[string]any{vocab.PropertyID: cycleURL, vocab.PropertyType: vocab.ActivityTypeAnnounce, vocab.PropertyObject: cycleInner},
+		cycleInner:  map[string]any{vocab.PropertyID: cycleInner, vocab.PropertyType: vocab.ActivityTypeCreate, vocab.PropertyObject: cycleURL},
+	}}
+
+	t.Run("an Announce of a Create unwraps to the object", func(t *testing.T) {
+		unwrapped := unwrapWithin(t, client, announceURL)
+		assert.Equal(t, pageURL, unwrapped.ID())
+		assert.Equal(t, vocab.ObjectTypePage, unwrapped.Type())
+	})
+
+	t.Run("a Create of itself returns its own URL", func(t *testing.T) {
+		unwrapped := unwrapWithin(t, client, selfURL)
+		assert.Equal(t, selfURL, unwrapped.Value())
+	})
+
+	t.Run("two Creates of each other return the first URL", func(t *testing.T) {
+		unwrapped := unwrapWithin(t, client, loopAURL)
+		assert.Equal(t, loopAURL, unwrapped.Value())
+	})
+
+	t.Run("an Announce of a Create of the Announce returns the Announce URL", func(t *testing.T) {
+		unwrapped := unwrapWithin(t, client, cycleURL)
+		assert.Equal(t, cycleURL, unwrapped.Value())
+	})
+}
+
+// unwrapWithin loads the document at a URL and unwraps it, failing the test if the unwrap
+// does not return within five seconds.
+func unwrapWithin(t *testing.T, client testClient, url string) Document {
+
+	t.Helper()
+
+	loaded, err := client.Load(url)
+	require.NoError(t, err)
+
+	done := make(chan Document, 1)
+
+	go func() {
+		done <- loaded.UnwrapActivity()
+	}()
+
+	select {
+	case result := <-done:
+		return result
+
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "UnwrapActivity did not return", url)
+		return NilDocument()
+	}
 }
 
 // TestDocument_ImageMetadata exercises the icon/image presence and dimension
